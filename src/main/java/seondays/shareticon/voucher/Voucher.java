@@ -38,4 +38,8 @@ public class Voucher {
     private String image;
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
+
+    public void saveImage(String image) {
+        this.image = image;
+    }
 }
