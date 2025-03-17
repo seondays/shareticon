@@ -43,4 +43,8 @@ public class Voucher {
     public void saveImage(String image) {
         this.image = image;
     }
+
+    public void changeStatus(VoucherStatus status) {
+        this.status = status;
+    }
 }
