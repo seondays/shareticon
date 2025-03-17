@@ -1,5 +1,7 @@
 package seondays.shareticon.voucher;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,7 @@ import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
 public class VoucherService {
@@ -88,6 +91,25 @@ public class VoucherService {
         voucherRepository.delete(voucher);
     }
 
+    /**
+     * 특정 그룹 내에 등록된 조회가능한 상태의 쿠폰을 전체 조회합니다.
+     *
+     * @param userId
+     * @param groupId
+     * @return
+     */
+    public List<VouchersResponse> getAllVoucher(String userId, Long groupId) {
+        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
+            throw new InvalidAccessVoucherException();
+        }
+
+        List<Voucher> allVoucher = voucherRepository.findAllByGroupIdAndStatusIn(
+                groupId, VoucherStatus.forDisplayVoucherStatus());
+
+        return allVoucher.stream()
+                .map(VouchersResponse::of)
+                .collect(Collectors.toList());
+    }
 
     /**
      * 등록된 쿠폰의 상태를 변경 처리합니다.

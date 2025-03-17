@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @RestController
 @RequestMapping("/voucher")
@@ -37,6 +38,13 @@ public class VoucherController {
             @PathVariable("groupId") Long groupId, @PathVariable("voucherId") Long voucherId) {
         voucherService.delete(userId, groupId, voucherId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{userId}/{groupId}")
+    public ResponseEntity<List<VouchersResponse>> getAllVoucherInGroup(
+            @PathVariable("userId") String userId, @PathVariable("groupId") Long groupId) {
+        List<VouchersResponse> response = voucherService.getAllVoucher(userId, groupId);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{userId}/{groupId}/{voucherId}")
