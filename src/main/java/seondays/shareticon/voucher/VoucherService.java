@@ -3,7 +3,9 @@ package seondays.shareticon.voucher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import seondays.shareticon.exception.ExpiredVoucherException;
 import seondays.shareticon.exception.GroupNotFoundException;
+import seondays.shareticon.exception.InvalidAccessVoucherException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.NoVoucherImageException;
 import seondays.shareticon.exception.UserNotFoundException;
@@ -84,6 +86,37 @@ public class VoucherService {
         }
 
         voucherRepository.delete(voucher);
+    }
+
+
+    /**
+     * 등록된 쿠폰의 상태를 변경 처리합니다.
+     * 사용가능 쿠폰인 경우 사용완료로, 사용완료 쿠폰인 경우 사용가능으로 변경됩니다.
+     * 만료 쿠폰에 변경을 시도하는 경우에는 예외가 발생합니다.
+     *
+     * @param userId
+     * @param groupId
+     * @param voucherId
+     */
+    @Transactional
+    public void changeVoucherStatus(String userId, Long groupId, Long voucherId) {
+        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
+            throw new InvalidAccessVoucherException();
+        }
+
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(VoucherNotFoundException::new);
+        VoucherStatus nowStatus = voucher.getStatus();
+
+        if (nowStatus.equals(VoucherStatus .EXPIRED)) {
+            throw new ExpiredVoucherException();
+        }
+
+        if (nowStatus.equals(VoucherStatus.AVAILABLE)) {
+            voucher.changeStatus(VoucherStatus.USED);
+        } else if (nowStatus.equals(VoucherStatus.USED)){
+            voucher.changeStatus(VoucherStatus.AVAILABLE);
+        }
     }
 
     /**

@@ -1,9 +1,12 @@
 package seondays.shareticon.voucher;
 
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +36,13 @@ public class VoucherController {
     public ResponseEntity<Void> deleteVoucher(@PathVariable("userId") String userId,
             @PathVariable("groupId") Long groupId, @PathVariable("voucherId") Long voucherId) {
         voucherService.delete(userId, groupId, voucherId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping("/{userId}/{groupId}/{voucherId}")
+    public ResponseEntity<Void> changeVoucherStatus(@PathVariable("userId") String userId,
+            @PathVariable("groupId") Long groupId, @PathVariable("voucherId") Long voucherId) {
+        voucherService.changeVoucherStatus(userId, groupId, voucherId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
