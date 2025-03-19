@@ -1,7 +1,8 @@
 package seondays.shareticon.voucher;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -98,17 +99,16 @@ public class VoucherService {
      * @param groupId
      * @return
      */
-    public List<VouchersResponse> getAllVoucher(String userId, Long groupId) {
+    public Slice<VouchersResponse> getAllVoucher(String userId, Long groupId, Long cursorId, int size) {
         if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
             throw new InvalidAccessVoucherException();
         }
 
-        List<Voucher> allVoucher = voucherRepository.findAllByGroupIdAndStatusIn(
-                groupId, VoucherStatus.forDisplayVoucherStatus());
+        Pageable pageable = PageRequest.of(0, size);
+        Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursor(groupId,
+                VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
 
-        return allVoucher.stream()
-                .map(VouchersResponse::of)
-                .collect(Collectors.toList());
+        return vouchers.map(VouchersResponse::of);
     }
 
     /**

@@ -1,6 +1,6 @@
 package seondays.shareticon.voucher;
 
-import java.util.List;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +41,12 @@ public class VoucherController {
     }
 
     @GetMapping(value = "/{userId}/{groupId}")
-    public ResponseEntity<List<VouchersResponse>> getAllVoucherInGroup(
-            @PathVariable("userId") String userId, @PathVariable("groupId") Long groupId) {
-        List<VouchersResponse> response = voucherService.getAllVoucher(userId, groupId);
+    public ResponseEntity<Slice<VouchersResponse>> getAllVoucherInGroup(
+            @PathVariable("userId") String userId, @PathVariable("groupId") Long groupId,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Slice<VouchersResponse> response = voucherService.getAllVoucher(userId, groupId,
+                cursorId, pageSize);
         return ResponseEntity.ok(response);
     }
 
