@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @RestController
-@RequestMapping("/voucher")
+@RequestMapping("/vouchers")
 public class VoucherController {
 
     private final VoucherService voucherService;
