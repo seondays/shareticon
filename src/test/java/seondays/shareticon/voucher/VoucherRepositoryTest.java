@@ -136,6 +136,26 @@ class VoucherRepositoryTest {
                 Comparator.comparing(Voucher::getId).reversed());
     }
 
+    @Test
+    @DisplayName("쿠폰이 존재하지 않을 때 조회하는 경우 예외 없이 빈 목록을 반환한다")
+    void getEmptyVoucher() {
+        //given
+        Group group = Group.builder()
+                .build();
+        groupRepository.save(group);
+
+        Pageable pageable = PageRequest.of(0, 2);
+
+        List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
+
+        //when
+        Slice<Voucher> resultPage = voucherRepository.findAllPageWithCursor(
+                group.getId(), voucherStatuses, null, pageable);
+
+        //then
+        assertThat(resultPage.getContent()).isEmpty();
+        assertThat(resultPage.hasNext()).isFalse();
+    }
 
 
     private static Voucher createVoucher(Group group, VoucherStatus status) {
