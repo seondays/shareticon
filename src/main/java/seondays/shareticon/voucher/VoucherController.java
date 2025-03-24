@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import seondays.shareticon.voucher.dto.UserGroupInformationRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @RestController
@@ -25,11 +27,11 @@ public class VoucherController {
         this.voucherService = voucherService;
     }
 
-    @PostMapping(value = "/{userId}/{groupId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> registerVoucher(@PathVariable("userId") String userId,
-            @PathVariable("groupId") Long groupId,
-            @RequestParam(name = "image") MultipartFile image) {
-        voucherService.register(userId, groupId, image);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> registerVoucher(
+            @RequestPart("request") UserGroupInformationRequest request,
+            @RequestPart("image") MultipartFile image) {
+        voucherService.register(request, image);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

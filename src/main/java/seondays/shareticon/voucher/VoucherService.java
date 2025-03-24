@@ -19,6 +19,7 @@ import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.voucher.dto.UserGroupInformationRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
@@ -43,12 +44,14 @@ public class VoucherService {
     /**
      * 새로운 쿠폰을 등록합니다
      *
-     * @param userId
-     * @param groupId
+     * @param request
      * @param image
      */
     @Transactional
-    public void register(String userId, Long groupId, MultipartFile image) {
+    public void register(UserGroupInformationRequest request, MultipartFile image) {
+        String userId = request.userId();
+        Long groupId = request.groupId();
+
         if (image == null || image.isEmpty()) {
             throw new NoVoucherImageException();
         }
