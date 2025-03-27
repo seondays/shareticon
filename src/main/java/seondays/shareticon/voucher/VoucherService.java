@@ -1,5 +1,6 @@
 package seondays.shareticon.voucher;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -23,6 +24,7 @@ import seondays.shareticon.voucher.dto.UserGroupInformationRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
+@RequiredArgsConstructor
 public class VoucherService {
 
     private final ImageService imageService;
@@ -30,16 +32,6 @@ public class VoucherService {
     private final GroupRepository groupRepository;
     private final VoucherRepository voucherRepository;
     private final UserGroupRepository userGroupRepository;
-
-    public VoucherService(ImageService imageService, UserRepository userRepository,
-            GroupRepository groupRepository, VoucherRepository voucherRepository,
-            UserGroupRepository userGroupRepository) {
-        this.imageService = imageService;
-        this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
-        this.voucherRepository = voucherRepository;
-        this.userGroupRepository = userGroupRepository;
-    }
 
     /**
      * 새로운 쿠폰을 등록합니다
