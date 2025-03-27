@@ -1,5 +1,6 @@
 package seondays.shareticon.voucher;
 
+import java.net.URI;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,11 +29,11 @@ public class VoucherController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> registerVoucher(
+    public ResponseEntity<VouchersResponse> registerVoucher(
             @RequestPart("request") UserGroupInformationRequest request,
             @RequestPart("image") MultipartFile image) {
-        voucherService.register(request, image);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        VouchersResponse response = voucherService.register(request, image);
+        return ResponseEntity.created(URI.create("/vouchers/" + response.id())).body(response);
     }
 
     @DeleteMapping(value = "/{userId}/{groupId}/{voucherId}")
