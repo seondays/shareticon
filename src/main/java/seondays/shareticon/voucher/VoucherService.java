@@ -64,7 +64,7 @@ public class VoucherService {
      * @return
      */
     private Voucher createVoucherWithImage(User user, Group group, MultipartFile image) {
-        Voucher voucher = Voucher.create(user, group);
+        Voucher voucher = Voucher.createAvailableStatus(user, group);
         voucherRepository.save(voucher);
 
         String imageUrl = imageService.uploadImage(image);

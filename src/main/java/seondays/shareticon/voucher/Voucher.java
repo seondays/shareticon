@@ -41,6 +41,14 @@ public class Voucher {
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
 
+    public static Voucher createAvailableStatus(User user, Group group) {
+        return Voucher.builder()
+                .user(user)
+                .group(group)
+                .status(VoucherStatus.AVAILABLE)
+                .build();
+    }
+
     public void saveImage(String image) {
         this.image = image;
     }
