@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
+import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
@@ -116,7 +118,8 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
+        assertThatThrownBy(
+                () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 IllegalVoucherImageException.class);
     }
 
@@ -140,7 +143,8 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
+        assertThatThrownBy(
+                () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 InvalidAccessVoucherException.class);
 
     }
@@ -163,7 +167,8 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, noExistUserId, mockImage)).isInstanceOf(
+        assertThatThrownBy(
+                () -> voucherService.register(request, noExistUserId, mockImage)).isInstanceOf(
                 UserNotFoundException.class);
 
     }
@@ -187,7 +192,8 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
+        assertThatThrownBy(
+                () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 GroupNotFoundException.class);
 
     }
@@ -216,12 +222,80 @@ class VoucherServiceTest {
         given(imageService.uploadImage(any()))
                 .willThrow(ImageUploadException.class);
 
-        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
+        assertThatThrownBy(
+                () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 ImageUploadException.class);
 
         List<Voucher> vouchers = voucherRepository.findAll();
         assertThat(vouchers).isEmpty();
 
+    }
+
+    @Test
+    @DisplayName("쿠폰을 등록한 사용자는 쿠폰을 삭제할 수 있다")
+    void deleteWithRegisterUser() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+        linkUserWithGroup(user, group);
+
+        Voucher voucher = Voucher.createAvailableStatus(user, group);
+        voucherRepository.save(voucher);
+
+        //when
+        voucherService.delete(user.getId(), group.getId(), voucher.getId());
+
+        //then
+        Optional<Voucher> result = voucherRepository.findById(voucher.getId());
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("쿠폰을 등록하지 않은 사람이 쿠폰을 삭제하면 예외가 발생한다")
+    void deleteVoucherWithNotRegisterUser() {
+        //given
+        User registerUser = User.builder().build();
+        User NotRegisterUser = User.builder().build();
+        userRepository.save(registerUser);
+        userRepository.save(NotRegisterUser);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+        linkUserWithGroup(registerUser, group);
+        linkUserWithGroup(NotRegisterUser, group);
+
+        Voucher voucher = Voucher.createAvailableStatus(registerUser, group);
+        voucherRepository.save(voucher);
+
+        //when //then
+        assertThatThrownBy(() ->
+                voucherService.delete(NotRegisterUser.getId(), group.getId(), voucher.getId()))
+                .isInstanceOf(InvalidVoucherDeleteException.class);
+    }
+
+    @Test
+    @DisplayName("그룹에 속해있지 않은 사용자가 쿠폰을 삭제하는 경우 예외가 발생한다")
+    void deleteVoucherWithUserNoExistInGroup() {
+        //given
+        User userExistInGroup = User.builder().build();
+        User userNoExistInGroup = User.builder().build();
+        userRepository.save(userExistInGroup);
+        userRepository.save(userNoExistInGroup);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+        linkUserWithGroup(userExistInGroup, group);
+
+        Voucher voucher = Voucher.createAvailableStatus(userExistInGroup, group);
+        voucherRepository.save(voucher);
+
+        //when //then
+        assertThatThrownBy(() ->
+                voucherService.delete(userNoExistInGroup.getId(), group.getId(), voucher.getId()))
+                .isInstanceOf(InvalidVoucherDeleteException.class);
     }
 
     private void linkUserWithGroup(User user, Group group) {
