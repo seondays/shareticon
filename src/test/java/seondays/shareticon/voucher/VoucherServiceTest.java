@@ -64,7 +64,7 @@ class VoucherServiceTest {
     void voucherRegisterWithImage() {
         //given
         User user = User.builder()
-                .id("user1")
+                .id(1L)
                 .build();
         Group group = Group.builder().inviteCode("123").build();
         userRepository.save(user);
@@ -102,7 +102,7 @@ class VoucherServiceTest {
     void voucherRegisterWithNoImage() {
         //given
         User user = User.builder()
-                .id("user1")
+                .id(1L)
                 .build();
         Group group = Group.builder().build();
         userRepository.save(user);
@@ -129,7 +129,7 @@ class VoucherServiceTest {
     void registerVoucherWithNoGroup() {
         //given
         User user = User.builder()
-                .id("user1")
+                .id(1L)
                 .build();
         Group group = Group.builder().build();
         userRepository.save(user);
@@ -158,7 +158,7 @@ class VoucherServiceTest {
         Group group = Group.builder().build();
         groupRepository.save(group);
 
-        String noExistUserId = "user1";
+        Long noExistUserId = 1L;
         UserGroupInformationRequest request = new UserGroupInformationRequest(noExistUserId,
                 group.getId());
 
@@ -180,7 +180,7 @@ class VoucherServiceTest {
     void registerVoucherWithNoExistUser() {
         //given
         User user = User.builder()
-                .id("user1")
+                .id(1L)
                 .build();
         userRepository.save(user);
 
@@ -206,7 +206,7 @@ class VoucherServiceTest {
     void registerVoucherWhenImageUploadFail() {
         //given
         User user = User.builder()
-                .id("user1")
+                .id(1L)
                 .build();
         Group group = Group.builder().build();
         userRepository.save(user);

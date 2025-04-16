@@ -41,7 +41,7 @@ public class VoucherService {
      */
     @Transactional
     public VouchersResponse register(UserGroupInformationRequest request, MultipartFile image) {
-        String userId = request.userId();
+        Long userId = request.userId();
         Long groupId = request.groupId();
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -81,7 +81,7 @@ public class VoucherService {
      * @param voucherId
      */
     @Transactional
-    public void delete(String userId, Long groupId, Long voucherId) {
+    public void delete(Long userId, Long groupId, Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);
 
@@ -89,9 +89,8 @@ public class VoucherService {
         if (!voucherUser.getId().equals(userId)) {
             throw new InvalidVoucherDeleteException();
         }
-        if (!validateUserAndVoucherInGroup(userId, groupId, voucherId)) {
-            throw new InvalidVoucherDeleteException();
-        }
+
+        validateUserAndVoucherInGroup(userId, groupId, voucherId);
 
         voucherRepository.delete(voucher);
     }
@@ -103,7 +102,7 @@ public class VoucherService {
      * @param groupId
      * @return
      */
-    public Slice<VouchersResponse> getAllVoucher(String userId, Long groupId, Long cursorId, int size) {
+    public Slice<VouchersResponse> getAllVoucher(Long userId, Long groupId, Long cursorId, int size) {
         if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
             throw new InvalidAccessVoucherException();
         }
@@ -125,7 +124,7 @@ public class VoucherService {
      * @param voucherId
      */
     @Transactional
-    public void changeVoucherStatus(String userId, Long groupId, Long voucherId) {
+    public void changeVoucherStatus(Long userId, Long groupId, Long voucherId) {
         if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
             throw new InvalidAccessVoucherException();
         }
@@ -153,7 +152,7 @@ public class VoucherService {
      * @param voucherId
      * @return
      */
-    private void validateUserAndVoucherInGroup(String userId, Long groupId, Long voucherId) {
+    private void validateUserAndVoucherInGroup(Long userId, Long groupId, Long voucherId) {
         if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
             throw new InvalidVoucherDeleteException();
         }
@@ -169,7 +168,7 @@ public class VoucherService {
      * @param groupId
      * @return
      */
-    private void validateUserInGroup(String userId, Long groupId) {
+    private void validateUserInGroup(Long userId, Long groupId) {
         if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
             throw new InvalidAccessVoucherException();
         }

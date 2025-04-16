@@ -37,7 +37,7 @@ public class VoucherController {
     }
 
     @DeleteMapping(value = "/{userId}/{groupId}/{voucherId}")
-    public ResponseEntity<Void> deleteVoucher(@PathVariable("userId") String userId,
+    public ResponseEntity<Void> deleteVoucher(@PathVariable("userId") Long userId,
             @PathVariable("groupId") Long groupId, @PathVariable("voucherId") Long voucherId) {
         voucherService.delete(userId, groupId, voucherId);
         return new ResponseEntity<>(HttpStatus.OK);
@@ -45,7 +45,7 @@ public class VoucherController {
 
     @GetMapping(value = "/{userId}/{groupId}")
     public ResponseEntity<Slice<VouchersResponse>> getAllVoucherInGroup(
-            @PathVariable("userId") String userId, @PathVariable("groupId") Long groupId,
+            @PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "10") int pageSize) {
         Slice<VouchersResponse> response = voucherService.getAllVoucher(userId, groupId,
@@ -54,7 +54,7 @@ public class VoucherController {
     }
 
     @PatchMapping("/{userId}/{groupId}/{voucherId}")
-    public ResponseEntity<Void> changeVoucherStatus(@PathVariable("userId") String userId,
+    public ResponseEntity<Void> changeVoucherStatus(@PathVariable("userId") Long userId,
             @PathVariable("groupId") Long groupId, @PathVariable("voucherId") Long voucherId) {
         voucherService.changeVoucherStatus(userId, groupId, voucherId);
         return new ResponseEntity<>(HttpStatus.OK);
