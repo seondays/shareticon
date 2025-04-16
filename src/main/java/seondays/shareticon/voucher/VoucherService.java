@@ -17,10 +17,11 @@ import seondays.shareticon.exception.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
+import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroupRepository;
-import seondays.shareticon.voucher.dto.UserGroupInformationRequest;
+import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
@@ -40,8 +41,7 @@ public class VoucherService {
      * @param image
      */
     @Transactional
-    public VouchersResponse register(UserGroupInformationRequest request, MultipartFile image) {
-        Long userId = request.userId();
+    public VouchersResponse register(CreateVoucherRequest request, Long userId, MultipartFile image) {
         Long groupId = request.groupId();
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);

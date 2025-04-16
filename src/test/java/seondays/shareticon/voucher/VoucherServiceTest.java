@@ -26,7 +26,7 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
-import seondays.shareticon.voucher.dto.UserGroupInformationRequest;
+import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @ActiveProfiles("test")
@@ -64,15 +64,13 @@ class VoucherServiceTest {
     void voucherRegisterWithImage() {
         //given
         User user = User.builder()
-                .id(1L)
                 .build();
         Group group = Group.builder().inviteCode("123").build();
         userRepository.save(user);
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        UserGroupInformationRequest request = new UserGroupInformationRequest(user.getId(),
-                group.getId());
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -85,14 +83,14 @@ class VoucherServiceTest {
         given(imageService.uploadImage(any()))
                 .willReturn("https://test/test.jpg");
 
-        VouchersResponse response = voucherService.register(request, mockImage);
+        VouchersResponse response = voucherService.register(request, user.getId(), mockImage);
 
         //then
         Voucher voucher = voucherRepository.findById(response.id())
                 .orElseThrow();
 
         assertThat(response).isNotNull();
-        assertThat(voucher.getUser().getId()).isEqualTo(request.userId());
+        assertThat(voucher.getUser().getId()).isEqualTo(user.getId());
         assertThat(voucher.getGroup().getId()).isEqualTo(request.groupId());
         assertThat(voucher.getImage()).isEqualTo("https://test/test.jpg");
     }
@@ -102,15 +100,13 @@ class VoucherServiceTest {
     void voucherRegisterWithNoImage() {
         //given
         User user = User.builder()
-                .id(1L)
                 .build();
         Group group = Group.builder().build();
         userRepository.save(user);
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        UserGroupInformationRequest request = new UserGroupInformationRequest(user.getId(),
-                group.getId());
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -120,7 +116,7 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, mockImage)).isInstanceOf(
+        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 IllegalVoucherImageException.class);
     }
 
@@ -129,14 +125,12 @@ class VoucherServiceTest {
     void registerVoucherWithNoGroup() {
         //given
         User user = User.builder()
-                .id(1L)
                 .build();
         Group group = Group.builder().build();
         userRepository.save(user);
         groupRepository.save(group);
 
-        UserGroupInformationRequest request = new UserGroupInformationRequest(user.getId(),
-                group.getId());
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -146,7 +140,7 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, mockImage)).isInstanceOf(
+        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 InvalidAccessVoucherException.class);
 
     }
@@ -159,8 +153,7 @@ class VoucherServiceTest {
         groupRepository.save(group);
 
         Long noExistUserId = 1L;
-        UserGroupInformationRequest request = new UserGroupInformationRequest(noExistUserId,
-                group.getId());
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -170,7 +163,7 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, mockImage)).isInstanceOf(
+        assertThatThrownBy(() -> voucherService.register(request, noExistUserId, mockImage)).isInstanceOf(
                 UserNotFoundException.class);
 
     }
@@ -180,13 +173,11 @@ class VoucherServiceTest {
     void registerVoucherWithNoExistUser() {
         //given
         User user = User.builder()
-                .id(1L)
                 .build();
         userRepository.save(user);
 
         Long noExistGroupId = 1L;
-        UserGroupInformationRequest request = new UserGroupInformationRequest(user.getId(),
-                noExistGroupId);
+        CreateVoucherRequest request = new CreateVoucherRequest(noExistGroupId);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -196,7 +187,7 @@ class VoucherServiceTest {
         );
 
         //when //then
-        assertThatThrownBy(() -> voucherService.register(request, mockImage)).isInstanceOf(
+        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 GroupNotFoundException.class);
 
     }
@@ -206,15 +197,13 @@ class VoucherServiceTest {
     void registerVoucherWhenImageUploadFail() {
         //given
         User user = User.builder()
-                .id(1L)
                 .build();
         Group group = Group.builder().build();
         userRepository.save(user);
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        UserGroupInformationRequest request = new UserGroupInformationRequest(user.getId(),
-                group.getId());
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -227,7 +216,7 @@ class VoucherServiceTest {
         given(imageService.uploadImage(any()))
                 .willThrow(ImageUploadException.class);
 
-        assertThatThrownBy(() -> voucherService.register(request, mockImage)).isInstanceOf(
+        assertThatThrownBy(() -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 ImageUploadException.class);
 
         List<Voucher> vouchers = voucherRepository.findAll();
