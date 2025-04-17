@@ -129,7 +129,7 @@ public class VoucherService {
                 .orElseThrow(VoucherNotFoundException::new);
         VoucherStatus nowStatus = voucher.getStatus();
 
-        if (nowStatus.equals(VoucherStatus .EXPIRED)) {
+        if (nowStatus.equals(VoucherStatus.EXPIRED)) {
             throw new ExpiredVoucherException();
         }
 
@@ -145,14 +145,14 @@ public class VoucherService {
      *
      * @param userId
      * @param groupId
-     * @param voucherId
+     * @param voucher
      * @return
      */
-    private void validateUserAndVoucherInGroup(Long userId, Long groupId, Long voucherId) {
+    private void validateUserAndVoucherInGroup(Long userId, Long groupId, Voucher voucher) {
         if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
             throw new InvalidVoucherDeleteException();
         }
-        if (!voucherId.equals(groupId)) {
+        if (!voucher.getGroup().getId().equals(groupId)) {
             throw new InvalidVoucherDeleteException();
         }
     }
