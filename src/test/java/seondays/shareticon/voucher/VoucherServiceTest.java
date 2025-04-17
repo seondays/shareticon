@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Slice;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -296,6 +297,54 @@ class VoucherServiceTest {
         assertThatThrownBy(() ->
                 voucherService.delete(userNoExistInGroup.getId(), group.getId(), voucher.getId()))
                 .isInstanceOf(InvalidVoucherDeleteException.class);
+    }
+
+    @Test
+    @DisplayName("그룹에 속해있는 사용자가 쿠폰을 조회하는 경우 전체 쿠폰 결과를 담은 slice를 반환한다")
+    void getAllVoucherWithUserExistInGroup() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+        linkUserWithGroup(user, group);
+
+        Voucher voucher1 = Voucher.createAvailableStatus(user, group);
+        Voucher voucher2 = Voucher.createAvailableStatus(user, group);
+        Voucher voucher3 = Voucher.createAvailableStatus(user, group);
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        //when
+        Slice<VouchersResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3);
+
+        //then
+        assertThat(allVoucher).isNotNull();
+        assertThat(allVoucher.getSize()).isEqualTo(3);
+        assertThat(allVoucher.getContent())
+                .extracting("id")
+                .contains(voucher3.getId(), voucher2.getId(), voucher1.getId());
+    }
+
+    @Test
+    @DisplayName("그룹에 속해있지 않은 사용자가 쿠폰을 조회하는 경우 예외가 발생한다")
+    void getAllVoucherWithNotExistInGroup() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+
+        Voucher voucher1 = Voucher.createAvailableStatus(user, group);
+        Voucher voucher2 = Voucher.createAvailableStatus(user, group);
+        Voucher voucher3 = Voucher.createAvailableStatus(user, group);
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        //when //then
+        assertThatThrownBy(() -> voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3)).isInstanceOf(InvalidAccessVoucherException.class);
     }
 
     private void linkUserWithGroup(User user, Group group) {
