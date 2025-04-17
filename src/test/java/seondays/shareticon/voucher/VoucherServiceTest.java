@@ -7,15 +7,19 @@ import static org.mockito.BDDMockito.given;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Slice;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
@@ -229,7 +233,6 @@ class VoucherServiceTest {
 
         List<Voucher> vouchers = voucherRepository.findAll();
         assertThat(vouchers).isEmpty();
-
     }
 
     @Test
@@ -345,6 +348,39 @@ class VoucherServiceTest {
         //when //then
         assertThatThrownBy(() -> voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3)).isInstanceOf(InvalidAccessVoucherException.class);
+    }
+
+    @TestFactory
+    @Transactional
+    @DisplayName("그룹에 속한 사용자는 그룹에 등록된 쿠폰의 상태를 변경 가능하다")
+    Stream<DynamicTest> changeVoucherStatusWithUserExistInGroup() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+        linkUserWithGroup(user, group);
+
+        Voucher voucher = Voucher.createAvailableStatus(user, group);
+        voucherRepository.save(voucher);
+
+        return Stream.of(
+                DynamicTest.dynamicTest("사용가능 상태인 쿠폰을 사용완료로 변경한다", () -> {
+                    //when
+                    voucherService.changeVoucherStatus(user.getId(), group.getId(), voucher.getId());
+
+                    //then
+                    assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.USED);
+                }),
+                DynamicTest.dynamicTest("사용완료 상태인 쿠폰을 사용가능으로 변경한다.", () -> {
+                    //when
+                    voucherService.changeVoucherStatus(user.getId(), group.getId(), voucher.getId());
+
+                    //then
+                    assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.AVAILABLE);
+                })
+        );
     }
 
     private void linkUserWithGroup(User user, Group group) {
