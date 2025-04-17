@@ -17,7 +17,6 @@ import seondays.shareticon.exception.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
-import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroupRepository;
@@ -108,7 +107,7 @@ public class VoucherService {
         }
 
         Pageable pageable = PageRequest.of(0, size);
-        Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursor(groupId,
+        Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursorByDesc(groupId,
                 VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
 
         return vouchers.map(VouchersResponse::of);

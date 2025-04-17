@@ -45,7 +45,7 @@ class VoucherRepositoryTest {
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
         //when
-        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursor(group.getId(),
+        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursorByDesc(group.getId(),
                 voucherStatuses, null, pageable);
 
         //then
@@ -77,13 +77,13 @@ class VoucherRepositoryTest {
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursor(
+        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursorByDesc(
                 group.getId(), voucherStatuses, null, pageable);
 
         Long cursor = firstPage.getContent().get(firstPage.getContent().size() - 1).getId();
 
         //when
-        Slice<Voucher> secondPage = voucherRepository.findAllPageWithCursor(group.getId(),
+        Slice<Voucher> secondPage = voucherRepository.findAllPageWithCursorByDesc(group.getId(),
                 voucherStatuses, cursor, pageable);
 
         //then
@@ -115,16 +115,16 @@ class VoucherRepositoryTest {
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursor(
+        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursorByDesc(
                 group.getId(), voucherStatuses, null, pageable);
         Long firstCursor = firstPage.getContent().get(firstPage.getContent().size() - 1).getId();
 
-        Slice<Voucher> secondPage = voucherRepository.findAllPageWithCursor(
+        Slice<Voucher> secondPage = voucherRepository.findAllPageWithCursorByDesc(
                 group.getId(), voucherStatuses, firstCursor, pageable);
         Long secondCursor = secondPage.getContent().get(secondPage.getContent().size() - 1).getId();
 
         //when
-        Slice<Voucher> lastPage = voucherRepository.findAllPageWithCursor(
+        Slice<Voucher> lastPage = voucherRepository.findAllPageWithCursorByDesc(
                 group.getId(), voucherStatuses, secondCursor, pageable);
 
         //then
@@ -149,7 +149,7 @@ class VoucherRepositoryTest {
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
         //when
-        Slice<Voucher> resultPage = voucherRepository.findAllPageWithCursor(
+        Slice<Voucher> resultPage = voucherRepository.findAllPageWithCursorByDesc(
                 group.getId(), voucherStatuses, null, pageable);
 
         //then

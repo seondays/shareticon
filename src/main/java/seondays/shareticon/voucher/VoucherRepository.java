@@ -18,7 +18,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
             and (:cursorId is null or v.id < :cursorId)
             order by v.id DESC
             """)
-    Slice<Voucher> findAllPageWithCursor(@Param("groupId") Long groupId,
+    Slice<Voucher> findAllPageWithCursorByDesc(@Param("groupId") Long groupId,
             @Param("voucherStatuses") List<VoucherStatus> voucherStatuses,
             @Param("cursorId") Long cursorId, Pageable pageable);
 }
