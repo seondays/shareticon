@@ -83,13 +83,10 @@ public class VoucherService {
     public void delete(Long userId, Long groupId, Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);
-
         User voucherUser = voucher.getUser();
-        if (!voucherUser.getId().equals(userId)) {
-            throw new InvalidVoucherDeleteException();
-        }
 
-        validateUserAndVoucherInGroup(userId, groupId, voucherId);
+        validateVoucherOwner(userId, voucherUser);
+        validateUserAndVoucherInGroup(userId, groupId, voucher);
 
         voucherRepository.delete(voucher);
     }
@@ -179,7 +176,7 @@ public class VoucherService {
      * @param userId
      * @param voucherUser
      */
-    private void validateVoucherOwner(String userId, User voucherUser) {
+    private void validateVoucherOwner(Long userId, User voucherUser) {
         if (!voucherUser.getId().equals(userId)) {
             throw new InvalidVoucherDeleteException();
         }
