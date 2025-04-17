@@ -137,6 +137,35 @@ class VoucherRepositoryTest {
     }
 
     @Test
+    @DisplayName("사용가능, 사용완료 상태인 쿠폰만 조회된다")
+    void getVoucherStatusUsedAndAvailable() {
+        //given
+        Group group = Group.builder()
+                .build();
+        groupRepository.save(group);
+
+        Voucher voucher1 = createVoucher(group, VoucherStatus.AVAILABLE);
+        Voucher voucher2 = createVoucher(group, VoucherStatus.USED);
+        Voucher voucher3 = createVoucher(group, VoucherStatus.EXPIRED);
+        Voucher voucher4 = createVoucher(group, VoucherStatus.AVAILABLE);
+        Voucher voucher5 = createVoucher(group, VoucherStatus.EXPIRED);
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
+
+        List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
+
+        Pageable pageable = PageRequest.of(0, 3);
+
+        //when
+        Slice<Voucher> result = voucherRepository.findAllPageWithCursorByDesc(
+                group.getId(), voucherStatuses, null, pageable);
+
+        //then
+        assertThat(result.getContent()).extracting("status")
+                .containsExactlyInAnyOrder(
+                        VoucherStatus.AVAILABLE, VoucherStatus.USED, VoucherStatus.AVAILABLE);
+    }
+
+    @Test
     @DisplayName("쿠폰이 존재하지 않을 때 조회하는 경우 예외 없이 빈 목록을 반환한다")
     void getEmptyVoucher() {
         //given
