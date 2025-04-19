@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import seondays.shareticon.login.JwtAuthenticationConverter;
 import seondays.shareticon.login.LoginSuccessHandler;
@@ -20,6 +21,7 @@ public class SecurityConfig {
     private final OAuth2UserService oAuth2UserService;
     private final LoginSuccessHandler loginSuccessHandler;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
+    private final AuthenticationEntryPoint entryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,8 +49,9 @@ public class SecurityConfig {
         // Resource Server 설정
         http.oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(
-                        jwtAuthenticationConverter.convertToAuthentication())));
-
+                        jwtAuthenticationConverter.convertToAuthentication()))
+                        .authenticationEntryPoint(entryPoint));
+        
         http.oauth2Login(oauth2 -> oauth2.loginPage("/oauth2/authorization/kakao"));
 
         return http.build();

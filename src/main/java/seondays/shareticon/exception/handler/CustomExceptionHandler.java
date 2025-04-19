@@ -3,6 +3,8 @@ package seondays.shareticon.exception.handler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -124,6 +126,24 @@ public class CustomExceptionHandler {
         String parameterName = e.getParameterName();
         String message = String.format("필수 파라미터 '%s'가 누락되었습니다", parameterName);
         return createExceptionResponse(message, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<CustomExceptionResponse> handleInsufficientAuthenticationException(
+            InsufficientAuthenticationException e) {
+        log.error(String.valueOf(e));
+
+        String message = "로그인이 필요합니다";
+        return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<CustomExceptionResponse> handleIInvalidBearerTokenException(
+            AuthenticationException e) {
+        log.error(String.valueOf(e));
+
+        String message = "유효하지 않은 토큰입니다";
+        return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
