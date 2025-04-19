@@ -3,6 +3,7 @@ package seondays.shareticon.voucher;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,15 +31,23 @@ public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
     private String image;
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
+
+    public static Voucher createAvailableStatus(User user, Group group) {
+        return Voucher.builder()
+                .user(user)
+                .group(group)
+                .status(VoucherStatus.AVAILABLE)
+                .build();
+    }
 
     public void saveImage(String image) {
         this.image = image;
