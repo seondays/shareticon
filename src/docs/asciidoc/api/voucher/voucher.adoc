@@ -1,0 +1,46 @@
+[[voucher-create]]
+=== 쿠폰 등록
+
+==== HTTP Request
+include::{snippets}/voucher-create/http-request.adoc[]
+==== Multipart info
+include::{snippets}/voucher-create/request-parts.adoc[]
+include::{snippets}/voucher-create/request-part-request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/voucher-create/http-response.adoc[]
+include::{snippets}/voucher-create/response-fields.adoc[]
+
+[[voucher-delete]]
+=== 쿠폰 삭제
+
+==== HTTP Request
+include::{snippets}/voucher-delete/http-request.adoc[]
+include::{snippets}/voucher-delete/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/voucher-delete/http-response.adoc[]
+
+[[voucher-get]]
+=== 쿠폰 조회
+
+==== HTTP Request
+include::{snippets}/voucher-get/http-request.adoc[]
+include::{snippets}/voucher-get/path-parameters.adoc[]
+include::{snippets}/voucher-get/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/voucher-get/http-response.adoc[]
+include::{snippets}/voucher-get/response-fields.adoc[]
+
+[[voucherStatus-change]]
+=== 쿠폰 상태 변경
+
+==== HTTP Request
+include::{snippets}/voucherStatus-change/http-request.adoc[]
+include::{snippets}/voucherStatus-change/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/voucherStatus-change/http-response.adoc[]
+
+

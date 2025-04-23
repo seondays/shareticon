@@ -10,6 +10,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MultipartException;
 import seondays.shareticon.exception.ExpiredVoucherException;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalOAuthProviderException;
@@ -146,9 +147,18 @@ public class CustomExceptionHandler {
         return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<CustomExceptionResponse> bindException(Exception e) {
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<CustomExceptionResponse> handleMultipartException(
+            MultipartException e) {
         log.error(String.valueOf(e));
+
+        String message = "해당 요청은 multipart/form-data 형식으로만 지원됩니다. 파일을 첨부하여 다시 시도해주세요";
+        return createExceptionResponse(message, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CustomExceptionResponse> generalException(Exception e) {
+        log.error("{} : {}", e.getMessage(), e);
 
         final String message = "서버 오류가 발생했습니다";
         return createExceptionResponse(message, HttpStatus.INTERNAL_SERVER_ERROR);

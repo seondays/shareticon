@@ -34,7 +34,7 @@ public class VoucherController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<VouchersResponse> registerVoucher(
             @AuthenticationPrincipal CustomOAuth2User userDetails,
-            @RequestPart("groupId") @Valid CreateVoucherRequest request,
+            @RequestPart("request") @Valid CreateVoucherRequest request,
             @RequestPart("image") MultipartFile image) {
         Long userId = userDetails.getId();
         VouchersResponse response = voucherService.register(request, userId, image);
