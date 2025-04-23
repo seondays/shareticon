@@ -6,7 +6,7 @@
 
 |{{#tableCellContent}}`+{{name}}+`{{/tableCellContent}}
 |{{#tableCellContent}}{{description}}{{/tableCellContent}}
-|{{#tableCellContent}}{{#optional}}O{{/optional}}{{/tableCellContent}}
+|{{#tableCellContent}}{{#optional}}O{{/optional}}{{^optional}}X{{/optional}}{{/tableCellContent}}
 
 {{/parameters}}
 
