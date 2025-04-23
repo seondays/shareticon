@@ -14,7 +14,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -28,7 +27,6 @@ import seondays.shareticon.voucher.dto.VouchersResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
@@ -70,7 +68,7 @@ public class VoucherControllerTest {
 
         // requestPart로 들어갈 JSON mock
         MockMultipartFile requestPart = new MockMultipartFile(
-                "groupId",
+                "request",
                 null,
                 "application/json",
                 jsonRequest.getBytes(StandardCharsets.UTF_8)
@@ -111,7 +109,7 @@ public class VoucherControllerTest {
         );
 
         MockMultipartFile requestPart = new MockMultipartFile(
-                "groupId",
+                "request",
                 null,
                 "application/json",
                 emptyRequest.getBytes(StandardCharsets.UTF_8)
