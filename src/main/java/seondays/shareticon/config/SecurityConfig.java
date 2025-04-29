@@ -31,8 +31,10 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         // OAuth2
-        http.oauth2Login(oauth2 -> oauth2.userInfoEndpoint(userInfoEndpointConfig ->
-                        userInfoEndpointConfig.userService(oAuth2UserService))
+        http.oauth2Login(oauth2 -> oauth2
+                .loginPage("/oauth2/authorization/kakao")
+                .userInfoEndpoint(
+                        userInfoEndpointConfig -> userInfoEndpointConfig.userService(oAuth2UserService))
                 .successHandler(loginSuccessHandler));
 
         // stateless
@@ -51,8 +53,6 @@ public class SecurityConfig {
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(
                         jwtAuthenticationConverter.convertToAuthentication()))
                         .authenticationEntryPoint(entryPoint));
-        
-        http.oauth2Login(oauth2 -> oauth2.loginPage("/oauth2/authorization/kakao"));
 
         return http.build();
     }
