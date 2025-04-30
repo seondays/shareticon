@@ -31,7 +31,7 @@ public class TokenController {
     public ResponseEntity<Void> logout(
             @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
-        tokenService.deleteRefreshToken(userId);
+        tokenService.deleteAllRefreshToken(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -31,7 +31,11 @@ public class TokenService {
         return tokenFactory.createAccessToken(userId, role, Duration.ofDays(3));
     }
 
-    // todo : 검증 매커니즘 고민
+    public void deleteAllRefreshToken(Long userId) {
+        tokenRepository.deleteAllByUserId(userId);
+    }
+
+
     private Map<String, Object> validateRefreshToken(String refreshToken) {
         try {
             Jwt jwt = jwtDecoder.decode(refreshToken);
