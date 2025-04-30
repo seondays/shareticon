@@ -18,10 +18,16 @@ public class TokenRepository {
      * @param refreshToken
      */
     public void save(RefreshToken refreshToken) {
-        String key = makeKey(refreshToken.getToken());
+        String key = makeTokenKey(refreshToken.getToken());
+        String userKey = makeUserIdKey(refreshToken.getUserId());
+        StoredRefreshToken saveToken = StoredRefreshToken.of(refreshToken);
+
         redisTemplate.opsForValue()
-                .set(key, StoredRefreshToken.of(refreshToken),
+                .set(key, saveToken,
                         refreshToken.getTimeToLive(), TimeUnit.SECONDS);
+
+        redisTemplate.opsForSet().add(userKey, saveToken);
+        redisTemplate.expire(userKey, refreshToken.getTimeToLive(), TimeUnit.SECONDS);
     }
 
     /**
@@ -46,7 +52,7 @@ public class TokenRepository {
      * @return
      */
     public boolean existsById(String token) {
-        String key = makeKey(token);
+        String key = makeTokenKey(token);
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 
