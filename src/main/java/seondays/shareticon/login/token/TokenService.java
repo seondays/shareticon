@@ -22,11 +22,13 @@ public class TokenService {
 
     public String reissueAccessToken(Cookie[] cookie) {
         String refreshToken = getRefreshToken(cookie);
+        validateRefreshToken(refreshToken);
 
-        Map<String, Object> claims = validateRefreshToken(refreshToken);
+        Jwt jwt = getJwt(refreshToken);
+        Map<String, Object> claims = jwt.getClaims();
 
         UserRole role = UserRole.getUserRoleBy((String) claims.get("role"));
-        Long userId = (Long) claims.get("userId");
+        Long userId = Long.parseLong(jwt.getSubject());
 
         return tokenFactory.createAccessToken(userId, role, Duration.ofDays(3));
     }
@@ -35,21 +37,22 @@ public class TokenService {
         tokenRepository.deleteAllByUserId(userId);
     }
 
-
-    private Map<String, Object> validateRefreshToken(String refreshToken) {
+    private void validateRefreshToken(String refreshToken) {
         try {
-            Jwt jwt = jwtDecoder.decode(refreshToken);
+            Jwt jwt = getJwt(refreshToken);
 
             checkTokenType(jwt);
 
             checkExpiration(jwt);
 
             checkRefreshTokenSaved(refreshToken);
-
-            return jwt.getClaims();
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             throw new BadCredentialsException("잘못된 리프레시 토큰입니다.");
         }
+    }
+
+    private Jwt getJwt(String refreshToken) {
+        return jwtDecoder.decode(refreshToken);
     }
 
     private String getRefreshToken(Cookie[] cookies) {

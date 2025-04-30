@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
@@ -30,12 +29,11 @@ public class TokenFactory {
 
     private String createJwt(Long userId, UserRole role, TokenType tokenType, Duration expiresIn) {
         Instant now = Instant.now();
-
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
                 .expiresAt(now.plus(expiresIn))
-                .claim("userId", userId)
+                .subject(String.valueOf(userId))
                 .claim("role", role)
                 .claim("tokenType", tokenType)
                 .build();
