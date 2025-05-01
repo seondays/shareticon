@@ -2,10 +2,14 @@ package seondays.shareticon.api.login.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.Cookie;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import seondays.shareticon.login.UserRole;
 import seondays.shareticon.login.token.RefreshToken;
 import seondays.shareticon.login.token.StoredRefreshToken;
@@ -35,6 +40,17 @@ public class TokenServiceTest {
 
     @Autowired
     private RedisTemplate<String, StoredRefreshToken> redisTemplate;
+
+    @MockitoBean
+    private Clock clock;
+
+    private Instant testSystemTimeInstant;
+
+    @BeforeEach
+    void setUp() {
+        testSystemTimeInstant = Instant.parse("2025-05-01T00:00:00Z");
+        when(clock.instant()).thenReturn(testSystemTimeInstant);
+    }
 
     @AfterEach
     void tearDown() {
@@ -82,13 +98,15 @@ public class TokenServiceTest {
 
     @Test
     @DisplayName("만료된 리프레시 토큰으로 액세스 토큰 발급 시 예외가 발생한다")
-    void createAccessTokenWithExpiredToken() throws InterruptedException {
+    void createAccessTokenWithExpiredToken() {
         //given
         Long userId = 1L;
         UserRole role = UserRole.ROLE_USER;
-        Duration duration = Duration.ofSeconds(1);
+        Duration duration = Duration.ofMinutes(10);
         RefreshToken refreshToken = tokenFactory.createRefreshToken(userId, role, duration);
 
+        Instant expiredTime = testSystemTimeInstant.plus(Duration.ofMinutes(1));
+        when(clock.instant()).thenReturn(expiredTime);
         Cookie[] cookies = {new Cookie("refresh", refreshToken.getToken())};
 
         //when //then
