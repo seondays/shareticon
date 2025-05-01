@@ -1,6 +1,7 @@
 package seondays.shareticon.login.token;
 
 import jakarta.servlet.http.Cookie;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class TokenService {
     private final TokenRepository tokenRepository;
     private final JwtDecoder jwtDecoder;
     private final TokenFactory tokenFactory;
+    private final Clock clock;
 
     public String reissueAccessToken(Cookie[] cookie) {
         String refreshToken = getRefreshToken(cookie);
@@ -78,7 +80,7 @@ public class TokenService {
 
     private void checkExpiration(Jwt jwt) {
         Instant expiresAt = jwt.getExpiresAt();
-        if (expiresAt.isBefore(Instant.now())) {
+        if (expiresAt.isBefore(clock.instant())) {
             throw new BadCredentialsException("리프레시 토큰이 만료되었습니다.");
         }
     }

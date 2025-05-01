@@ -1,5 +1,6 @@
 package seondays.shareticon.login.token;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import seondays.shareticon.login.UserRole;
 public class TokenFactory {
 
     private final JwtEncoder jwtEncoder;
+    private final Clock clock;
 
     public String createAccessToken(Long userId, UserRole role, Duration expiresIn) {
         String jwt = createJwt(userId, role, TokenType.ACCESS, expiresIn);
@@ -28,7 +30,7 @@ public class TokenFactory {
     }
 
     private String createJwt(Long userId, UserRole role, TokenType tokenType, Duration expiresIn) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
