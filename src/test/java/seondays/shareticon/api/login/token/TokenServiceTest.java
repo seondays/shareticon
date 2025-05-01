@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import seondays.shareticon.api.config.RedisTestContainer;
 import seondays.shareticon.login.UserRole;
 import seondays.shareticon.login.token.RefreshToken;
 import seondays.shareticon.login.token.StoredRefreshToken;
@@ -27,7 +28,7 @@ import seondays.shareticon.login.token.TokenService;
 
 @ActiveProfiles("test")
 @SpringBootTest
-public class TokenServiceTest {
+public class TokenServiceTest extends RedisTestContainer {
 
     @Autowired
     private TokenService tokenService;
