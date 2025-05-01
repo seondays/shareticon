@@ -1,4 +1,4 @@
-package seondays.shareticon.voucher;
+package seondays.shareticon.api.voucher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,6 +14,9 @@ import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.voucher.Voucher;
+import seondays.shareticon.voucher.VoucherRepository;
+import seondays.shareticon.voucher.VoucherStatus;
 
 @ActiveProfiles("test")
 @DataJpaTest

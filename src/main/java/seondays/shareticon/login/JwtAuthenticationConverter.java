@@ -26,10 +26,10 @@ public class JwtAuthenticationConverter {
     }
 
     private UserOAuth2Dto createUserOAuth2DtoFromJwt(Jwt jwt) {
-        Long userId = jwt.getClaim("userId");
+        String userId = jwt.getSubject();
         String role = jwt.getClaim("role");
         String name = jwt.getClaim("name");
 
-        return UserOAuth2Dto.create(userId, name, role);
+        return UserOAuth2Dto.create(Long.parseLong(userId), name, role);
     }
 }

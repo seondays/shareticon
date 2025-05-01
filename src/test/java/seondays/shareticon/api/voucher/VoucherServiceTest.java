@@ -1,4 +1,4 @@
-package seondays.shareticon.voucher;
+package seondays.shareticon.api.voucher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,6 +33,10 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.voucher.Voucher;
+import seondays.shareticon.voucher.VoucherRepository;
+import seondays.shareticon.voucher.VoucherService;
+import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 

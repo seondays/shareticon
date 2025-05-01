@@ -15,14 +15,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import seondays.shareticon.login.token.RefreshToken;
+import seondays.shareticon.login.token.TokenFactory;
 import seondays.shareticon.login.token.TokenRepository;
-import seondays.shareticon.login.token.TokenService;
 
 @Component
 @RequiredArgsConstructor
 public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final TokenService tokenService;
+    private final TokenFactory tokenFactory;
     private final TokenRepository tokenRepository;
 
     @Override
@@ -35,7 +35,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         GrantedAuthority authority = iterator.next();
         String role = authority.getAuthority();
 
-        RefreshToken refreshToken = tokenService.createRefreshToken(principal.getId(),
+        RefreshToken refreshToken = tokenFactory.createRefreshToken(principal.getId(),
                 UserRole.getUserRoleBy(role), Duration.ofDays(7));
         tokenRepository.save(refreshToken);
 

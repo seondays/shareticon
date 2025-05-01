@@ -6,8 +6,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import seondays.shareticon.login.CustomOAuth2User;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,6 +24,14 @@ public class TokenController {
         Cookie[] cookies = request.getCookies();
         String accessToken = tokenService.reissueAccessToken(cookies);
         response.setHeader("Authorization", accessToken);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal CustomOAuth2User userDetails) {
+        Long userId = userDetails.getId();
+        tokenService.deleteAllRefreshToken(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

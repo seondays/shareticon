@@ -1,6 +1,6 @@
 package seondays.shareticon.login.token;
 
-import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,32 +18,31 @@ public class TokenRepository {
      * @param refreshToken
      */
     public void save(RefreshToken refreshToken) {
-        String key = makeKey(refreshToken.getToken());
+        String key = makeTokenKey(refreshToken.getToken());
+        String userKey = makeUserIdKey(refreshToken.getUserId());
+        StoredRefreshToken saveToken = StoredRefreshToken.of(refreshToken);
+
         redisTemplate.opsForValue()
-                .set(key, StoredRefreshToken.of(refreshToken),
+                .set(key, saveToken,
                         refreshToken.getTimeToLive(), TimeUnit.SECONDS);
+
+        redisTemplate.opsForSet().add(userKey, saveToken);
+        redisTemplate.expire(userKey, refreshToken.getTimeToLive(), TimeUnit.SECONDS);
     }
 
     /**
-     * Refresh 토큰을 조회합니다.
+     * 사용자 id에 매핑되는 Refresh 토큰을 모두 삭제합니다.
      *
-     * @param token
-     * @return
+     * @param userId
      */
-    public Optional<StoredRefreshToken> findByToken(String token) {
-        String key = makeKey(token);
-        StoredRefreshToken refreshToken = (StoredRefreshToken) redisTemplate.opsForValue().get(key);
-        return Optional.ofNullable(refreshToken);
-    }
+    public void deleteAllByUserId(Long userId) {
+        String userKey = makeUserIdKey(userId);
 
-    /**
-     * Refresh 토큰을 삭제합니다.
-     *
-     * @param token
-     */
-    public void deleteById(String token) {
-        String key = makeKey(token);
-        redisTemplate.delete(key);
+        redisTemplate.opsForSet().members(userKey)
+                .stream().map(t -> makeTokenKey(t.value()))
+                .forEach(redisTemplate::delete);
+
+        redisTemplate.delete(userKey);
     }
 
     /**
@@ -53,7 +52,7 @@ public class TokenRepository {
      * @return
      */
     public boolean existsById(String token) {
-        String key = makeKey(token);
+        String key = makeTokenKey(token);
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 
@@ -63,7 +62,16 @@ public class TokenRepository {
      * @param token
      * @return
      */
-    private String makeKey(String token) {
+    private String makeTokenKey(String token) {
         return "refresh:" + token;
+    }
+
+    /**
+     * 유저 id와 키스페이스 값을 합쳐 uid key를 생성합니다.
+     * @param userId
+     * @return
+     */
+    private String makeUserIdKey(Long userId) {
+        return "uid:" + userId;
     }
 }
