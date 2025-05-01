@@ -128,6 +128,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
+                                .contentType(MediaType.APPLICATION_JSON)
                                 .with(authentication(auth))
                 )
                 .andDo(MockMvcResultHandlers.print())
@@ -241,6 +242,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(
                         MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
+                                .contentType(MediaType.APPLICATION_JSON)
                                 .with(authentication(auth))
                 )
                 .andDo(MockMvcResultHandlers.print())
