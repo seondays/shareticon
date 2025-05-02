@@ -2,6 +2,7 @@ package seondays.shareticon.api.login.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Date;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
