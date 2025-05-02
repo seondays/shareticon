@@ -39,8 +39,9 @@ public class TokenRepositoryTest extends RedisTestContainer {
         Long id = 1L;
         String token = "tokenvalue";
         Long ttl = 100L;
+        Date expiration = new Date();
 
-        RefreshToken refreshToken = RefreshToken.create(id, token, ttl);
+        RefreshToken refreshToken = RefreshToken.create(id, token, expiration,ttl);
 
         //when
         tokenRepository.save(refreshToken);
@@ -57,11 +58,12 @@ public class TokenRepositoryTest extends RedisTestContainer {
         String token1 = "token1";
         String token2 = "token2";
         String token3 = "token3";
+        Date expiration = new Date();
 
 
-        RefreshToken refreshToken1 = RefreshToken.create(userId, token1, 100L);
-        RefreshToken refreshToken2 = RefreshToken.create(userId, token2, 100L);
-        RefreshToken refreshToken3 = RefreshToken.create(userId, token3, 100L);
+        RefreshToken refreshToken1 = RefreshToken.create(userId, token1, expiration, 100L);
+        RefreshToken refreshToken2 = RefreshToken.create(userId, token2, expiration, 100L);
+        RefreshToken refreshToken3 = RefreshToken.create(userId, token3, expiration,100L);
         tokenRepository.save(refreshToken1);
         tokenRepository.save(refreshToken2);
         tokenRepository.save(refreshToken3);
