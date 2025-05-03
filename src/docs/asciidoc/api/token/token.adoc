@@ -10,3 +10,15 @@ include::{snippets}/token-reissue/request-cookies.adoc[]
 include::{snippets}/token-reissue/http-response.adoc[]
 ==== Response Header
 include::{snippets}/token-reissue/response-headers.adoc[]
+
+[[token-logout]]
+=== 로그아웃
+
+==== HTTP Request
+include::{snippets}/token-logout/http-request.adoc[]
+==== Request Header
+include::{snippets}/token-logout/request-headers.adoc[]
+
+==== HTTP Response
+include::{snippets}/token-logout/http-response.adoc[]
+

@@ -105,8 +105,9 @@ public class TokenServiceTest extends RedisTestContainer {
         UserRole role = UserRole.ROLE_USER;
         Duration duration = Duration.ofMinutes(10);
         RefreshToken refreshToken = tokenFactory.createRefreshToken(userId, role, duration);
+        tokenRepository.save(refreshToken);
 
-        Instant expiredTime = testSystemTimeInstant.plus(Duration.ofMinutes(1));
+        Instant expiredTime = testSystemTimeInstant.plus(Duration.ofMinutes(15));
         when(clock.instant()).thenReturn(expiredTime);
         Cookie[] cookies = {new Cookie("refresh", refreshToken.getToken())};
 

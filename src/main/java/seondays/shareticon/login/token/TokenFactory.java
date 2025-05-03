@@ -1,5 +1,6 @@
 package seondays.shareticon.login.token;
 
+import java.sql.Date;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,7 +27,8 @@ public class TokenFactory {
 
     public RefreshToken createRefreshToken(Long userId, UserRole role, Duration expiresIn) {
         String jwt = createJwt(userId, role, TokenType.REFRESH, expiresIn);
-        return RefreshToken.create(userId, jwt, expiresIn.getSeconds());
+        Instant expirationInstant = clock.instant().plus(expiresIn);
+        return RefreshToken.create(userId, jwt, Date.from(expirationInstant), expiresIn.getSeconds());
     }
 
     private String createJwt(Long userId, UserRole role, TokenType tokenType, Duration expiresIn) {

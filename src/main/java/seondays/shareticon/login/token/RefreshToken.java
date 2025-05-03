@@ -20,11 +20,11 @@ public class RefreshToken {
     private String expiration;
     private Long timeToLive;
 
-    public static RefreshToken create(Long id, String token, Long timeToLive) {
+    public static RefreshToken create(Long id, String token, Date expiration, Long timeToLive) {
         return RefreshToken.builder()
                 .userId(id)
                 .token(token)
-                .expiration(String.valueOf(Date.from(Instant.now().plusSeconds(timeToLive))))
+                .expiration(String.valueOf(expiration))
                 .timeToLive(timeToLive)
                 .build();
     }
