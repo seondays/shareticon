@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.user.User;
@@ -18,6 +19,7 @@ import seondays.shareticon.user.User;
 @Entity
 @Table(name = "user_voucher_group")
 @Builder
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserGroup {

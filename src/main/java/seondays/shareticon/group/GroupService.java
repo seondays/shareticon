@@ -1,6 +1,8 @@
 package seondays.shareticon.group;
 
 import java.security.SecureRandom;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -8,12 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.UserNotFoundException;
+import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 
 @Slf4j
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -51,6 +55,13 @@ public class GroupService {
             }
         }
         throw new GroupCreateException();
+    }
+
+    public List<GroupListResponse> getAllGroupList(Long userId) {
+        return userGroupRepository.findAllByUserId(userId)
+                .stream()
+                .map(GroupListResponse::of)
+                .toList();
     }
 
     private String createInviteCode() {
