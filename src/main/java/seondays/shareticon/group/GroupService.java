@@ -2,14 +2,17 @@ package seondays.shareticon.group;
 
 import java.security.SecureRandom;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.GroupCreateException;
+import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.UserNotFoundException;
+import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
@@ -46,6 +49,7 @@ public class GroupService {
                 UserGroup userGroupInfo = UserGroup.builder()
                         .group(newGroup)
                         .user(user)
+                        .joinStatus(JoinStatus.JOINED)
                         .build();
                 userGroupRepository.save(userGroupInfo);
                 return newGroup;
@@ -62,6 +66,38 @@ public class GroupService {
                 .stream()
                 .map(GroupListResponse::of)
                 .toList();
+    }
+
+    @Transactional
+    public void applyToJoinGroup(ApplyToJoinRequest request, Long userId) {
+        String inviteCode = request.inviteCode();
+        Group group = groupRepository.findByInviteCode(inviteCode)
+                .orElseThrow(GroupNotFoundException::new);
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        Optional<UserGroup> existingUserGroup = userGroupRepository.findByUserIdAndGroupId(userId,
+                group.getId());
+
+        if (existingUserGroup.isEmpty()) {
+            UserGroup userGroupInfo = UserGroup.builder()
+                    .group(group)
+                    .user(user)
+                    .joinStatus(JoinStatus.PENDING)
+                    .build();
+            userGroupRepository.save(userGroupInfo);
+            return;
+        }
+
+        UserGroup userGroup = existingUserGroup.get();
+        JoinStatus status = userGroup.getJoinStatus();
+
+        if (JoinStatus.isAlreadyApplied(status)) {
+            throw new AlreadyAppliedToGroupException();
+        }
+
+        userGroup.updateJoinStatus(JoinStatus.PENDING);
+        userGroupRepository.save(userGroup);
     }
 
     private String createInviteCode() {

@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartException;
+import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.ExpiredVoucherException;
+import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalOAuthProviderException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
@@ -98,6 +100,22 @@ public class CustomExceptionHandler {
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(AlreadyAppliedToGroupException.class)
+    public ResponseEntity<CustomExceptionResponse> handleAlreadyAppliedToGroupException(
+            AlreadyAppliedToGroupException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(GroupCreateException.class)
+    public ResponseEntity<CustomExceptionResponse> handleGroupCreateException(
+            GroupCreateException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CustomExceptionResponse> bindException(
             MethodArgumentNotValidException e) {
@@ -141,7 +159,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<CustomExceptionResponse> handleIInvalidBearerTokenException(
             AuthenticationException e) {
-        log.error(String.valueOf(e));
+        log.error("", e);
 
         String message = "유효하지 않은 토큰입니다";
         return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);

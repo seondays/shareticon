@@ -1,6 +1,8 @@
 package seondays.shareticon.userGroup;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import seondays.shareticon.group.Group;
+import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.user.User;
 
 @Entity
@@ -35,4 +38,11 @@ public class UserGroup {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
+
+    @Enumerated(EnumType.STRING)
+    private JoinStatus joinStatus;
+
+    public void updateJoinStatus(JoinStatus joinStatus) {
+        this.joinStatus = joinStatus;
+    }
 }
