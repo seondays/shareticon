@@ -16,6 +16,7 @@ import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.GroupUserNotFoundException;
 import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
+import seondays.shareticon.exception.InvalidJoinGroupException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
@@ -129,6 +130,9 @@ public class GroupService {
                 targetGroupId).orElseThrow(
                 GroupUserNotFoundException::new);
 
+        if (JoinStatus.isWaitingAcceptJoinApply(userGroup.getJoinStatus())) {
+            throw new InvalidJoinGroupException();
+        }
         userGroup.updateJoinStatus(JOINED);
         userGroupRepository.save(userGroup);
     }

@@ -15,4 +15,7 @@ public enum JoinStatus {
         return status == JOINED || status == PENDING;
     }
 
+    public static boolean isWaitingAcceptJoinApply(JoinStatus status) {
+        return status == PENDING;
+    }
 }

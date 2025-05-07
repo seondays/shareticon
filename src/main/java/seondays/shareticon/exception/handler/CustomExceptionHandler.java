@@ -21,6 +21,7 @@ import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
 import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
+import seondays.shareticon.exception.InvalidJoinGroupException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
@@ -132,6 +133,14 @@ public class CustomExceptionHandler {
         log.error(String.valueOf(e));
 
         return createExceptionResponse(e.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidJoinGroupException.class)
+    public ResponseEntity<CustomExceptionResponse> handleInvalidJoinGroupException(
+            InvalidJoinGroupException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
