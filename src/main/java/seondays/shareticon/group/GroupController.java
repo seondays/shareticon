@@ -42,26 +42,25 @@ public class GroupController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<Void> registerInvitation(@RequestBody ApplyToJoinRequest request,
+    public ResponseEntity<Void> applyToJoinGroup(@RequestBody ApplyToJoinRequest request,
             @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         groupService.applyToJoinGroup(request, userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // 리더가 본인 그룹에 있는 가입 요청을 모두 확인할 수 있는 API
-    @GetMapping("/applys")
+    @GetMapping("/join-requests")
     public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(@AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         List<ApplyToJoinResponse> responseList = groupService.getAllApplyToJoinList(userId);
         return ResponseEntity.ok().body(responseList);
     }
 
-    // 리더가 원하는 요청을 수락/거절하는 API
     @PatchMapping("/{groupId}/user/{userId}")
-    public void acceptJoinApply(@AuthenticationPrincipal CustomOAuth2User userDetails,
+    public ResponseEntity<Void> acceptJoinApply(@AuthenticationPrincipal CustomOAuth2User userDetails,
             @PathVariable("groupId") Long targetGroupId, @PathVariable("userId") Long targetUserId) {
         Long leaderId = userDetails.getId();
         groupService.acceptJoinApply(targetGroupId, targetUserId, leaderId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
