@@ -11,12 +11,17 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartException;
+import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.ExpiredVoucherException;
+import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
+import seondays.shareticon.exception.GroupUserNotFoundException;
 import seondays.shareticon.exception.IllegalOAuthProviderException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
+import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
+import seondays.shareticon.exception.InvalidJoinGroupException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
@@ -98,6 +103,46 @@ public class CustomExceptionHandler {
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(AlreadyAppliedToGroupException.class)
+    public ResponseEntity<CustomExceptionResponse> handleAlreadyAppliedToGroupException(
+            AlreadyAppliedToGroupException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(GroupCreateException.class)
+    public ResponseEntity<CustomExceptionResponse> handleGroupCreateException(
+            GroupCreateException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(GroupUserNotFoundException.class)
+    public ResponseEntity<CustomExceptionResponse> handleGroupUserNotFoundException(
+            GroupUserNotFoundException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidAcceptGroupJoinApplyException.class)
+    public ResponseEntity<CustomExceptionResponse> handleInvalidAcceptGroupJoinApplyException(
+            InvalidAcceptGroupJoinApplyException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidJoinGroupException.class)
+    public ResponseEntity<CustomExceptionResponse> handleInvalidJoinGroupException(
+            InvalidJoinGroupException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CustomExceptionResponse> bindException(
             MethodArgumentNotValidException e) {
@@ -141,7 +186,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<CustomExceptionResponse> handleIInvalidBearerTokenException(
             AuthenticationException e) {
-        log.error(String.valueOf(e));
+        log.error("", e);
 
         String message = "유효하지 않은 토큰입니다";
         return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);
