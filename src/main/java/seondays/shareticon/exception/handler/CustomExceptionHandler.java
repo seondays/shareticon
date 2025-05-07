@@ -15,9 +15,11 @@ import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.ExpiredVoucherException;
 import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
+import seondays.shareticon.exception.GroupUserNotFoundException;
 import seondays.shareticon.exception.IllegalOAuthProviderException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
+import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
@@ -105,7 +107,7 @@ public class CustomExceptionHandler {
             AlreadyAppliedToGroupException e) {
         log.error(String.valueOf(e));
 
-        return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(GroupCreateException.class)
@@ -113,7 +115,23 @@ public class CustomExceptionHandler {
             GroupCreateException e) {
         log.error(String.valueOf(e));
 
+        return createExceptionResponse(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(GroupUserNotFoundException.class)
+    public ResponseEntity<CustomExceptionResponse> handleGroupUserNotFoundException(
+            GroupUserNotFoundException e) {
+        log.error(String.valueOf(e));
+
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidAcceptGroupJoinApplyException.class)
+    public ResponseEntity<CustomExceptionResponse> handleInvalidAcceptGroupJoinApplyException(
+            InvalidAcceptGroupJoinApplyException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

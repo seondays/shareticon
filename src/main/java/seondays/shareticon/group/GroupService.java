@@ -1,5 +1,8 @@
 package seondays.shareticon.group;
 
+import static seondays.shareticon.group.JoinStatus.JOINED;
+import static seondays.shareticon.group.JoinStatus.PENDING;
+
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
@@ -11,8 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
+import seondays.shareticon.exception.GroupUserNotFoundException;
+import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
+import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
@@ -83,7 +89,7 @@ public class GroupService {
             UserGroup userGroupInfo = UserGroup.builder()
                     .group(group)
                     .user(user)
-                    .joinStatus(JoinStatus.PENDING)
+                    .joinStatus(PENDING)
                     .build();
             userGroupRepository.save(userGroupInfo);
             return;
@@ -96,7 +102,34 @@ public class GroupService {
             throw new AlreadyAppliedToGroupException();
         }
 
-        userGroup.updateJoinStatus(JoinStatus.PENDING);
+        userGroup.updateJoinStatus(PENDING);
+        userGroupRepository.save(userGroup);
+    }
+
+    public List<ApplyToJoinResponse> getAllApplyToJoinList(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        return userGroupRepository.findPendingByLeader(userId, PENDING)
+                .stream()
+                .map(ApplyToJoinResponse::of)
+                .toList();
+    }
+
+    @Transactional
+    public void acceptJoinApply(Long targetGroupId, Long targetUserId, Long leaderId) {
+        Group targetGroup = groupRepository.findById(targetGroupId)
+                .orElseThrow(GroupNotFoundException::new);
+
+        if (!leaderId.equals(targetGroup.getLeaderUser().getId())) {
+            throw new InvalidAcceptGroupJoinApplyException();
+        }
+
+        UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(targetUserId,
+                targetGroupId).orElseThrow(
+                GroupUserNotFoundException::new);
+
+        userGroup.updateJoinStatus(JOINED);
         userGroupRepository.save(userGroup);
     }
 
