@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
@@ -58,10 +59,13 @@ public class GroupController {
     }
 
     @PatchMapping("/{groupId}/user/{userId}")
-    public ResponseEntity<Void> acceptJoinApply(@AuthenticationPrincipal CustomOAuth2User userDetails,
-            @PathVariable("groupId") Long targetGroupId, @PathVariable("userId") Long targetUserId) {
+    public ResponseEntity<Void> changeJoinApplyStatus(
+            @AuthenticationPrincipal CustomOAuth2User userDetails,
+            @PathVariable("groupId") Long targetGroupId,
+            @PathVariable("userId") Long targetUserId,
+            @RequestParam("status") ApprovalStatus approvalStatus) {
         Long leaderId = userDetails.getId();
-        groupService.acceptJoinApply(targetGroupId, targetUserId, leaderId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        groupService.changeJoinApplyStatus(targetGroupId, targetUserId, leaderId, approvalStatus);
+        return ResponseEntity.ok().build();
     }
 }
