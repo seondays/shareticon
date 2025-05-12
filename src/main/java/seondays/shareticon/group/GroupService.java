@@ -127,8 +127,9 @@ public class GroupService {
         Group targetGroup = groupRepository.findById(targetGroupId)
                 .orElseThrow(GroupNotFoundException::new);
 
-        User targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(UserNotFoundException::new);
+        if (!userRepository.existsById(targetUserId)) {
+            throw new UserNotFoundException();
+        }
 
         validateLeader(leaderId, targetGroup);
 
