@@ -51,7 +51,7 @@ public class GroupController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/join-requests")
+    @GetMapping("/join")
     public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(@AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         List<ApplyToJoinResponse> responseList = groupService.getAllApplyToJoinList(userId);
