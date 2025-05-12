@@ -2,6 +2,7 @@ package seondays.shareticon.voucher;
 
 import jakarta.validation.Valid;
 import java.net.URI;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,14 +23,11 @@ import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/vouchers")
 public class VoucherController {
 
     private final VoucherService voucherService;
-
-    public VoucherController(VoucherService voucherService) {
-        this.voucherService = voucherService;
-    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<VouchersResponse> registerVoucher(
