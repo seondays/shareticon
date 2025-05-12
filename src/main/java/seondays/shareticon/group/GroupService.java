@@ -2,8 +2,8 @@ package seondays.shareticon.group;
 
 import static seondays.shareticon.group.JoinStatus.JOINED;
 import static seondays.shareticon.group.JoinStatus.PENDING;
+import static seondays.shareticon.group.JoinStatus.REJECTED;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -118,32 +118,42 @@ public class GroupService {
     }
 
     @Transactional
-    public void acceptJoinApply(Long targetGroupId, Long targetUserId, Long leaderId) {
+    public void changeJoinApplyStatus(Long targetGroupId, Long targetUserId, Long leaderId,
+            ApprovalStatus approvalStatus) {
         Group targetGroup = groupRepository.findById(targetGroupId)
                 .orElseThrow(GroupNotFoundException::new);
 
-        if (!leaderId.equals(targetGroup.getLeaderUser().getId())) {
-            throw new InvalidAcceptGroupJoinApplyException();
-        }
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(UserNotFoundException::new);
+
+        validateLeader(leaderId, targetGroup);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(targetUserId,
-                targetGroupId).orElseThrow(
-                GroupUserNotFoundException::new);
+                targetGroupId).orElseThrow(GroupUserNotFoundException::new);
 
-        if (JoinStatus.isWaitingAcceptJoinApply(userGroup.getJoinStatus())) {
+        if (!JoinStatus.isWaitingAcceptJoinApply(userGroup.getJoinStatus())) {
             throw new InvalidJoinGroupException();
         }
-        userGroup.updateJoinStatus(JOINED);
+
+        if (ApprovalStatus.isApproved(approvalStatus)) {
+            userGroup.updateJoinStatus(JOINED);
+            userGroupRepository.save(userGroup);
+            return;
+        }
+        userGroup.updateJoinStatus(REJECTED);
         userGroupRepository.save(userGroup);
     }
 
-    private String createInviteCode() {
-        final String CHARSET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
-            sb.append(CHARSET.charAt(secureRandom.nextInt(CHARSET.length())));
+    private void validateLeader(Long leaderId, Group group) {
+        if (userRepository.findById(leaderId).isEmpty()) {
+            throw new InvalidAcceptGroupJoinApplyException();
         }
-        return sb.toString();
+        if (!leaderId.equals(group.getLeaderUser().getId())) {
+            throw new InvalidAcceptGroupJoinApplyException();
+        }
+        if (!userGroupRepository.existsByUserIdAndGroupId(leaderId, group.getId())) {
+            throw new InvalidAcceptGroupJoinApplyException();
+        }
     }
 
 }
