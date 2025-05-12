@@ -35,7 +35,7 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final RandomCodeFactory randomCodeFactory;
 
     @Transactional
     public Group createGroup(Long userId) {
@@ -45,25 +45,29 @@ public class GroupService {
         int retryCount = 0;
 
         while (retryCount < maxRetry) {
-            String inviteCode = createInviteCode();
-            try {
-                Group newGroup = Group.builder()
-                        .leaderUser(user)
-                        .inviteCode(inviteCode)
-                        .build();
-                groupRepository.save(newGroup);
+            String inviteCode = randomCodeFactory.createInviteCode();
 
-                UserGroup userGroupInfo = UserGroup.builder()
-                        .group(newGroup)
-                        .user(user)
-                        .joinStatus(JoinStatus.JOINED)
-                        .build();
-                userGroupRepository.save(userGroupInfo);
-                return newGroup;
-            } catch (DataIntegrityViolationException e) {
+            boolean isExists = groupRepository.existsByInviteCode(inviteCode);
+            if (isExists) {
                 retryCount++;
-                log.warn("{} 유저 그룹 생성 시도 중, 초대코드 중복 발생! 재시도 {}/{}", userId, retryCount, maxRetry);
+                log.warn("{} 유저 그룹 생성 시도 중, 초대코드 '{}' 중복 발생 : 재시도 {}/{}", userId, inviteCode,
+                        retryCount, maxRetry);
+                continue;
             }
+
+            Group newGroup = Group.builder()
+                    .leaderUser(user)
+                    .inviteCode(inviteCode)
+                    .build();
+            groupRepository.save(newGroup);
+
+            userGroupRepository.save(UserGroup.builder()
+                    .group(newGroup)
+                    .user(user)
+                    .joinStatus(JoinStatus.JOINED)
+                    .build());
+
+            return newGroup;
         }
         throw new GroupCreateException();
     }
