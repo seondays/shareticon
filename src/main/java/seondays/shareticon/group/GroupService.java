@@ -111,11 +111,11 @@ public class GroupService {
         userGroupRepository.save(userGroup);
     }
 
-    public List<ApplyToJoinResponse> getAllApplyToJoinList(Long userId) {
-        User user = userRepository.findById(userId)
+    public List<ApplyToJoinResponse> getAllApplyToJoinList(Long leaderUserId) {
+        User leaderUser = userRepository.findById(leaderUserId)
                 .orElseThrow(UserNotFoundException::new);
 
-        return userGroupRepository.findPendingByLeader(userId, PENDING)
+        return userGroupRepository.findPendingByLeader(leaderUser.getId(), PENDING)
                 .stream()
                 .map(ApplyToJoinResponse::of)
                 .toList();
