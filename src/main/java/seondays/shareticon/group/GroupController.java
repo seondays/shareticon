@@ -1,5 +1,6 @@
 package seondays.shareticon.group;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,7 @@ public class GroupController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<Void> applyToJoinGroup(@RequestBody ApplyToJoinRequest request,
+    public ResponseEntity<Void> applyToJoinGroup(@Valid @RequestBody ApplyToJoinRequest request,
             @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         groupService.applyToJoinGroup(request, userId);
