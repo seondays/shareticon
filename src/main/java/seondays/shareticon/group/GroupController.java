@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.GroupListResponse;
+import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.login.CustomOAuth2User;
 
 @RestController
@@ -28,11 +29,13 @@ public class GroupController {
     private final GroupService groupService;
 
     @PostMapping
-    public ResponseEntity<Void> createGroup(@AuthenticationPrincipal CustomOAuth2User userDetails) {
+    public ResponseEntity<GroupResponse> createGroup(
+            @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
-        Group createGroupId = groupService.createGroup(userId);
+        GroupResponse createdGroupResponse = groupService.createGroup(userId);
 
-        return ResponseEntity.created(URI.create("/group/" + createGroupId.getId())).build();
+        return ResponseEntity.created(URI.create("/group/" + createdGroupResponse.id()))
+                .body(createdGroupResponse);
     }
 
     @GetMapping
@@ -52,7 +55,8 @@ public class GroupController {
     }
 
     @GetMapping("/join")
-    public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(@AuthenticationPrincipal CustomOAuth2User userDetails) {
+    public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(
+            @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         List<ApplyToJoinResponse> responseList = groupService.getAllApplyToJoinList(userId);
         return ResponseEntity.ok().body(responseList);
