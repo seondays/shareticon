@@ -1,5 +1,7 @@
 package seondays.shareticon.group.dto;
 
-public record ApplyToJoinRequest(String inviteCode) {
+import jakarta.validation.constraints.NotEmpty;
+
+public record ApplyToJoinRequest(@NotEmpty String inviteCode) {
 
 }
