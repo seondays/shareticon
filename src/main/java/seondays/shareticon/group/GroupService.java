@@ -21,6 +21,7 @@ import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.GroupListResponse;
+import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -38,7 +39,7 @@ public class GroupService {
     private final RandomCodeFactory randomCodeFactory;
 
     @Transactional
-    public Group createGroup(Long userId) {
+    public GroupResponse createGroup(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         int maxRetry = 3;
@@ -67,7 +68,7 @@ public class GroupService {
                     .joinStatus(JoinStatus.JOINED)
                     .build());
 
-            return newGroup;
+            return GroupResponse.of(newGroup);
         }
         throw new GroupCreateException();
     }
