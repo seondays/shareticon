@@ -1,0 +1,31 @@
+[[group-create]]
+=== 그룹 생성
+==== HTTP Request
+include::{snippets}/group-create/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/group-create/http-response.adoc[]
+include::{snippets}/group-create/response-fields.adoc[]
+==== Response Header
+include::{snippets}/group-create/response-headers.adoc[]
+
+=== 전체 그룹 조회
+==== HTTP Request
+include::{snippets}/group-get/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/group-get/http-response.adoc[]
+include::{snippets}/group-get/response-fields.adoc[]
+
+=== 그룹 가입
+==== HTTP Request
+include::{snippets}/group-join/http-request.adoc[]
+include::{snippets}/group-join/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/group-join/http-response.adoc[]
+
+=== 그룹 가입 신청 내역 처리
+==== HTTP Request
+include::{snippets}/group-JoinList-approved/http-request.adoc[]
+include::{snippets}/group-JoinList-approved/path-parameters.adoc[]
+include::{snippets}/group-JoinList-approved/query-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/group-JoinList-approved/http-response.adoc[]
