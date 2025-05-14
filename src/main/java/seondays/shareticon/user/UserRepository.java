@@ -8,4 +8,6 @@ import seondays.shareticon.login.OAuth2Type;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByOauth2IdAndOauth2Type(String oauth2Id, OAuth2Type oauth2Type);
+
+    boolean existsById(Long userId);
 }
