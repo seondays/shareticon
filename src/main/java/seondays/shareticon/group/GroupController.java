@@ -1,6 +1,7 @@
 package seondays.shareticon.group;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +68,7 @@ public class GroupController {
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @PathVariable("groupId") Long targetGroupId,
             @PathVariable("userId") Long targetUserId,
-            @RequestParam("status") ApprovalStatus approvalStatus) {
+            @RequestParam("status") @NotNull ApprovalStatus approvalStatus) {
         Long leaderId = userDetails.getId();
         groupService.changeJoinApplyStatus(targetGroupId, targetUserId, leaderId, approvalStatus);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
