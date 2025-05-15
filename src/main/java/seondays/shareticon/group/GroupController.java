@@ -51,7 +51,7 @@ public class GroupController {
             @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         groupService.applyToJoinGroup(request, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/join")
@@ -70,6 +70,6 @@ public class GroupController {
             @RequestParam("status") ApprovalStatus approvalStatus) {
         Long leaderId = userDetails.getId();
         groupService.changeJoinApplyStatus(targetGroupId, targetUserId, leaderId, approvalStatus);
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
