@@ -46,29 +46,29 @@ public class GroupService {
         int retryCount = 0;
 
         while (retryCount < maxRetry) {
-            String inviteCode = randomCodeFactory.createInviteCode();
 
-            boolean isExists = groupRepository.existsByInviteCode(inviteCode);
-            if (isExists) {
+            try {
+                String inviteCode = randomCodeFactory.createInviteCode();
+
+                Group newGroup = Group.builder()
+                        .leaderUser(user)
+                        .inviteCode(inviteCode)
+                        .build();
+                groupRepository.save(newGroup);
+
+                userGroupRepository.save(UserGroup.builder()
+                        .group(newGroup)
+                        .user(user)
+                        .joinStatus(JoinStatus.JOINED)
+                        .build());
+
+                return GroupResponse.of(newGroup);
+
+            } catch (DataIntegrityViolationException e) {
                 retryCount++;
-                log.warn("{} 유저 그룹 생성 시도 중, 초대코드 '{}' 중복 발생 : 재시도 {}/{}", userId, inviteCode,
+                log.warn("{} 유저 그룹 생성 시도 중, 초대코드 중복 발생 : 재시도 {}/{}", userId,
                         retryCount, maxRetry);
-                continue;
             }
-
-            Group newGroup = Group.builder()
-                    .leaderUser(user)
-                    .inviteCode(inviteCode)
-                    .build();
-            groupRepository.save(newGroup);
-
-            userGroupRepository.save(UserGroup.builder()
-                    .group(newGroup)
-                    .user(user)
-                    .joinStatus(JoinStatus.JOINED)
-                    .build());
-
-            return GroupResponse.of(newGroup);
         }
         throw new GroupCreateException();
     }

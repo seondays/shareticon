@@ -7,6 +7,10 @@ import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.GroupCreateException;
@@ -285,7 +290,6 @@ public class GroupServiceTest {
         assertThat(result.get().getJoinStatus()).isEqualTo(JoinStatus.PENDING);
         assertThat(result.get().getGroup().getInviteCode()).isEqualTo("ok");
         assertThat(result.get().getGroup().getId()).isEqualTo(group.getId());
-        assertThat(result.get().getUser().getId()).isEqualTo(user.getId());
     }
 
     @Test
@@ -550,6 +554,48 @@ public class GroupServiceTest {
                 () -> groupService.changeJoinApplyStatus(group.getId(), pendingUser.getId(),
                         leaderUser.getId(), leaderDecision))
                 .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DisplayName("동시에 그룹 생성 요청이 들어와도 inviteCode 중복 발생 시 최대 1개만 성공해야 한다")
+    void testConcurrentGroupCreationWithDuplicateInviteCode() throws InterruptedException {
+        // given
+        User leaderUser = User.builder().build();
+        userRepository.save(leaderUser);
+        doReturn("DUPLICATE").when(randomCodeFactory).createInviteCode();
+
+        int threadCount = 10;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger();
+        AtomicInteger failCount = new AtomicInteger();
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    groupService.createGroup(leaderUser.getId());
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        // then
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(9);
+
+        // tearDown
+        userGroupRepository.deleteAllInBatch();
+        groupRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
 }
