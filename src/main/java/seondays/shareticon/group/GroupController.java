@@ -1,5 +1,7 @@
 package seondays.shareticon.group;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.GroupListResponse;
+import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.login.CustomOAuth2User;
 
 @RestController
@@ -26,11 +30,13 @@ public class GroupController {
     private final GroupService groupService;
 
     @PostMapping
-    public ResponseEntity<Void> createGroup(@AuthenticationPrincipal CustomOAuth2User userDetails) {
+    public ResponseEntity<GroupResponse> createGroup(
+            @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
-        Group createGroupId = groupService.createGroup(userId);
+        GroupResponse createdGroupResponse = groupService.createGroup(userId);
 
-        return ResponseEntity.created(URI.create("/group/" + createGroupId.getId())).build();
+        return ResponseEntity.created(URI.create("/group/" + createdGroupResponse.id()))
+                .body(createdGroupResponse);
     }
 
     @GetMapping
@@ -42,25 +48,29 @@ public class GroupController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<Void> applyToJoinGroup(@RequestBody ApplyToJoinRequest request,
+    public ResponseEntity<Void> applyToJoinGroup(@Valid @RequestBody ApplyToJoinRequest request,
             @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         groupService.applyToJoinGroup(request, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/join-requests")
-    public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(@AuthenticationPrincipal CustomOAuth2User userDetails) {
+    @GetMapping("/join")
+    public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(
+            @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
         List<ApplyToJoinResponse> responseList = groupService.getAllApplyToJoinList(userId);
         return ResponseEntity.ok().body(responseList);
     }
 
     @PatchMapping("/{groupId}/user/{userId}")
-    public ResponseEntity<Void> acceptJoinApply(@AuthenticationPrincipal CustomOAuth2User userDetails,
-            @PathVariable("groupId") Long targetGroupId, @PathVariable("userId") Long targetUserId) {
+    public ResponseEntity<Void> changeJoinApplyStatus(
+            @AuthenticationPrincipal CustomOAuth2User userDetails,
+            @PathVariable("groupId") Long targetGroupId,
+            @PathVariable("userId") Long targetUserId,
+            @RequestParam("status") @NotNull ApprovalStatus approvalStatus) {
         Long leaderId = userDetails.getId();
-        groupService.acceptJoinApply(targetGroupId, targetUserId, leaderId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        groupService.changeJoinApplyStatus(targetGroupId, targetUserId, leaderId, approvalStatus);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

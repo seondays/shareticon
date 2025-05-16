@@ -19,3 +19,8 @@ include::api/voucher/voucher.adoc[]
 == Token API
 
 include::api/token/token.adoc[]
+
+[[Group-API]]
+== Group API
+
+include::api/group/group.adoc[]

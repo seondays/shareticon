@@ -1,5 +1,6 @@
 package seondays.shareticon.group;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -29,5 +30,6 @@ public class Group {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leader_user_id")
     private User leaderUser;
+    @Column(unique = true)
     private String inviteCode;
 }
