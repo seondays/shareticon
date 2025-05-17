@@ -108,7 +108,7 @@ public class GroupControllerTest {
                         .with(oauth2Login().oauth2User(mockUser))
         )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
@@ -168,7 +168,7 @@ public class GroupControllerTest {
                         .with(oauth2Login().oauth2User(mockUser))
         )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
@@ -185,7 +185,7 @@ public class GroupControllerTest {
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
