@@ -7,20 +7,17 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.test.context.ActiveProfiles;
+import seondays.shareticon.api.config.RepositoryTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherStatus;
 
-@ActiveProfiles("test")
-@DataJpaTest
-class VoucherRepositoryTest {
+class VoucherRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private GroupRepository groupRepository;
