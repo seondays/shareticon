@@ -30,9 +30,6 @@ import seondays.shareticon.user.dto.UserOAuth2Dto;
 public class GroupControllerTest extends ControllerTestSupport {
 
     @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
     private ObjectMapper mapper;
 
     @BeforeEach
