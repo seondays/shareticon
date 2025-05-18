@@ -11,29 +11,19 @@ import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import seondays.shareticon.api.config.TestSecurityConfig;
+import seondays.shareticon.api.config.ControllerTestSupport;
 import seondays.shareticon.login.CustomOAuth2User;
-import seondays.shareticon.login.token.TokenController;
-import seondays.shareticon.login.token.TokenService;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
 
-@WebMvcTest(controllers = TokenController.class)
-@Import(TestSecurityConfig.class)
-public class TokenControllerTest {
+public class TokenControllerTest extends ControllerTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private TokenService tokenService;
 
     @Test
     @DisplayName("리프레시 토큰으로 엑세스 토큰을 요청한다")
