@@ -7,17 +7,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import seondays.shareticon.api.config.RedisTestContainer;
+import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.login.token.RefreshToken;
 import seondays.shareticon.login.token.StoredRefreshToken;
 import seondays.shareticon.login.token.TokenRepository;
 
-@ActiveProfiles("test")
-@SpringBootTest
-public class TokenRepositoryTest extends RedisTestContainer {
+public class TokenRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
     private TokenRepository tokenRepository;

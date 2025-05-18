@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.Cookie;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
@@ -13,12 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import seondays.shareticon.api.config.RedisTestContainer;
+import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.login.UserRole;
 import seondays.shareticon.login.token.RefreshToken;
 import seondays.shareticon.login.token.StoredRefreshToken;
@@ -26,9 +22,7 @@ import seondays.shareticon.login.token.TokenFactory;
 import seondays.shareticon.login.token.TokenRepository;
 import seondays.shareticon.login.token.TokenService;
 
-@ActiveProfiles("test")
-@SpringBootTest
-public class TokenServiceTest extends RedisTestContainer {
+public class TokenServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private TokenService tokenService;
@@ -41,9 +35,6 @@ public class TokenServiceTest extends RedisTestContainer {
 
     @Autowired
     private RedisTemplate<String, StoredRefreshToken> redisTemplate;
-
-    @MockitoBean
-    private Clock clock;
 
     private Instant testSystemTimeInstant;
 
