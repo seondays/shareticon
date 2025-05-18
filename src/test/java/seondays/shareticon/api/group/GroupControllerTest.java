@@ -13,16 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import seondays.shareticon.api.config.ControllerTestSupport;
 import seondays.shareticon.group.Group;
-import seondays.shareticon.group.GroupController;
-import seondays.shareticon.group.GroupService;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.GroupListResponse;
@@ -30,16 +27,10 @@ import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
 
-@WebMvcTest(controllers = GroupController.class)
-public class GroupControllerTest {
+public class GroupControllerTest extends ControllerTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
-
-    private CustomOAuth2User mockUser;
-
-    @MockitoBean
-    private GroupService groupService;
 
     @Autowired
     private ObjectMapper mapper;

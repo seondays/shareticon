@@ -7,23 +7,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.multipart.MultipartFile;
+import seondays.shareticon.api.config.ControllerTestSupport;
 import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
-import seondays.shareticon.voucher.VoucherController;
-import seondays.shareticon.voucher.VoucherService;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
@@ -36,14 +33,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@WebMvcTest(controllers = VoucherController.class)
-public class VoucherControllerTest {
+public class VoucherControllerTest extends ControllerTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private VoucherService voucherService;
 
     @Autowired
     private ObjectMapper objectMapper;
