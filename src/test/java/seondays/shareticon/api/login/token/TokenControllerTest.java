@@ -22,9 +22,6 @@ import seondays.shareticon.user.dto.UserOAuth2Dto;
 
 public class TokenControllerTest extends ControllerTestSupport {
 
-    @Autowired
-    private MockMvc mockMvc;
-
     @Test
     @DisplayName("리프레시 토큰으로 엑세스 토큰을 요청한다")
     void reissueAccessToken() throws Exception {
