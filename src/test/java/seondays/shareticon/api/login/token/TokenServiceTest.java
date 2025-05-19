@@ -79,9 +79,9 @@ public class TokenServiceTest extends IntegrationTestSupport {
         Long userId = 1L;
         UserRole role = UserRole.ROLE_USER;
         Duration duration = Duration.ofDays(1);
-        String NotRefreshToken = tokenFactory.createAccessToken(userId, role, duration);
+        String notRefreshToken = tokenFactory.createAccessToken(userId, role, duration);
 
-        Cookie[] cookies = {new Cookie("refresh", NotRefreshToken)};
+        Cookie[] cookies = {new Cookie("refresh", notRefreshToken)};
 
         //when //then
         assertThatThrownBy(() -> tokenService.reissueAccessToken(cookies)).isInstanceOf(
