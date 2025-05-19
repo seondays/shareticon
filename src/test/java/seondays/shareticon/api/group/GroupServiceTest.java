@@ -277,15 +277,15 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //then
         Optional<UserGroup> result = userGroupRepository.findByUserIdAndGroupId(
                 user.getId(), group.getId());
+
         assertThat(result).isNotEmpty();
+        assertThat(result.get().getJoinStatus()).isEqualTo(JoinStatus.PENDING);
 
-        JoinStatus resultJoinstatus = result.get().getJoinStatus();
-        String inviteCode = result.get().getGroup().getInviteCode();
-        Long id = result.get().getGroup().getId();
+        Group resultGroup = result.get().getGroup();
 
-        assertThat(resultJoinstatus).isEqualTo(JoinStatus.PENDING);
-        assertThat(inviteCode).isEqualTo("ok");
-        assertThat(id).isEqualTo(group.getId());
+        assertThat(resultGroup).isNotNull();
+        assertThat(resultGroup.getInviteCode()).isEqualTo("ok");
+        assertThat(resultGroup.getId()).isEqualTo(group.getId());
     }
 
     @Test
