@@ -14,12 +14,10 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Slice;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
+import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
@@ -28,7 +26,6 @@ import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
-import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -40,9 +37,7 @@ import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class VoucherServiceTest {
+class VoucherServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private VoucherService voucherService;
@@ -58,9 +53,6 @@ class VoucherServiceTest {
 
     @Autowired
     private UserGroupRepository userGroupRepository;
-
-    @MockitoBean
-    private ImageService imageService;
 
     @AfterEach
     void tearDown() {

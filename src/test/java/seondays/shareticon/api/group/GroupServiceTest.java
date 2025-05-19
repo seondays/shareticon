@@ -18,11 +18,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
@@ -34,7 +32,6 @@ import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.group.GroupService;
 import seondays.shareticon.group.JoinStatus;
-import seondays.shareticon.group.RandomCodeFactory;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.GroupListResponse;
@@ -45,9 +42,7 @@ import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 
 @Transactional
-@ActiveProfiles("test")
-@SpringBootTest
-public class GroupServiceTest {
+public class GroupServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private GroupService groupService;
@@ -60,9 +55,6 @@ public class GroupServiceTest {
 
     @Autowired
     private UserGroupRepository userGroupRepository;
-
-    @MockitoSpyBean
-    private RandomCodeFactory randomCodeFactory;
 
     @Test
     @DisplayName("그룹을 생성한다")
@@ -288,8 +280,12 @@ public class GroupServiceTest {
 
         assertThat(result).isNotEmpty();
         assertThat(result.get().getJoinStatus()).isEqualTo(JoinStatus.PENDING);
-        assertThat(result.get().getGroup().getInviteCode()).isEqualTo("ok");
-        assertThat(result.get().getGroup().getId()).isEqualTo(group.getId());
+
+        Group resultGroup = result.get().getGroup();
+
+        assertThat(resultGroup).isNotNull();
+        assertThat(resultGroup.getInviteCode()).isEqualTo("ok");
+        assertThat(resultGroup.getId()).isEqualTo(group.getId());
     }
 
     @Test

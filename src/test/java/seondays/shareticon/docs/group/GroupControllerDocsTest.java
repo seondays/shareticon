@@ -134,7 +134,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                                 .with(authentication(auth))
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.status().isNoContent())
                 .andDo(document("group-join",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -194,7 +194,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                                 .with(authentication(auth))
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.status().isNoContent())
                 .andDo(document("group-JoinList-approved",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
