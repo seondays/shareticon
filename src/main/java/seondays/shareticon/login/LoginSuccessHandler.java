@@ -41,7 +41,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         response.addCookie(createCookie("refresh", refreshToken.getToken()));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-        response.sendRedirect("http://localhost:8080/swagger-ui/index.html");
+        response.sendRedirect("http://43.203.220.179:8080/swagger-ui/index.html");
     }
 
     public Cookie createCookie(String key, String value) {
