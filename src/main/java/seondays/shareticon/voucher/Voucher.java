@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.user.User;
+import seondays.shareticon.utils.BaseEntity;
 
 @Entity
 @Table(name = "voucher")
@@ -26,7 +27,7 @@ import seondays.shareticon.user.User;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Voucher {
+public class Voucher extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
