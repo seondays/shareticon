@@ -46,7 +46,8 @@ public class SecurityConfig {
         // 인증 경로 설정
         http.authorizeHttpRequests(
                 auth -> auth.requestMatchers("/", "/reissue", "/error", "/oauth2**",
-                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**")
+                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+                                "build/docs/**")
                         .permitAll()
                         .anyRequest().authenticated());
 
