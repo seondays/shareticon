@@ -2,6 +2,7 @@ package seondays.shareticon.api.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,5 +33,27 @@ public class UserRepositoryTest extends RepositoryTestSupport {
                 .get()
                 .extracting(User::getId, User::getOauth2Id, User::getOauth2Type)
                 .containsExactly(user.getId(), "1234", OAuth2Type.KAKAO);
+    }
+
+    @Test
+    @DisplayName("유저를 새로 저장할 때, 생성된 날짜와 시간이 함께 저장된다")
+    void auditingUser() {
+        // given
+        User user = User.builder().oauth2Id("1234").oauth2Type(OAuth2Type.KAKAO).build();
+
+        // when
+        userRepository.save(user);
+
+        // then
+        Optional<User> result = userRepository.findById(user.getId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getCreatedDateTime()).isNotNull();
+        assertThat(result.get().getModifiedDateTime()).isNotNull();
+
+        LocalDateTime now = LocalDateTime.now();
+        assertThat(result.get().getCreatedDateTime()).isBeforeOrEqualTo(now);
+        assertThat(result.get().getModifiedDateTime()).isBeforeOrEqualTo(now);
+
     }
 }
