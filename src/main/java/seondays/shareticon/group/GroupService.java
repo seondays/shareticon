@@ -116,7 +116,7 @@ public class GroupService {
         User leaderUser = userRepository.findById(leaderUserId)
                 .orElseThrow(UserNotFoundException::new);
 
-        return userGroupRepository.findPendingByLeader(leaderUser.getId(), PENDING)
+        return userGroupRepository.findByLeaderAndJoinStatus(leaderUser.getId(), PENDING)
                 .stream()
                 .map(ApplyToJoinResponse::of)
                 .toList();

@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import seondays.shareticon.utils.BaseEntity;
 import seondays.shareticon.login.OAuth2Type;
 import seondays.shareticon.login.UserRole;
 
@@ -21,7 +22,7 @@ import seondays.shareticon.login.UserRole;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class User {
+public class User extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -23,6 +23,6 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
       where ug.group.leaderUser.id = :leaderId
         and ug.joinStatus = :status
         """)
-    List<UserGroup> findPendingByLeader(Long leaderId, JoinStatus status);
+    List<UserGroup> findByLeaderAndJoinStatus(Long leaderId, JoinStatus status);
 
 }
