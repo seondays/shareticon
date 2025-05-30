@@ -1,10 +1,8 @@
 package seondays.shareticon.group.dto;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
+import jakarta.validation.constraints.NotEmpty;
 
-@Builder
 public record CreateGroupRequest(
-        @NotNull(message = "그룹 이름을 포함해야 합니다")
+        @NotEmpty(message = "그룹 이름을 포함해야 합니다")
         String title) {
 }
