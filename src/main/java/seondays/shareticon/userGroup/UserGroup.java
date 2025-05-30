@@ -48,4 +48,8 @@ public class UserGroup extends BaseEntity {
     public void updateJoinStatus(JoinStatus joinStatus) {
         this.joinStatus = joinStatus;
     }
+
+    public void changeGroupTitleAlias(String alias) {
+        this.groupTitleAlias = alias;
+    }
 }

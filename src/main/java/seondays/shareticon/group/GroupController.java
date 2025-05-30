@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
@@ -74,5 +76,17 @@ public class GroupController {
         Long leaderId = userDetails.getId();
         groupService.changeJoinApplyStatus(targetGroupId, targetUserId, leaderId, approvalStatus);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PatchMapping("/{groupId}")
+    public ResponseEntity<ChangeGroupTitleAliasResponse> changeGroupTitleAlias(
+            @AuthenticationPrincipal CustomOAuth2User userDetails,
+            @PathVariable("groupId") Long groupId,
+            @Valid @RequestBody ChangeGroupTitleAliasRequest request) {
+        Long userId = userDetails.getId();
+
+        ChangeGroupTitleAliasResponse result = groupService.changeGroupTitleAlias(
+                userId, groupId, request);
+        return ResponseEntity.ok().body(result);
     }
 }

@@ -20,6 +20,8 @@ import seondays.shareticon.exception.InvalidJoinGroupException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
@@ -153,6 +155,19 @@ public class GroupService {
         userGroupRepository.save(userGroup);
     }
 
+    @Transactional
+    public ChangeGroupTitleAliasResponse changeGroupTitleAlias(Long userId, Long groupId,
+            ChangeGroupTitleAliasRequest request) {
+        validateUserAndGroupExist(userId, groupId);
+
+        UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, userId)
+                .orElseThrow(GroupUserNotFoundException::new);
+
+        userGroup.changeGroupTitleAlias(request.newGroupTitleAlias());
+
+        return ChangeGroupTitleAliasResponse.of(userGroup);
+    }
+
     private void validateLeader(Long leaderId, Group group) {
         if (userRepository.findById(leaderId).isEmpty()) {
             throw new InvalidAcceptGroupJoinApplyException();
@@ -162,6 +177,16 @@ public class GroupService {
         }
         if (!userGroupRepository.existsByUserIdAndGroupId(leaderId, group.getId())) {
             throw new InvalidAcceptGroupJoinApplyException();
+        }
+    }
+
+    private void validateUserAndGroupExist(Long userId, Long groupId) {
+        if (!groupRepository.existsById(groupId)) {
+            throw new GroupNotFoundException();
+        }
+
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException();
         }
     }
 
