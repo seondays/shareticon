@@ -33,7 +33,7 @@ public class GroupController {
     @PostMapping
     public ResponseEntity<GroupResponse> createGroup(
             @AuthenticationPrincipal CustomOAuth2User userDetails,
-            @RequestBody CreateGroupRequest request) {
+            @Valid @RequestBody CreateGroupRequest request) {
         Long userId = userDetails.getId();
         GroupResponse createdGroupResponse = groupService.createGroup(userId, request);
 
