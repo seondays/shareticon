@@ -160,7 +160,7 @@ public class GroupService {
             ChangeGroupTitleAliasRequest request) {
         validateUserAndGroupExist(userId, groupId);
 
-        UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, userId)
+        UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(GroupUserNotFoundException::new);
 
         userGroup.changeGroupTitleAlias(request.newGroupTitleAlias());
