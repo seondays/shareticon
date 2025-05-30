@@ -33,4 +33,5 @@ public class Group extends BaseEntity {
     private User leaderUser;
     @Column(unique = true)
     private String inviteCode;
+    private String title;
 }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.login.CustomOAuth2User;
@@ -31,9 +32,10 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupResponse> createGroup(
-            @AuthenticationPrincipal CustomOAuth2User userDetails) {
+            @AuthenticationPrincipal CustomOAuth2User userDetails,
+            @RequestBody CreateGroupRequest request) {
         Long userId = userDetails.getId();
-        GroupResponse createdGroupResponse = groupService.createGroup(userId);
+        GroupResponse createdGroupResponse = groupService.createGroup(userId, request);
 
         return ResponseEntity.created(URI.create("/group/" + createdGroupResponse.id()))
                 .body(createdGroupResponse);
