@@ -14,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -22,6 +21,7 @@ import seondays.shareticon.api.config.ControllerTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.login.CustomOAuth2User;
@@ -45,7 +45,8 @@ public class GroupControllerTest extends ControllerTestSupport {
                 .id(1L)
                 .build();
 
-        when(groupService.createGroup(any(Long.class))).thenReturn(GroupResponse.of(createdGroup));
+        when(groupService.createGroup(any(Long.class), any(CreateGroupRequest.class)))
+                .thenReturn(GroupResponse.of(createdGroup));
 
         //when //then
         mockMvc.perform(
@@ -62,8 +63,8 @@ public class GroupControllerTest extends ControllerTestSupport {
     @DisplayName("유저의 모든 그룹 리스트를 조회한다")
     void getAllGroupList() throws Exception {
         //given
-        GroupListResponse response1 = new GroupListResponse(1L);
-        GroupListResponse response2 = new GroupListResponse(2L);
+        GroupListResponse response1 = new GroupListResponse(1L, "title1");
+        GroupListResponse response2 = new GroupListResponse(2L, "title2");
         List<GroupListResponse> responseList = List.of(response1, response2);
 
         when(groupService.getAllGroupList(any(Long.class))).thenReturn(responseList);

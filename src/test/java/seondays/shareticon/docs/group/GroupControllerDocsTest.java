@@ -15,6 +15,7 @@ import seondays.shareticon.group.GroupController;
 import seondays.shareticon.group.GroupService;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
 
@@ -23,24 +24,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
-import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
-import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
-import static org.springframework.restdocs.snippet.Attributes.attributes;
-import static org.springframework.restdocs.snippet.Attributes.key;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -62,7 +56,8 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                 .inviteCode("ABC")
                 .build();
 
-        when(groupService.createGroup(any(Long.class))).thenReturn(GroupResponse.of(createdGroup));
+        when(groupService.createGroup(any(Long.class), any(CreateGroupRequest.class)))
+                .thenReturn(GroupResponse.of(createdGroup));
 
         //when //then
         mockMvc.perform(
@@ -92,8 +87,8 @@ public class GroupControllerDocsTest extends RestDocsSupport {
     @DisplayName("유저의 모든 그룹 리스트를 조회한다")
     void getAllGroupList() throws Exception {
         //given
-        GroupListResponse response1 = new GroupListResponse(1L);
-        GroupListResponse response2 = new GroupListResponse(2L);
+        GroupListResponse response1 = new GroupListResponse(1L, "title1");
+        GroupListResponse response2 = new GroupListResponse(2L, "title2");
         List<GroupListResponse> responseList = List.of(response1, response2);
 
         when(groupService.getAllGroupList(any(Long.class))).thenReturn(responseList);
