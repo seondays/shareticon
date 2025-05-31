@@ -21,6 +21,8 @@ import seondays.shareticon.api.config.ControllerTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
@@ -45,12 +47,17 @@ public class GroupControllerTest extends ControllerTestSupport {
                 .id(1L)
                 .build();
 
+        CreateGroupRequest request = new CreateGroupRequest("그룹 이름");
+        String json = mapper.writeValueAsString(request);
+
         when(groupService.createGroup(any(Long.class), any(CreateGroupRequest.class)))
                 .thenReturn(GroupResponse.of(createdGroup));
 
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/group")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
@@ -71,10 +78,10 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                MockMvcRequestBuilders.get("/group")
-                        .with(csrf())
-                        .with(oauth2Login().oauth2User(mockUser))
-        )
+                        MockMvcRequestBuilders.get("/group")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -90,12 +97,12 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                MockMvcRequestBuilders.post("/group/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-                        .with(csrf())
-                        .with(oauth2Login().oauth2User(mockUser))
-        )
+                        MockMvcRequestBuilders.post("/group/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
@@ -109,12 +116,12 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                MockMvcRequestBuilders.post("/group/join")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-                        .with(csrf())
-                        .with(oauth2Login().oauth2User(mockUser))
-        )
+                        MockMvcRequestBuilders.post("/group/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
@@ -133,10 +140,10 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                MockMvcRequestBuilders.get("/group/join")
-                        .with(csrf())
-                        .with(oauth2Login().oauth2User(mockUser))
-        )
+                        MockMvcRequestBuilders.get("/group/join")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -151,11 +158,11 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", 1L, userId)
-                        .param("status", "APPROVED")
-                        .with(csrf())
-                        .with(oauth2Login().oauth2User(mockUser))
-        )
+                        MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", 1L, userId)
+                                .param("status", "APPROVED")
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
@@ -211,5 +218,57 @@ public class GroupControllerTest extends ControllerTestSupport {
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("그룹의 별칭을 변경한다")
+    void changeGroupTitleAlias() throws Exception {
+        //given
+        Long groupId = 1L;
+        String newTitleAlias = "그룹별칭";
+        ChangeGroupTitleAliasRequest request = new ChangeGroupTitleAliasRequest(newTitleAlias);
+        String json = mapper.writeValueAsString(request);
+
+        ChangeGroupTitleAliasResponse response = new ChangeGroupTitleAliasResponse(groupId, newTitleAlias);
+
+        when(groupService.changeGroupTitleAlias(
+                any(Long.class), any(Long.class), any(ChangeGroupTitleAliasRequest.class)))
+                .thenReturn(response);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.groupId").value(groupId))
+                .andExpect(jsonPath("$.titleAlias").value(newTitleAlias));
+
+    }
+
+    @Test
+    @DisplayName("그룹의 별칭 변경 요청 시, 변경할 별칭 정보는 필수이다")
+    void changeGroupTitleAliasWithNoNewAlias() throws Exception {
+        //given
+        Long groupId = 1L;
+        ChangeGroupTitleAliasRequest request = new ChangeGroupTitleAliasRequest("");
+        String json = new ObjectMapper().writeValueAsString(request);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"));
+
     }
 }

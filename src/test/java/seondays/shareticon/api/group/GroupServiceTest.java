@@ -34,6 +34,8 @@ import seondays.shareticon.group.GroupService;
 import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
@@ -64,7 +66,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        CreateGroupRequest request = CreateGroupRequest.builder().build();
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         //when
         GroupResponse groupResponse = groupService.createGroup(user.getId(), request);
@@ -79,7 +82,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //given
         User user = User.builder().id(1L).build();
 
-        CreateGroupRequest request = CreateGroupRequest.builder().build();
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         //when //then
         assertThatThrownBy(() -> groupService.createGroup(user.getId(), request)).isInstanceOf(
@@ -95,7 +99,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = userRepository.save(User.builder().build());
         groupRepository.save(Group.builder().leaderUser(user).inviteCode("AAAAAAAA").build());
 
-        CreateGroupRequest request = CreateGroupRequest.builder().build();
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         doReturn(inviteCodes.get(0), inviteCodes.get(1), inviteCodes.get(2))
                 .when(randomCodeFactory).createInviteCode();
@@ -130,7 +135,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userRepository.save(user);
 
         String groupTitle = "그룹이름";
-        CreateGroupRequest request = CreateGroupRequest.builder().title(groupTitle).build();
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         //when
         GroupResponse createdGroup = groupService.createGroup(user.getId(), request);
@@ -591,7 +596,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userRepository.save(leaderUser);
         doReturn("DUPLICATE").when(randomCodeFactory).createInviteCode();
 
-        CreateGroupRequest request = CreateGroupRequest.builder().build();
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         int threadCount = 10;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
@@ -626,4 +632,29 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userRepository.deleteAllInBatch();
     }
 
+    @Test
+    @DisplayName("그룹명 별칭을 변경한다")
+    void changeGroupTitleAlias() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+
+        UserGroup userGroup = UserGroup.builder().group(group).user(user)
+                .groupTitleAlias(group.getTitle()).build();
+        userGroupRepository.save(userGroup);
+
+        String newAlias = "새로운별칭";
+        ChangeGroupTitleAliasRequest request = new ChangeGroupTitleAliasRequest(newAlias);
+
+        //when
+        ChangeGroupTitleAliasResponse result = groupService.changeGroupTitleAlias(
+                user.getId(), group.getId(), request);
+
+        //then
+        assertThat(result.titleAlias()).isEqualTo(newAlias);
+
+    }
 }
