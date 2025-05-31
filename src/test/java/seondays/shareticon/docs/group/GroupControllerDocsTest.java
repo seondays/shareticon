@@ -15,6 +15,8 @@ import seondays.shareticon.group.GroupController;
 import seondays.shareticon.group.GroupService;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
@@ -56,6 +58,9 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                 .inviteCode("ABC")
                 .build();
 
+        CreateGroupRequest request = new CreateGroupRequest("그룹 이름");
+        String json = objectMapper.writeValueAsString(request);
+
         when(groupService.createGroup(any(Long.class), any(CreateGroupRequest.class)))
                 .thenReturn(GroupResponse.of(createdGroup));
 
@@ -63,6 +68,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/group")
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
                                 .with(authentication(auth))
                 )
                 .andDo(MockMvcResultHandlers.print())
@@ -109,7 +115,9 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("[]").type(JsonFieldType.ARRAY)
                                         .description("조회된 그룹 리스트"),
                                 fieldWithPath("[].groupId").type(JsonFieldType.NUMBER)
-                                        .description("그룹 ID")
+                                        .description("그룹 ID"),
+                                fieldWithPath("[].groupTitleAlias").type(JsonFieldType.STRING)
+                                        .description("그룹의 별칭")
                         )
                 ));
     }
@@ -198,7 +206,52 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                                 parameterWithName("userId").description("가입 신청을 한 유저 ID")
                         ),
                         queryParameters(
-                                parameterWithName("status").description("처리할 상태값. (APPROVED: 승인, REJECTED: 거절)")
+                                parameterWithName("status").description(
+                                        "처리할 상태값. (APPROVED: 승인, REJECTED: 거절)")
                         )));
+    }
+
+    @Test
+    @DisplayName("그룹의 별칭을 변경한다")
+    void changeGroupTitleAlias() throws Exception {
+        //given
+        Long groupId = 1L;
+        String newTitleAlias = "그룹별칭";
+        ChangeGroupTitleAliasRequest request = new ChangeGroupTitleAliasRequest(newTitleAlias);
+        String json = objectMapper.writeValueAsString(request);
+
+        ChangeGroupTitleAliasResponse response = new ChangeGroupTitleAliasResponse(groupId,
+                newTitleAlias);
+
+        when(groupService.changeGroupTitleAlias(
+                any(Long.class), any(Long.class), any(ChangeGroupTitleAliasRequest.class)))
+                .thenReturn(response);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                                .with(authentication(auth))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.groupId").value(groupId))
+                .andExpect(jsonPath("$.titleAlias").value(newTitleAlias))
+                .andDo(document("group-title-alias-change",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("groupId").description("별칭을 변경할 대상이 되는 그룹 ID")),
+                        requestFields(
+                                fieldWithPath("newGroupTitleAlias").type(JsonFieldType.STRING)
+                                        .description("변경하기를 원하는 별칭")),
+                        responseFields(
+                                fieldWithPath("groupId").type(JsonFieldType.NUMBER)
+                                        .description("별칭이 변경된 그룹 ID"),
+                                fieldWithPath("titleAlias").type(JsonFieldType.STRING)
+                                        .description("변경된 별칭")
+                        )));
+
     }
 }
