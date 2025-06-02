@@ -79,9 +79,8 @@ public class GroupService {
     }
 
     public List<GroupListResponse> getAllGroupList(Long userId) {
-        return userGroupRepository.findAllByUserId(userId)
+        return userGroupRepository.findGroupsWithMemberCountByUserId(userId)
                 .stream()
-                .map(GroupListResponse::of)
                 .toList();
     }
 
