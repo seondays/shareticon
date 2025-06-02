@@ -1,6 +1,7 @@
 package seondays.shareticon.api.userGroup;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +13,7 @@ import seondays.shareticon.api.config.RepositoryTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.group.JoinStatus;
+import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -51,24 +53,29 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void getUserWithAllGroup() {
         //given
         User user = User.builder().build();
+        User user2 = User.builder().build();
 
         Group group1 = Group.builder().build();
         Group group2 = Group.builder().build();
 
         UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).build();
         UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
+        UserGroup userGroup3 = UserGroup.builder().user(user2).group(group2).build();
 
-        userRepository.save(user);
+        userRepository.saveAll(List.of(user, user2));
         groupRepository.saveAll(List.of(group1, group2));
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
+        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3));
 
         //when
-        List<UserGroup> result = userGroupRepository.findAllByUserId(user.getId());
+        List<GroupListResponse> result = userGroupRepository.findGroupsWithMemberCountByUserId(user.getId());
 
         //then
         assertThat(result.size()).isEqualTo(2);
-        assertThat(result).extracting("id")
-                .contains(userGroup1.getId(), userGroup2.getId());
+        assertThat(result).extracting("groupId", "groupTitleAlias", "memberCount")
+                .containsExactlyInAnyOrder(
+                        tuple(group1.getId(), group1.getTitle(), 1),
+                        tuple(group2.getId(), group2.getTitle(), 2)
+                );
 
     }
 
@@ -80,7 +87,7 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         userRepository.save(user);
 
         //when
-        List<UserGroup> result = userGroupRepository.findAllByUserId(user.getId());
+        List<GroupListResponse> result = userGroupRepository.findGroupsWithMemberCountByUserId(user.getId());
 
         //then
         assertThat(result).isEmpty();

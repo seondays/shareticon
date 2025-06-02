@@ -171,8 +171,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(responseList).hasSize(2);
-        assertThat(responseList).extracting("groupId", "groupTitleAlias")
-                .contains(tuple(group1.getId(), group1Title), tuple(group2.getId(), group2Title));
+        assertThat(responseList).extracting("groupId", "groupTitleAlias", "memberCount")
+                .contains(tuple(group1.getId(), group1Title, 1), tuple(group2.getId(), group2Title, 1));
     }
 
     @Test
