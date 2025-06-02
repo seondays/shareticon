@@ -24,6 +24,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final TokenFactory tokenFactory;
     private final TokenRepository tokenRepository;
+    private static final String REDIRECTION_URL = "https://shareticon.site/";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -41,7 +42,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         response.addCookie(createCookie("refresh", refreshToken.getToken()));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-        response.sendRedirect("http://43.203.220.179:8080/swagger-ui/index.html");
+        response.sendRedirect(REDIRECTION_URL);
     }
 
     public Cookie createCookie(String key, String value) {
