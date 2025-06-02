@@ -93,8 +93,8 @@ public class GroupControllerDocsTest extends RestDocsSupport {
     @DisplayName("유저의 모든 그룹 리스트를 조회한다")
     void getAllGroupList() throws Exception {
         //given
-        GroupListResponse response1 = new GroupListResponse(1L, "title1");
-        GroupListResponse response2 = new GroupListResponse(2L, "title2");
+        GroupListResponse response1 = new GroupListResponse(1L, "title1", 2);
+        GroupListResponse response2 = new GroupListResponse(2L, "title2", 2);
         List<GroupListResponse> responseList = List.of(response1, response2);
 
         when(groupService.getAllGroupList(any(Long.class))).thenReturn(responseList);
@@ -117,7 +117,9 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("[].groupId").type(JsonFieldType.NUMBER)
                                         .description("그룹 ID"),
                                 fieldWithPath("[].groupTitleAlias").type(JsonFieldType.STRING)
-                                        .description("그룹의 별칭")
+                                        .description("그룹의 별칭"),
+                                fieldWithPath("[].memberCount").type(JsonFieldType.NUMBER)
+                                        .description("그룹에 참여중인 총 멤버의 수")
                         )
                 ));
     }
