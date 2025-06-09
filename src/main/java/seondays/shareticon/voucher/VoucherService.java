@@ -1,9 +1,11 @@
 package seondays.shareticon.voucher;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,8 +21,10 @@ import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
+import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
@@ -98,16 +102,21 @@ public class VoucherService {
      * @param groupId
      * @return
      */
-    public Slice<VouchersResponse> getAllVoucher(Long userId, Long groupId, Long cursorId, int size) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
-            throw new InvalidAccessVoucherException();
-        }
+    public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId, int size) {
+        UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
+                .orElseThrow(InvalidAccessVoucherException::new);
 
         Pageable pageable = PageRequest.of(0, size);
         Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursorByDesc(groupId,
                 VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
 
-        return vouchers.map(VouchersResponse::of);
+        List<VouchersResponse> vouchersResponseList = vouchers.stream()
+                .map(VouchersResponse::of)
+                .toList();
+
+        VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList, userGroup);
+
+        return new SliceImpl<>(List.of(voucherListResponse), pageable, vouchers.hasNext());
     }
 
     /**
