@@ -2,6 +2,7 @@ package seondays.shareticon.api.voucher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -35,6 +36,7 @@ import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherService;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 class VoucherServiceTest extends IntegrationTestSupport {
@@ -312,18 +314,58 @@ class VoucherServiceTest extends IntegrationTestSupport {
         Voucher voucher1 = Voucher.createAvailableStatus(user, group);
         Voucher voucher2 = Voucher.createAvailableStatus(user, group);
         Voucher voucher3 = Voucher.createAvailableStatus(user, group);
+        voucher1.saveImage("image1");
+        voucher2.saveImage("image2");
+        voucher3.saveImage("image3");
+
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
 
         //when
-        Slice<VouchersResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+        Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3);
+
+        VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
 
         //then
         assertThat(allVoucher).isNotNull();
         assertThat(allVoucher.getSize()).isEqualTo(3);
-        assertThat(allVoucher.getContent())
-                .extracting("id")
-                .contains(voucher3.getId(), voucher2.getId(), voucher1.getId());
+        assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
+
+        assertThat(voucherListResponse.groupId()).isEqualTo(group.getId());
+        assertThat(voucherListResponse.vouchers())
+                .extracting("id", "image", "status")
+                .contains(
+                        tuple(voucher1.getId(),voucher1.getImage(), voucher1.getStatus()),
+                        tuple(voucher2.getId(),voucher2.getImage(), voucher2.getStatus()),
+                        tuple(voucher3.getId(),voucher3.getImage(), voucher3.getStatus())
+                );
+
+    }
+
+    @Test
+    @DisplayName("그룹에 속해있는 사용자가 쿠폰을 조회하는 경우, 쿠폰이 존재하지 않더라도 해당 그룹 정보는 결과에 포함된다")
+    void getAllVoucherWithUserExistInGroupAndNoVoucher() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+        linkUserWithGroup(user, group);
+
+        //when
+        Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3);
+
+        VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
+
+        //then
+        assertThat(allVoucher).isNotNull();
+        assertThat(allVoucher.getSize()).isEqualTo(3);
+        assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
+
+        assertThat(voucherListResponse.vouchers()).isEmpty();
+        assertThat(voucherListResponse.groupId()).isEqualTo(group.getId());
     }
 
     @Test
@@ -364,14 +406,16 @@ class VoucherServiceTest extends IntegrationTestSupport {
         return Stream.of(
                 DynamicTest.dynamicTest("사용가능 상태인 쿠폰을 사용완료로 변경한다", () -> {
                     //when
-                    voucherService.changeVoucherStatus(user.getId(), group.getId(), voucher.getId());
+                    voucherService.changeVoucherStatus(user.getId(), group.getId(),
+                            voucher.getId());
 
                     //then
                     assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.USED);
                 }),
                 DynamicTest.dynamicTest("사용완료 상태인 쿠폰을 사용가능으로 변경한다.", () -> {
                     //when
-                    voucherService.changeVoucherStatus(user.getId(), group.getId(), voucher.getId());
+                    voucherService.changeVoucherStatus(user.getId(), group.getId(),
+                            voucher.getId());
 
                     //then
                     assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.AVAILABLE);

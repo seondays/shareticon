@@ -3,6 +3,7 @@ package seondays.shareticon.api.voucher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,10 +20,15 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.api.config.ControllerTestSupport;
+import seondays.shareticon.group.Group;
 import seondays.shareticon.login.CustomOAuth2User;
+import seondays.shareticon.user.User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
+import seondays.shareticon.userGroup.UserGroup;
+import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -189,13 +195,35 @@ public class VoucherControllerTest extends ControllerTestSupport {
     void getAllVoucherInGroup() throws Exception {
         //given
         Long groupId = 1L;
+        Long userId = mockUser.getId();
+        Long voucherId = 1L;
         Long cursorId = 1L;
         int pageSize = 1;
 
-        Slice<VouchersResponse> mockSlice =
-                new SliceImpl<>(Collections.emptyList(), PageRequest.of(0, pageSize), false);
+        Voucher voucher = Voucher.builder()
+                .id(voucherId)
+                .image("www.image.com")
+                .status(VoucherStatus.AVAILABLE)
+                .build();
+        Group group = Group.builder()
+                .id(groupId)
+                .build();
+        User user = User.builder()
+                .id(userId)
+                .build();
+        UserGroup userGroup = UserGroup.builder()
+                .user(user)
+                .group(group)
+                .groupTitleAlias("나의 그룹 이름")
+                .build();
+        List<VoucherListResponse> mockResponse = List.of(
+                VoucherListResponse.of(List.of(VouchersResponse.of(voucher)), userGroup));
 
-        when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId), eq(pageSize)))
+        Slice<VoucherListResponse> mockSlice =
+                new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
+
+        when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
+                eq(pageSize)))
                 .thenReturn(mockSlice);
 
         //when //then
@@ -210,7 +238,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.pageable").exists())
                 .andExpect(jsonPath("$.pageable.pageSize").value(pageSize))
-                .andExpect(jsonPath("$.size").value(pageSize));
+                .andExpect(jsonPath("$.size").value(pageSize))
+                .andExpect(jsonPath("$.content[0].vouchers").isArray());
     }
 
     @Test
@@ -221,7 +250,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         Long cursorId = null;
         int pageSize = 10;
 
-        Slice<VouchersResponse> mockSlice =
+        Slice<VoucherListResponse> mockSlice =
                 new SliceImpl<>(Collections.emptyList(), Pageable.ofSize(pageSize), false);
 
         when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId), eq(pageSize)))
