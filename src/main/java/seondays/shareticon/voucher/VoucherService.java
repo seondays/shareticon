@@ -1,5 +1,6 @@
 package seondays.shareticon.voucher;
 
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -44,7 +45,8 @@ public class VoucherService {
      * @param image
      */
     @Transactional
-    public VouchersResponse register(CreateVoucherRequest request, Long userId, MultipartFile image) {
+    public VouchersResponse register(CreateVoucherRequest request, Long userId,
+            MultipartFile image) {
         Long groupId = request.groupId();
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -53,7 +55,8 @@ public class VoucherService {
         validateImageFile(image);
         validateUserInGroup(userId, groupId);
 
-        Voucher voucher = createVoucherWithImage(user, group, image);
+        Voucher voucher = createVoucherWithImage(user, group, image, request.voucherName(),
+                request.expiration());
 
         return VouchersResponse.of(voucher);
     }
@@ -66,8 +69,9 @@ public class VoucherService {
      * @param image
      * @return
      */
-    private Voucher createVoucherWithImage(User user, Group group, MultipartFile image) {
-        Voucher voucher = Voucher.createAvailableStatus(user, group);
+    private Voucher createVoucherWithImage(User user, Group group, MultipartFile image, String name,
+            LocalDate expiration) {
+        Voucher voucher = Voucher.createAvailableStatus(user, group, name, expiration);
         voucherRepository.save(voucher);
 
         String imageUrl = imageService.uploadImage(image);
@@ -102,7 +106,8 @@ public class VoucherService {
      * @param groupId
      * @return
      */
-    public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId, int size) {
+    public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
+            int size) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(InvalidAccessVoucherException::new);
 
@@ -114,15 +119,15 @@ public class VoucherService {
                 .map(VouchersResponse::of)
                 .toList();
 
-        VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList, userGroup);
+        VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList,
+                userGroup);
 
         return new SliceImpl<>(List.of(voucherListResponse), pageable, vouchers.hasNext());
     }
 
     /**
-     * 등록된 쿠폰의 상태를 변경 처리합니다.
-     * 사용가능 쿠폰인 경우 사용완료로, 사용완료 쿠폰인 경우 사용가능으로 변경됩니다.
-     * 만료 쿠폰에 변경을 시도하는 경우에는 예외가 발생합니다.
+     * 등록된 쿠폰의 상태를 변경 처리합니다. 사용가능 쿠폰인 경우 사용완료로, 사용완료 쿠폰인 경우 사용가능으로 변경됩니다. 만료 쿠폰에 변경을 시도하는 경우에는 예외가
+     * 발생합니다.
      *
      * @param userId
      * @param groupId
@@ -144,7 +149,7 @@ public class VoucherService {
 
         if (nowStatus.equals(VoucherStatus.AVAILABLE)) {
             voucher.changeStatus(VoucherStatus.USED);
-        } else if (nowStatus.equals(VoucherStatus.USED)){
+        } else if (nowStatus.equals(VoucherStatus.USED)) {
             voucher.changeStatus(VoucherStatus.AVAILABLE);
         }
     }

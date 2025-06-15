@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,8 @@ public class Voucher extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String name;
+    private LocalDate expiration;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
@@ -42,10 +45,12 @@ public class Voucher extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
 
-    public static Voucher createAvailableStatus(User user, Group group) {
+    public static Voucher createAvailableStatus(User user, Group group, String name, LocalDate expiration) {
         return Voucher.builder()
                 .user(user)
                 .group(group)
+                .name(name)
+                .expiration(expiration)
                 .status(VoucherStatus.AVAILABLE)
                 .build();
     }
