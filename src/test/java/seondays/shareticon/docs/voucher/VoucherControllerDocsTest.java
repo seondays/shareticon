@@ -104,7 +104,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .andExpect(header().string("Location", "/vouchers/1"))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.status").value("AVAILABLE"))
-                .andExpect(jsonPath("$.image").value("image"))
+                .andExpect(jsonPath("$.presignedImage").value("image"))
                 .andExpect(jsonPath("$.name").value(voucherName))
                 .andExpect(jsonPath("$.expiration").value(
                         expiration.format(DateTimeFormatter.ISO_LOCAL_DATE)))
@@ -126,7 +126,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         responseFields(
                                 fieldWithPath("id").type(JsonFieldType.NUMBER)
                                         .description("생성된 쿠폰 ID"),
-                                fieldWithPath("image").type(JsonFieldType.STRING)
+                                fieldWithPath("presignedImage").type(JsonFieldType.STRING)
                                         .description("이미지 URL"),
                                 fieldWithPath("status").type(JsonFieldType.STRING)
                                         .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)"),
@@ -174,6 +174,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         int pageSize = 1;
         String voucherName = "my voucherName";
         LocalDate expiration = LocalDate.of(2025,1,1);
+        String mockPresignedUrl = "mockPresignedUrl";
 
         Voucher voucher = Voucher.builder()
                 .id(voucherId)
@@ -194,8 +195,9 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .group(group)
                 .groupTitleAlias("나의 그룹 이름")
                 .build();
+
         List<VoucherListResponse> mockResponse = List.of(
-                VoucherListResponse.of(List.of(VouchersResponse.of(voucher)), userGroup));
+                VoucherListResponse.of(List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup));
 
         Slice<VoucherListResponse> mockSlice =
                 new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
@@ -239,7 +241,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                                 .description("해당 쿠폰 객체가 속해있는 그룹의 초대코드"),
                                 fieldWithPath("content[].vouchers[].id").type(JsonFieldType.NUMBER)
                                         .description("쿠폰 ID"),
-                                fieldWithPath("content[].vouchers[].image").type(
+                                fieldWithPath("content[].vouchers[].presignedImage").type(
                                                 JsonFieldType.STRING)
                                         .description("쿠폰 이미지 URL"),
                                 fieldWithPath("content[].vouchers[].status").type(
