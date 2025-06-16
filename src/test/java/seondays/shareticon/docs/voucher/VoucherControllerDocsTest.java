@@ -23,7 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,11 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
     @DisplayName("신규 쿠폰을 생성한다")
     void registerVoucher() throws Exception {
         //given
-        CreateVoucherRequest request = new CreateVoucherRequest(1L);
+        Long groupId = 1L;
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
         String jsonRequest = objectMapper.writeValueAsString(request);
 
         MockMultipartFile imagePart = new MockMultipartFile(
@@ -79,7 +84,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 jsonRequest.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "voucherImage",
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
                 VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
@@ -99,6 +104,10 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .andExpect(header().string("Location", "/vouchers/1"))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.image").value("image"))
+                .andExpect(jsonPath("$.name").value(voucherName))
+                .andExpect(jsonPath("$.expiration").value(
+                        expiration.format(DateTimeFormatter.ISO_LOCAL_DATE)))
                 .andDo(document("voucher-create",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -108,17 +117,23 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         ),
                         requestPartFields("request",
                                 fieldWithPath("groupId").type(JsonFieldType.NUMBER)
-                                        .description("쿠폰을 저장할 그룹 ID")
+                                        .description("쿠폰을 저장할 그룹 ID"),
+                                fieldWithPath("voucherName").type(JsonFieldType.STRING)
+                                        .description("저장할 쿠폰의 이름"),
+                                fieldWithPath("expiration").type(JsonFieldType.STRING)
+                                        .description("저장할 쿠폰의 만료 기간")
                         ),
                         responseFields(
-
                                 fieldWithPath("id").type(JsonFieldType.NUMBER)
                                         .description("생성된 쿠폰 ID"),
                                 fieldWithPath("image").type(JsonFieldType.STRING)
                                         .description("이미지 URL"),
                                 fieldWithPath("status").type(JsonFieldType.STRING)
-                                        .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)")
-
+                                        .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)"),
+                                fieldWithPath("name").type(JsonFieldType.STRING)
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
+                                fieldWithPath("expiration").type(JsonFieldType.STRING)
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간")
                         )
                 ));
     }
@@ -157,14 +172,19 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         Long voucherId = 1L;
         Long cursorId = 1L;
         int pageSize = 1;
+        String voucherName = "my voucherName";
+        LocalDate expiration = LocalDate.of(2025,1,1);
 
         Voucher voucher = Voucher.builder()
                 .id(voucherId)
                 .image("www.image.com")
                 .status(VoucherStatus.AVAILABLE)
+                .name(voucherName)
+                .expiration(expiration)
                 .build();
         Group group = Group.builder()
                 .id(groupId)
+                .inviteCode("InviteCode")
                 .build();
         User user = User.builder()
                 .id(userId)
@@ -215,6 +235,8 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .description("해당 쿠폰 객체가 속해있는 그룹 ID"),
                                 fieldWithPath("content[].groupTitle").type(JsonFieldType.STRING)
                                         .description("해당 쿠폰 객체가 속해있는 그룹의 사용자별 별칭"),
+                                fieldWithPath("content[].groupInviteCode").type(JsonFieldType.STRING)
+                                                .description("해당 쿠폰 객체가 속해있는 그룹의 초대코드"),
                                 fieldWithPath("content[].vouchers[].id").type(JsonFieldType.NUMBER)
                                         .description("쿠폰 ID"),
                                 fieldWithPath("content[].vouchers[].image").type(
@@ -222,7 +244,11 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .description("쿠폰 이미지 URL"),
                                 fieldWithPath("content[].vouchers[].status").type(
                                                 JsonFieldType.STRING)
-                                        .description("쿠폰 사용 상태"),
+                                        .description("쿠폰 사용 상태 (AVAILABLE/EXPIRED/USED)"),
+                                fieldWithPath("content[].vouchers[].name").type(JsonFieldType.STRING)
+                                                .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
+                                fieldWithPath("content[].vouchers[].expiration").type(JsonFieldType.STRING)
+                                                .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
 
                                 subsectionWithPath("pageable").type(JsonFieldType.OBJECT)
                                         .description("페이지네이션 요청 정보"),
