@@ -58,7 +58,9 @@ public class VoucherService {
         Voucher voucher = createVoucherWithImage(user, group, image, request.voucherName(),
                 request.expiration());
 
-        return VouchersResponse.of(voucher);
+        String preSignedUrl = imageService.getPreSignedImageUrl(voucher.getImage(), 5);
+
+        return VouchersResponse.of(voucher, preSignedUrl);
     }
 
     /**
@@ -116,9 +118,11 @@ public class VoucherService {
                 VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
 
         List<VouchersResponse> vouchersResponseList = vouchers.stream()
-                .map(VouchersResponse::of)
+                .map(voucher -> {
+                    String preSignedUrl = imageService.getPreSignedImageUrl(voucher.getImage(), 5);
+                    return VouchersResponse.of(voucher, preSignedUrl);
+                })
                 .toList();
-
         VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList,
                 userGroup);
 

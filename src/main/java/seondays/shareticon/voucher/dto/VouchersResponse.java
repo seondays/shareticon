@@ -5,14 +5,14 @@ import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
 
 public record VouchersResponse(Long id,
-                               String image,
+                               String presignedImage,
                                String name,
                                LocalDate expiration,
                                VoucherStatus status) {
-    public static VouchersResponse of(Voucher voucher) {
+    public static VouchersResponse of(Voucher voucher, String presignedImage) {
         return new VouchersResponse(
                 voucher.getId(),
-                voucher.getImage(),
+                presignedImage,
                 voucher.getName(),
                 voucher.getExpiration(),
                 voucher.getStatus()
