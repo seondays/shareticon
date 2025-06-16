@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -75,7 +76,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId(), voucherName,
+                expiration);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -111,7 +115,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId(), voucherName,
+                expiration);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -136,7 +143,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(user);
         groupRepository.save(group);
 
-        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId(), voucherName,
+                expiration);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -160,7 +170,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
 
         Long noExistUserId = 1L;
-        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId(), voucherName,
+                expiration);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -185,7 +198,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(user);
 
         Long noExistGroupId = 1L;
-        CreateVoucherRequest request = new CreateVoucherRequest(noExistGroupId);
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        CreateVoucherRequest request = new CreateVoucherRequest(noExistGroupId, voucherName,
+                expiration);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -212,7 +228,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        CreateVoucherRequest request = new CreateVoucherRequest(group.getId());
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        CreateVoucherRequest request = new CreateVoucherRequest(group.getId(), voucherName,
+                expiration);
 
         MockMultipartFile mockImage = new MockMultipartFile(
                 "test",
@@ -244,7 +263,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        Voucher voucher = Voucher.createAvailableStatus(user, group);
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+
+        Voucher voucher = Voucher.createAvailableStatus(user, group, voucherName, expiration);
         voucherRepository.save(voucher);
 
         //when
@@ -269,7 +291,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         linkUserWithGroup(registerUser, group);
         linkUserWithGroup(NotRegisterUser, group);
 
-        Voucher voucher = Voucher.createAvailableStatus(registerUser, group);
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        Voucher voucher = Voucher.createAvailableStatus(registerUser, group, voucherName,
+                expiration);
         voucherRepository.save(voucher);
 
         //when //then
@@ -291,7 +316,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(userExistInGroup, group);
 
-        Voucher voucher = Voucher.createAvailableStatus(userExistInGroup, group);
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        Voucher voucher = Voucher.createAvailableStatus(userExistInGroup, group, voucherName,
+                expiration);
         voucherRepository.save(voucher);
 
         //when //then
@@ -301,6 +329,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @Transactional
     @DisplayName("그룹에 속해있는 사용자가 쿠폰을 조회하는 경우 전체 쿠폰 결과를 담은 slice를 반환한다")
     void getAllVoucherWithUserExistInGroup() {
         //given
@@ -311,9 +340,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        Voucher voucher1 = Voucher.createAvailableStatus(user, group);
-        Voucher voucher2 = Voucher.createAvailableStatus(user, group);
-        Voucher voucher3 = Voucher.createAvailableStatus(user, group);
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        Voucher voucher1 = Voucher.createAvailableStatus(user, group, voucherName, expiration);
+        Voucher voucher2 = Voucher.createAvailableStatus(user, group, voucherName, expiration);
+        Voucher voucher3 = Voucher.createAvailableStatus(user, group, voucherName, expiration);
         voucher1.saveImage("image1");
         voucher2.saveImage("image2");
         voucher3.saveImage("image3");
@@ -343,6 +374,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @Transactional
     @DisplayName("그룹에 속해있는 사용자가 쿠폰을 조회하는 경우, 쿠폰이 존재하지 않더라도 해당 그룹 정보는 결과에 포함된다")
     void getAllVoucherWithUserExistInGroupAndNoVoucher() {
         //given
@@ -378,9 +410,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         Group group = Group.builder().build();
         groupRepository.save(group);
 
-        Voucher voucher1 = Voucher.createAvailableStatus(user, group);
-        Voucher voucher2 = Voucher.createAvailableStatus(user, group);
-        Voucher voucher3 = Voucher.createAvailableStatus(user, group);
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        Voucher voucher1 = Voucher.createAvailableStatus(user, group, "voucher name1", expiration);
+        Voucher voucher2 = Voucher.createAvailableStatus(user, group, "voucher name2", expiration);
+        Voucher voucher3 = Voucher.createAvailableStatus(user, group, "voucher name3", expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
 
         //when //then
@@ -400,7 +433,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
         linkUserWithGroup(user, group);
 
-        Voucher voucher = Voucher.createAvailableStatus(user, group);
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+        Voucher voucher = Voucher.createAvailableStatus(user, group, voucherName, expiration);
         voucherRepository.save(voucher);
 
         return Stream.of(
