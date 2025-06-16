@@ -34,6 +34,7 @@ import seondays.shareticon.voucher.dto.VouchersResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
@@ -97,7 +98,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andExpect(header().string("Location", "/vouchers/1"))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.status").value("AVAILABLE"))
-                .andExpect(jsonPath("$.image").value("image"))
+                .andExpect(jsonPath("$.presignedImage").value("image"))
                 .andExpect(jsonPath("$.name").value(voucherName))
                 .andExpect(jsonPath("$.expiration").value(
                         expiration.format(DateTimeFormatter.ISO_LOCAL_DATE)));
@@ -309,6 +310,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         Long voucherId = 1L;
         Long cursorId = 1L;
         int pageSize = 1;
+        String mockPresignedUrl = "mockPresignedUrl";
 
         Voucher voucher = Voucher.builder()
                 .id(voucherId)
@@ -328,7 +330,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .groupTitleAlias("나의 그룹 이름")
                 .build();
         List<VoucherListResponse> mockResponse = List.of(
-                VoucherListResponse.of(List.of(VouchersResponse.of(voucher)), userGroup));
+                VoucherListResponse.of(List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup));
 
         Slice<VoucherListResponse> mockSlice =
                 new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
