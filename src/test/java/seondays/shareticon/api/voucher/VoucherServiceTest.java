@@ -92,6 +92,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
         given(imageService.uploadImage(any()))
                 .willReturn("https://test/test.jpg");
 
+        given(imageService.getPresignedImageUrl(any(), any())).willReturn("presignedImageUrl");
+
         VouchersResponse response = voucherService.register(request, user.getId(), mockImage);
 
         //then
@@ -352,6 +354,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
 
         //when
+        String preSignedImageUrl = "presignedImageUrlResult";
+        given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
+
         Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3);
 
@@ -364,11 +369,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         assertThat(voucherListResponse.groupId()).isEqualTo(group.getId());
         assertThat(voucherListResponse.vouchers())
-                .extracting("id", "image", "status")
+                .extracting("id", "presignedImage", "status")
                 .contains(
-                        tuple(voucher1.getId(),voucher1.getImage(), voucher1.getStatus()),
-                        tuple(voucher2.getId(),voucher2.getImage(), voucher2.getStatus()),
-                        tuple(voucher3.getId(),voucher3.getImage(), voucher3.getStatus())
+                        tuple(voucher1.getId(), preSignedImageUrl, voucher1.getStatus()),
+                        tuple(voucher2.getId(), preSignedImageUrl, voucher2.getStatus()),
+                        tuple(voucher3.getId(), preSignedImageUrl, voucher3.getStatus())
                 );
 
     }
