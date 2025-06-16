@@ -50,7 +50,7 @@ public class ImageService {
         return prefix + "/" + UUID.randomUUID() + "-" + filename;
     }
 
-    public String getPreSignedImageUrl(String objectKey, long expirationMinutes) {
+    public String getPresignedImageUrl(String objectKey, Long expirationMinutes) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
                 .key(objectKey)
