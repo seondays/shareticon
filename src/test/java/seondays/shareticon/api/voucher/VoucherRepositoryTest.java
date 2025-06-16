@@ -137,7 +137,7 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
-    @DisplayName("사용가능, 사용완료 상태인 쿠폰만 조회된다")
+    @DisplayName("사용가능, 사용완료, 사용만료 상태인 쿠폰만 조회된다")
     void getVoucherStatusUsedAndAvailable() {
         //given
         Group group = Group.builder()
@@ -153,7 +153,7 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Pageable pageable = PageRequest.of(0, 3);
+        Pageable pageable = PageRequest.of(0, 5);
 
         //when
         Slice<Voucher> result = voucherRepository.findAllPageWithCursorByDesc(
@@ -162,7 +162,8 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         //then
         assertThat(result.getContent()).extracting("status")
                 .containsExactlyInAnyOrder(
-                        VoucherStatus.AVAILABLE, VoucherStatus.USED, VoucherStatus.AVAILABLE);
+                        VoucherStatus.AVAILABLE, VoucherStatus.USED, VoucherStatus.EXPIRED,
+                        VoucherStatus.AVAILABLE, VoucherStatus.EXPIRED);
     }
 
     @Test
