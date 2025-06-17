@@ -34,7 +34,6 @@ import seondays.shareticon.voucher.dto.VouchersResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
@@ -241,6 +240,57 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("쿠폰의 만료 일자를 포함해야 합니다"))
+                .andExpect(jsonPath("$.code").value("400"));
+
+    }
+
+    @Test
+    @DisplayName("신규 쿠폰을 생성할 때 생성 날짜보다 이전 날짜를 만료 일자로 지정할 수 없다")
+    void registerVoucherWithNoVoucherExpirationBeforeToday() throws Exception {
+        Long groupId = 1L;
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2024,11,30);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
+        String jsonRequestWithoutGroupId = objectMapper.writeValueAsString(request);
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "image",
+                "test.jpg",
+                "image/jpeg",
+                "test".getBytes()
+        );
+
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request",
+                null,
+                "application/json",
+                jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
+        );
+
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
+                VoucherStatus.AVAILABLE);
+
+        when(voucherService.register(
+                any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
+                .thenReturn(mockResponse);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/vouchers")
+                                .file(imagePart)
+                                .file(requestPart)
+                                .with(csrf())
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(result -> {
+                    Exception resolvedException = result.getResolvedException();
+                    resolvedException.printStackTrace();
+                })
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("쿠폰의 만료 일자는 오늘보다 이전 날짜로 지정할 수 없습니다"))
                 .andExpect(jsonPath("$.code").value("400"));
 
     }
