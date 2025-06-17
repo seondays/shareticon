@@ -28,7 +28,7 @@ public class S3Config {
 
     }
     @Bean(destroyMethod = "close")
-    public S3Client amazonS3Client(StaticCredentialsProvider credentialsProvider) {
+    public S3Client s3Client(StaticCredentialsProvider credentialsProvider) {
         return S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(credentialsProvider)
