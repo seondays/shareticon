@@ -43,7 +43,13 @@ public class UserGroup extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private JoinStatus joinStatus;
 
+    private String groupTitleAlias;
+
     public void updateJoinStatus(JoinStatus joinStatus) {
         this.joinStatus = joinStatus;
+    }
+
+    public void changeGroupTitleAlias(String alias) {
+        this.groupTitleAlias = alias;
     }
 }

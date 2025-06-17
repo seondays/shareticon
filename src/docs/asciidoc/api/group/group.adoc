@@ -29,3 +29,12 @@ include::{snippets}/group-JoinList-approved/path-parameters.adoc[]
 include::{snippets}/group-JoinList-approved/query-parameters.adoc[]
 ==== HTTP Response
 include::{snippets}/group-JoinList-approved/http-response.adoc[]
+
+=== 사용자별 그룹 별칭 변경
+==== HTTP Request
+include::{snippets}/group-title-alias-change/http-request.adoc[]
+include::{snippets}/group-title-alias-change/path-parameters.adoc[]
+include::{snippets}/group-title-alias-change/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/group-title-alias-change/http-response.adoc[]
+include::{snippets}/group-title-alias-change/response-fields.adoc[]

@@ -34,6 +34,9 @@ import seondays.shareticon.group.GroupService;
 import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
+import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
+import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.user.User;
@@ -63,8 +66,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
+
         //when
-        GroupResponse groupResponse = groupService.createGroup(user.getId());
+        GroupResponse groupResponse = groupService.createGroup(user.getId(), request);
 
         //then
         assertThat(groupResponse).isNotNull();
@@ -76,8 +82,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //given
         User user = User.builder().id(1L).build();
 
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
+
         //when //then
-        assertThatThrownBy(() -> groupService.createGroup(user.getId())).isInstanceOf(
+        assertThatThrownBy(() -> groupService.createGroup(user.getId(), request)).isInstanceOf(
                 UserNotFoundException.class);
     }
 
@@ -90,15 +99,18 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = userRepository.save(User.builder().build());
         groupRepository.save(Group.builder().leaderUser(user).inviteCode("AAAAAAAA").build());
 
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
+
         doReturn(inviteCodes.get(0), inviteCodes.get(1), inviteCodes.get(2))
                 .when(randomCodeFactory).createInviteCode();
 
         //when //then
         if (expectException) {
-            assertThatThrownBy(() -> groupService.createGroup(user.getId()))
+            assertThatThrownBy(() -> groupService.createGroup(user.getId(), request))
                     .isInstanceOf(GroupCreateException.class);
         } else {
-            GroupResponse groupResponse = groupService.createGroup(user.getId());
+            GroupResponse groupResponse = groupService.createGroup(user.getId(), request);
             assertThat(groupResponse.inviteCode()).isEqualTo(expectedCode);
         }
     }
@@ -117,18 +129,41 @@ public class GroupServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("그룹 생성 시, 유저 그룹 테이블에도 그룹 이름 별명 정보가 저장된다.")
+    void createGroupAndSaveAliasTable() {
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
+
+        //when
+        GroupResponse createdGroup = groupService.createGroup(user.getId(), request);
+
+        //then
+        Optional<UserGroup> result = userGroupRepository.findByUserIdAndGroupId(
+                user.getId(), createdGroup.id());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getGroupTitleAlias()).isEqualTo(groupTitle);
+
+    }
+
+    @Test
     @DisplayName("해당 유저의 전체 그룹 리스트를 조회한다")
     void getAllGroupList() {
         //given
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group1 = Group.builder().build();
-        Group group2 = Group.builder().build();
+        String group1Title = "1번그룹";
+        String group2Title = "2번그룹";
+        Group group1 = Group.builder().title(group1Title).build();
+        Group group2 = Group.builder().title(group2Title).build();
         groupRepository.saveAll(List.of(group1, group2));
 
-        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).build();
-        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
+        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).groupTitleAlias(group1.getTitle()).build();
+        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).groupTitleAlias(group2.getTitle()).build();
         userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
 
         //when
@@ -136,8 +171,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(responseList).hasSize(2);
-        assertThat(responseList).extracting("groupId")
-                .contains(group1.getId(), group2.getId());
+        assertThat(responseList).extracting("groupId", "groupTitleAlias", "memberCount")
+                .contains(tuple(group1.getId(), group1Title, 1), tuple(group2.getId(), group2Title, 1));
     }
 
     @Test
@@ -561,6 +596,9 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userRepository.save(leaderUser);
         doReturn("DUPLICATE").when(randomCodeFactory).createInviteCode();
 
+        String groupTitle = "그룹이름";
+        CreateGroupRequest request = new CreateGroupRequest(groupTitle);
+
         int threadCount = 10;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -571,7 +609,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         for (int i = 0; i < threadCount; i++) {
             executor.submit(() -> {
                 try {
-                    groupService.createGroup(leaderUser.getId());
+                    groupService.createGroup(leaderUser.getId(), request);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -594,4 +632,29 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userRepository.deleteAllInBatch();
     }
 
+    @Test
+    @DisplayName("그룹명 별칭을 변경한다")
+    void changeGroupTitleAlias() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        groupRepository.save(group);
+
+        UserGroup userGroup = UserGroup.builder().group(group).user(user)
+                .groupTitleAlias(group.getTitle()).build();
+        userGroupRepository.save(userGroup);
+
+        String newAlias = "새로운별칭";
+        ChangeGroupTitleAliasRequest request = new ChangeGroupTitleAliasRequest(newAlias);
+
+        //when
+        ChangeGroupTitleAliasResponse result = groupService.changeGroupTitleAlias(
+                user.getId(), group.getId(), request);
+
+        //then
+        assertThat(result.titleAlias()).isEqualTo(newAlias);
+
+    }
 }
