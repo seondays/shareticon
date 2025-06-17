@@ -85,9 +85,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder()
                 .build();
         Group group = Group.builder().inviteCode("123").build();
+        String userGroupAlias = "그룹 별칭";
         userRepository.save(user);
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -126,9 +127,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder()
                 .build();
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         userRepository.save(user);
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -239,9 +241,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder()
                 .build();
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         userRepository.save(user);
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -275,8 +278,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(user);
 
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -302,9 +306,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(NotRegisterUser);
 
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         groupRepository.save(group);
-        linkUserWithGroup(registerUser, group);
-        linkUserWithGroup(NotRegisterUser, group);
+        linkUserWithGroup(registerUser, group, userGroupAlias);
+        linkUserWithGroup(NotRegisterUser, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -328,8 +333,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(userNoExistInGroup);
 
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         groupRepository.save(group);
-        linkUserWithGroup(userExistInGroup, group);
+        linkUserWithGroup(userExistInGroup, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -352,8 +358,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(user);
 
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        UserGroup userGroup = linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -380,7 +387,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         assertThat(allVoucher.getSize()).isEqualTo(3);
         assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
 
-        assertThat(voucherListResponse.groupId()).isEqualTo(group.getId());
+        assertThat(voucherListResponse.groupTitle()).isEqualTo(userGroup.getGroupTitleAlias());
         assertThat(voucherListResponse.vouchers())
                 .extracting("id", "presignedImage", "status")
                 .contains(
@@ -399,9 +406,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
+        Group group = Group.builder().title("나의 그룹").build();
+        String userGroupAlias = "그룹 별칭";
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        linkUserWithGroup(user, group, userGroupAlias);
 
         //when
         Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
@@ -415,7 +423,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
 
         assertThat(voucherListResponse.vouchers()).isEmpty();
-        assertThat(voucherListResponse.groupId()).isEqualTo(group.getId());
+        assertThat(voucherListResponse.groupTitle()).isEqualTo(userGroupAlias);
     }
 
     @Test
@@ -448,8 +456,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(user);
 
         Group group = Group.builder().build();
+        String userGroupAlias = "그룹 별칭";
         groupRepository.save(group);
-        linkUserWithGroup(user, group);
+        linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -476,8 +485,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
     }
 
-    private void linkUserWithGroup(User user, Group group) {
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
+    private UserGroup linkUserWithGroup(User user, Group group, String alias) {
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).groupTitleAlias(alias).build();
         userGroupRepository.save(userGroup);
+        return userGroup;
     }
 }
