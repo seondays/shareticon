@@ -5,12 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -56,6 +60,15 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private UserGroupRepository userGroupRepository;
+
+    private Instant testSystemTimeInstant;
+
+    @BeforeEach
+    void setUp() {
+        testSystemTimeInstant = Instant.parse("2024-12-01T00:00:00Z");
+        when(clock.instant()).thenReturn(testSystemTimeInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("Asia/Seoul"));
+    }
 
     @AfterEach
     void tearDown() {
