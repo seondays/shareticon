@@ -2,7 +2,10 @@ package seondays.shareticon.api.voucher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,16 +16,20 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.api.config.ControllerTestSupport;
+import seondays.shareticon.group.Group;
 import seondays.shareticon.login.CustomOAuth2User;
+import seondays.shareticon.user.User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
+import seondays.shareticon.userGroup.UserGroup;
+import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -47,7 +54,11 @@ public class VoucherControllerTest extends ControllerTestSupport {
     @DisplayName("신규 쿠폰을 생성한다")
     void registerVoucher() throws Exception {
         //given
-        CreateVoucherRequest request = new CreateVoucherRequest(1L);
+        Long groupId = 1L;
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
         String jsonRequest = objectMapper.writeValueAsString(request);
 
         MockMultipartFile imagePart = new MockMultipartFile(
@@ -65,7 +76,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 jsonRequest.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
+                VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -84,13 +96,22 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(header().string("Location", "/vouchers/1"))
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.status").value("AVAILABLE"));
+                .andExpect(jsonPath("$.status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.presignedImage").value("image"))
+                .andExpect(jsonPath("$.name").value(voucherName))
+                .andExpect(jsonPath("$.expiration").value(
+                        expiration.format(DateTimeFormatter.ISO_LOCAL_DATE)));
     }
 
     @Test
     @DisplayName("신규 쿠폰을 등록할 때 그룹 아이디는 필수이다")
     void registerVoucherWithNoGroupId() throws Exception {
-        String emptyRequest = "{}";
+        Long groupId = null;
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
+        String jsonRequestWithoutGroupId = objectMapper.writeValueAsString(request);
 
         MockMultipartFile imagePart = new MockMultipartFile(
                 "image",
@@ -103,10 +124,11 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 "request",
                 null,
                 "application/json",
-                emptyRequest.getBytes(StandardCharsets.UTF_8)
+                jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
+                VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -124,6 +146,151 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("그룹 ID를 포함해야 합니다"))
+                .andExpect(jsonPath("$.code").value("400"));
+
+    }
+
+    @Test
+    @DisplayName("신규 쿠폰을 생성할 때 쿠폰 이름은 필수이다")
+    void registerVoucherWithNoVoucherName() throws Exception {
+        Long groupId = 1L;
+        String voucherName = "";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
+        String jsonRequestWithoutGroupId = objectMapper.writeValueAsString(request);
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "image",
+                "test.jpg",
+                "image/jpeg",
+                "test".getBytes()
+        );
+
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request",
+                null,
+                "application/json",
+                jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
+        );
+
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
+                VoucherStatus.AVAILABLE);
+
+        when(voucherService.register(
+                any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
+                .thenReturn(mockResponse);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/vouchers")
+                                .file(imagePart)
+                                .file(requestPart)
+                                .with(csrf())
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("쿠폰 이름을 포함해야 합니다"))
+                .andExpect(jsonPath("$.code").value("400"));
+
+    }
+
+    @Test
+    @DisplayName("신규 쿠폰을 생성할 때 쿠폰의 만료 일자는 필수이다")
+    void registerVoucherWithNoVoucherExpiration() throws Exception {
+        Long groupId = 1L;
+        String voucherName = "voucher name";
+        LocalDate expiration = null;
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
+        String jsonRequestWithoutGroupId = objectMapper.writeValueAsString(request);
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "image",
+                "test.jpg",
+                "image/jpeg",
+                "test".getBytes()
+        );
+
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request",
+                null,
+                "application/json",
+                jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
+        );
+
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
+                VoucherStatus.AVAILABLE);
+
+        when(voucherService.register(
+                any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
+                .thenReturn(mockResponse);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/vouchers")
+                                .file(imagePart)
+                                .file(requestPart)
+                                .with(csrf())
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("쿠폰의 만료 일자를 포함해야 합니다"))
+                .andExpect(jsonPath("$.code").value("400"));
+
+    }
+
+    @Test
+    @DisplayName("신규 쿠폰을 생성할 때 생성 날짜보다 이전 날짜를 만료 일자로 지정할 수 없다")
+    void registerVoucherWithNoVoucherExpirationBeforeToday() throws Exception {
+        Long groupId = 1L;
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2024,11,30);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
+        String jsonRequestWithoutGroupId = objectMapper.writeValueAsString(request);
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "image",
+                "test.jpg",
+                "image/jpeg",
+                "test".getBytes()
+        );
+
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request",
+                null,
+                "application/json",
+                jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
+        );
+
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
+                VoucherStatus.AVAILABLE);
+
+        when(voucherService.register(
+                any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
+                .thenReturn(mockResponse);
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/vouchers")
+                                .file(imagePart)
+                                .file(requestPart)
+                                .with(csrf())
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(result -> {
+                    Exception resolvedException = result.getResolvedException();
+                    resolvedException.printStackTrace();
+                })
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("쿠폰의 만료 일자는 오늘보다 이전 날짜로 지정할 수 없습니다"))
                 .andExpect(jsonPath("$.code").value("400"));
 
     }
@@ -189,13 +356,37 @@ public class VoucherControllerTest extends ControllerTestSupport {
     void getAllVoucherInGroup() throws Exception {
         //given
         Long groupId = 1L;
+        Long userId = mockUser.getId();
+        Long voucherId = 1L;
         Long cursorId = 1L;
         int pageSize = 1;
+        String mockPresignedUrl = "mockPresignedUrl";
 
-        Slice<VouchersResponse> mockSlice =
-                new SliceImpl<>(Collections.emptyList(), PageRequest.of(0, pageSize), false);
+        Voucher voucher = Voucher.builder()
+                .id(voucherId)
+                .image("www.image.com")
+                .status(VoucherStatus.AVAILABLE)
+                .build();
+        Group group = Group.builder()
+                .id(groupId)
+                .inviteCode("InviteCode")
+                .build();
+        User user = User.builder()
+                .id(userId)
+                .build();
+        UserGroup userGroup = UserGroup.builder()
+                .user(user)
+                .group(group)
+                .groupTitleAlias("나의 그룹 이름")
+                .build();
+        List<VoucherListResponse> mockResponse = List.of(
+                VoucherListResponse.of(List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup));
 
-        when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId), eq(pageSize)))
+        Slice<VoucherListResponse> mockSlice =
+                new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
+
+        when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
+                eq(pageSize)))
                 .thenReturn(mockSlice);
 
         //when //then
@@ -210,7 +401,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.pageable").exists())
                 .andExpect(jsonPath("$.pageable.pageSize").value(pageSize))
-                .andExpect(jsonPath("$.size").value(pageSize));
+                .andExpect(jsonPath("$.size").value(pageSize))
+                .andExpect(jsonPath("$.content[0].vouchers").isArray());
     }
 
     @Test
@@ -221,10 +413,11 @@ public class VoucherControllerTest extends ControllerTestSupport {
         Long cursorId = null;
         int pageSize = 10;
 
-        Slice<VouchersResponse> mockSlice =
+        Slice<VoucherListResponse> mockSlice =
                 new SliceImpl<>(Collections.emptyList(), Pageable.ofSize(pageSize), false);
 
-        when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId), eq(pageSize)))
+        when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
+                eq(pageSize)))
                 .thenReturn(mockSlice);
 
         //when //then
@@ -249,10 +442,11 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}", groupId, voucherId)
-                        .with(csrf())
-                        .with(oauth2Login().oauth2User(mockUser))
-        )
+                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                                        groupId, voucherId)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -266,7 +460,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}", groupId, voucherId)
+                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                                        groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
@@ -284,7 +479,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}", groupId, voucherId)
+                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                                        groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )

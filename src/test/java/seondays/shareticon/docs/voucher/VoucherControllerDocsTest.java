@@ -23,7 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
@@ -37,10 +39,15 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.docs.RestDocsSupport;
+import seondays.shareticon.group.Group;
+import seondays.shareticon.user.User;
+import seondays.shareticon.userGroup.UserGroup;
+import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherController;
 import seondays.shareticon.voucher.VoucherService;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 public class VoucherControllerDocsTest extends RestDocsSupport {
@@ -56,7 +63,11 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
     @DisplayName("신규 쿠폰을 생성한다")
     void registerVoucher() throws Exception {
         //given
-        CreateVoucherRequest request = new CreateVoucherRequest(1L);
+        Long groupId = 1L;
+        String voucherName = "voucher name";
+        LocalDate expiration = LocalDate.of(2025, 1, 1);
+
+        CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
         String jsonRequest = objectMapper.writeValueAsString(request);
 
         MockMultipartFile imagePart = new MockMultipartFile(
@@ -73,7 +84,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 jsonRequest.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "voucherImage",
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
                 VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
@@ -93,6 +104,10 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .andExpect(header().string("Location", "/vouchers/1"))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.presignedImage").value("image"))
+                .andExpect(jsonPath("$.name").value(voucherName))
+                .andExpect(jsonPath("$.expiration").value(
+                        expiration.format(DateTimeFormatter.ISO_LOCAL_DATE)))
                 .andDo(document("voucher-create",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -102,17 +117,23 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         ),
                         requestPartFields("request",
                                 fieldWithPath("groupId").type(JsonFieldType.NUMBER)
-                                        .description("쿠폰을 저장할 그룹 ID")
+                                        .description("쿠폰을 저장할 그룹 ID"),
+                                fieldWithPath("voucherName").type(JsonFieldType.STRING)
+                                        .description("저장할 쿠폰의 이름"),
+                                fieldWithPath("expiration").type(JsonFieldType.STRING)
+                                        .description("저장할 쿠폰의 만료 기간")
                         ),
                         responseFields(
-
                                 fieldWithPath("id").type(JsonFieldType.NUMBER)
                                         .description("생성된 쿠폰 ID"),
-                                fieldWithPath("image").type(JsonFieldType.STRING)
+                                fieldWithPath("presignedImage").type(JsonFieldType.STRING)
                                         .description("이미지 URL"),
                                 fieldWithPath("status").type(JsonFieldType.STRING)
-                                        .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)")
-
+                                        .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)"),
+                                fieldWithPath("name").type(JsonFieldType.STRING)
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
+                                fieldWithPath("expiration").type(JsonFieldType.STRING)
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간")
                         )
                 ));
     }
@@ -147,11 +168,39 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
     void getAllVoucherInGroup() throws Exception {
         //given
         Long groupId = 1L;
+        Long userId = mockUser.getId();
+        Long voucherId = 1L;
         Long cursorId = 1L;
         int pageSize = 1;
+        String voucherName = "my voucherName";
+        LocalDate expiration = LocalDate.of(2025,1,1);
+        String mockPresignedUrl = "mockPresignedUrl";
 
-        Slice<VouchersResponse> mockSlice =
-                new SliceImpl<>(Collections.emptyList(), PageRequest.of(0, pageSize), false);
+        Voucher voucher = Voucher.builder()
+                .id(voucherId)
+                .image("www.image.com")
+                .status(VoucherStatus.AVAILABLE)
+                .name(voucherName)
+                .expiration(expiration)
+                .build();
+        Group group = Group.builder()
+                .id(groupId)
+                .inviteCode("InviteCode")
+                .build();
+        User user = User.builder()
+                .id(userId)
+                .build();
+        UserGroup userGroup = UserGroup.builder()
+                .user(user)
+                .group(group)
+                .groupTitleAlias("나의 그룹 이름")
+                .build();
+
+        List<VoucherListResponse> mockResponse = List.of(
+                VoucherListResponse.of(List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup));
+
+        Slice<VoucherListResponse> mockSlice =
+                new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
 
         when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
                 eq(pageSize)))
@@ -169,6 +218,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.pageable").exists())
                 .andExpect(jsonPath("$.pageable.pageSize").value(pageSize))
                 .andExpect(jsonPath("$.size").value(pageSize))
+                .andExpect(jsonPath("$.content[0].vouchers").isArray())
                 .andDo(document("voucher-get",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -183,8 +233,23 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         responseFields(
                                 fieldWithPath("content").type(JsonFieldType.ARRAY)
                                         .description("조회된 쿠폰 객체들의 배열"),
+                                fieldWithPath("content[].groupTitle").type(JsonFieldType.STRING)
+                                        .description("해당 쿠폰 객체가 속해있는 그룹의 사용자별 별칭"),
+                                fieldWithPath("content[].groupInviteCode").type(JsonFieldType.STRING)
+                                                .description("해당 쿠폰 객체가 속해있는 그룹의 초대코드"),
+                                fieldWithPath("content[].vouchers[].id").type(JsonFieldType.NUMBER)
+                                        .description("쿠폰 ID"),
+                                fieldWithPath("content[].vouchers[].presignedImage").type(
+                                                JsonFieldType.STRING)
+                                        .description("쿠폰 이미지 URL"),
+                                fieldWithPath("content[].vouchers[].status").type(
+                                                JsonFieldType.STRING)
+                                        .description("쿠폰 사용 상태 (AVAILABLE/EXPIRED/USED)"),
+                                fieldWithPath("content[].vouchers[].name").type(JsonFieldType.STRING)
+                                                .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
+                                fieldWithPath("content[].vouchers[].expiration").type(JsonFieldType.STRING)
+                                                .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
 
-                                // 2) 페이징 요청 정보(중첩 객체)
                                 subsectionWithPath("pageable").type(JsonFieldType.OBJECT)
                                         .description("페이지네이션 요청 정보"),
                                 fieldWithPath("pageable.pageNumber").type(JsonFieldType.NUMBER)

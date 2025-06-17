@@ -17,7 +17,7 @@ import seondays.shareticon.voucher.VoucherService;
         VoucherController.class,
         GroupController.class,
         TokenController.class})
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestValidatorConfig.class})
 public abstract class ControllerTestSupport {
 
     @MockitoBean

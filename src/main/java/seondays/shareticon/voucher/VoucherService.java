@@ -1,9 +1,13 @@
 package seondays.shareticon.voucher;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +16,7 @@ import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
+import seondays.shareticon.exception.InvalidVoucherExpireException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
@@ -19,8 +24,10 @@ import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
+import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
@@ -32,6 +39,7 @@ public class VoucherService {
     private final GroupRepository groupRepository;
     private final VoucherRepository voucherRepository;
     private final UserGroupRepository userGroupRepository;
+    private final Clock clock;
 
     /**
      * 새로운 쿠폰을 등록합니다
@@ -40,7 +48,8 @@ public class VoucherService {
      * @param image
      */
     @Transactional
-    public VouchersResponse register(CreateVoucherRequest request, Long userId, MultipartFile image) {
+    public VouchersResponse register(CreateVoucherRequest request, Long userId,
+            MultipartFile image) {
         Long groupId = request.groupId();
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -48,10 +57,14 @@ public class VoucherService {
 
         validateImageFile(image);
         validateUserInGroup(userId, groupId);
+        validateVoucherDateExpiration(request.expiration());
 
-        Voucher voucher = createVoucherWithImage(user, group, image);
+        Voucher voucher = createVoucherWithImage(user, group, image, request.voucherName(),
+                request.expiration());
 
-        return VouchersResponse.of(voucher);
+        String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
+
+        return VouchersResponse.of(voucher, preSignedUrl);
     }
 
     /**
@@ -62,8 +75,9 @@ public class VoucherService {
      * @param image
      * @return
      */
-    private Voucher createVoucherWithImage(User user, Group group, MultipartFile image) {
-        Voucher voucher = Voucher.createAvailableStatus(user, group);
+    private Voucher createVoucherWithImage(User user, Group group, MultipartFile image, String name,
+            LocalDate expiration) {
+        Voucher voucher = Voucher.createAvailableStatus(user, group, name, expiration);
         voucherRepository.save(voucher);
 
         String imageUrl = imageService.uploadImage(image);
@@ -98,22 +112,30 @@ public class VoucherService {
      * @param groupId
      * @return
      */
-    public Slice<VouchersResponse> getAllVoucher(Long userId, Long groupId, Long cursorId, int size) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
-            throw new InvalidAccessVoucherException();
-        }
+    public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
+            int size) {
+        UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
+                .orElseThrow(InvalidAccessVoucherException::new);
 
         Pageable pageable = PageRequest.of(0, size);
         Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursorByDesc(groupId,
                 VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
 
-        return vouchers.map(VouchersResponse::of);
+        List<VouchersResponse> vouchersResponseList = vouchers.stream()
+                .map(voucher -> {
+                    String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
+                    return VouchersResponse.of(voucher, preSignedUrl);
+                })
+                .toList();
+        VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList,
+                userGroup);
+
+        return new SliceImpl<>(List.of(voucherListResponse), pageable, vouchers.hasNext());
     }
 
     /**
-     * 등록된 쿠폰의 상태를 변경 처리합니다.
-     * 사용가능 쿠폰인 경우 사용완료로, 사용완료 쿠폰인 경우 사용가능으로 변경됩니다.
-     * 만료 쿠폰에 변경을 시도하는 경우에는 예외가 발생합니다.
+     * 등록된 쿠폰의 상태를 변경 처리합니다. 사용가능 쿠폰인 경우 사용완료로, 사용완료 쿠폰인 경우 사용가능으로 변경됩니다. 만료 쿠폰에 변경을 시도하는 경우에는 예외가
+     * 발생합니다.
      *
      * @param userId
      * @param groupId
@@ -135,7 +157,7 @@ public class VoucherService {
 
         if (nowStatus.equals(VoucherStatus.AVAILABLE)) {
             voucher.changeStatus(VoucherStatus.USED);
-        } else if (nowStatus.equals(VoucherStatus.USED)){
+        } else if (nowStatus.equals(VoucherStatus.USED)) {
             voucher.changeStatus(VoucherStatus.AVAILABLE);
         }
     }
@@ -195,6 +217,13 @@ public class VoucherService {
         String contentType = image.getContentType();
         if (contentType == null || !contentType.startsWith("image")) {
             throw new IllegalVoucherImageException();
+        }
+    }
+
+    private void validateVoucherDateExpiration(LocalDate expiration) {
+        LocalDate today = LocalDate.now(clock);
+        if(expiration.isBefore(today)) {
+            throw new InvalidVoucherExpireException();
         }
     }
 }

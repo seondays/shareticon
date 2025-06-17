@@ -39,6 +39,13 @@ dependencies {
 	testImplementation 'com.h2database:h2'
 	testImplementation 'org.springframework.security:spring-security-test'
 
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers'
+	testImplementation 'org.testcontainers:junit-jupiter'
+
+	// objectMapper option for LocalDate
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
 	// s3
 	implementation 'software.amazon.awssdk:s3:2.20.89'
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.0.1'
@@ -57,10 +64,6 @@ dependencies {
 	// RestDocs
 	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'org.testcontainers:testcontainers'
-	testImplementation 'org.testcontainers:junit-jupiter'
 }
 
 tasks.named('test') {
