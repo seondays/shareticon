@@ -233,8 +233,6 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         responseFields(
                                 fieldWithPath("content").type(JsonFieldType.ARRAY)
                                         .description("조회된 쿠폰 객체들의 배열"),
-                                fieldWithPath("content[].groupId").type(JsonFieldType.NUMBER)
-                                        .description("해당 쿠폰 객체가 속해있는 그룹 ID"),
                                 fieldWithPath("content[].groupTitle").type(JsonFieldType.STRING)
                                         .description("해당 쿠폰 객체가 속해있는 그룹의 사용자별 별칭"),
                                 fieldWithPath("content[].groupInviteCode").type(JsonFieldType.STRING)
