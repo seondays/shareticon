@@ -1,5 +1,6 @@
 package seondays.shareticon.voucher;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
+import seondays.shareticon.exception.InvalidVoucherExpireException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
@@ -37,6 +39,7 @@ public class VoucherService {
     private final GroupRepository groupRepository;
     private final VoucherRepository voucherRepository;
     private final UserGroupRepository userGroupRepository;
+    private final Clock clock;
 
     /**
      * 새로운 쿠폰을 등록합니다
@@ -54,6 +57,7 @@ public class VoucherService {
 
         validateImageFile(image);
         validateUserInGroup(userId, groupId);
+        validateVoucherDateExpiration(request.expiration());
 
         Voucher voucher = createVoucherWithImage(user, group, image, request.voucherName(),
                 request.expiration());
@@ -213,6 +217,13 @@ public class VoucherService {
         String contentType = image.getContentType();
         if (contentType == null || !contentType.startsWith("image")) {
             throw new IllegalVoucherImageException();
+        }
+    }
+
+    private void validateVoucherDateExpiration(LocalDate expiration) {
+        LocalDate today = LocalDate.now(clock);
+        if(expiration.isBefore(today)) {
+            throw new InvalidVoucherExpireException();
         }
     }
 }
