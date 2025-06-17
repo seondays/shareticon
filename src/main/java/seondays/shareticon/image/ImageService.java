@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.exception.ImageUploadException;
+import seondays.shareticon.exception.PresignedUrlGenerationException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -66,7 +67,7 @@ public class ImageService {
                     presignedUrlGenerationRequest);
             return generatedPresignedUrl.url().toString();
         } catch (Exception e) {
-            throw new ImageUploadException();
+            throw new PresignedUrlGenerationException();
         }
     }
 }
