@@ -45,7 +45,8 @@ public class Voucher extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
 
-    public static Voucher createAvailableStatus(User user, Group group, String name, LocalDate expiration) {
+    public static Voucher createAvailableStatus(User user, Group group, String name,
+            LocalDate expiration) {
         return Voucher.builder()
                 .user(user)
                 .group(group)
@@ -59,7 +60,12 @@ public class Voucher extends BaseEntity {
         this.image = image;
     }
 
-    public void changeStatus(VoucherStatus status) {
-        this.status = status;
+    public void changeStatus() {
+        status.validateVoucherStatusExpired();
+        if (status.equals(VoucherStatus.AVAILABLE)) {
+            status = VoucherStatus.USED;
+        } else if (status.equals(VoucherStatus.USED)) {
+            status = VoucherStatus.AVAILABLE;
+        }
     }
 }

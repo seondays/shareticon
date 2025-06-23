@@ -1,6 +1,5 @@
 package seondays.shareticon.voucher;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -11,23 +10,23 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import seondays.shareticon.exception.ExpiredVoucherException;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
-import seondays.shareticon.exception.InvalidVoucherDeleteException;
-import seondays.shareticon.exception.IllegalVoucherImageException;
-import seondays.shareticon.exception.InvalidVoucherExpireException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
+import seondays.shareticon.image.VoucherImage;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
+import seondays.shareticon.voucher.dto.VoucherCreationValidationRequest;
+import seondays.shareticon.voucher.dto.VoucherDeletionValidationRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
+import seondays.shareticon.voucher.dto.VoucherStatusChangeValidationRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Service
@@ -39,13 +38,15 @@ public class VoucherService {
     private final GroupRepository groupRepository;
     private final VoucherRepository voucherRepository;
     private final UserGroupRepository userGroupRepository;
-    private final Clock clock;
+    private final VoucherValidator voucherValidator;
 
     /**
-     * 새로운 쿠폰을 등록합니다
+     * 새로운 쿠폰을 등록합니다.
      *
      * @param request
+     * @param userId
      * @param image
+     * @return
      */
     @Transactional
     public VouchersResponse register(CreateVoucherRequest request, Long userId,
@@ -54,12 +55,17 @@ public class VoucherService {
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
+        VoucherImage voucherImage = VoucherImage.of(image);
 
-        validateImageFile(image);
-        validateUserInGroup(userId, groupId);
-        validateVoucherDateExpiration(request.expiration());
+        VoucherCreationValidationRequest validationRequest = VoucherCreationValidationRequest
+                .builder()
+                .userId(userId)
+                .groupId(groupId)
+                .expiration(request.expiration())
+                .build();
+        voucherValidator.validateVoucherCreation(validationRequest);
 
-        Voucher voucher = createVoucherWithImage(user, group, image, request.voucherName(),
+        Voucher voucher = createVoucherWithImage(user, group, voucherImage, request.voucherName(),
                 request.expiration());
 
         String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
@@ -73,14 +79,16 @@ public class VoucherService {
      * @param user
      * @param group
      * @param image
+     * @param name
+     * @param expiration
      * @return
      */
-    private Voucher createVoucherWithImage(User user, Group group, MultipartFile image, String name,
+    private Voucher createVoucherWithImage(User user, Group group, VoucherImage image, String name,
             LocalDate expiration) {
         Voucher voucher = Voucher.createAvailableStatus(user, group, name, expiration);
         voucherRepository.save(voucher);
 
-        String imageUrl = imageService.uploadImage(image);
+        String imageUrl = imageService.uploadImage(image.getImageFile());
         voucher.saveImage(imageUrl);
 
         return voucherRepository.save(voucher);
@@ -97,10 +105,13 @@ public class VoucherService {
     public void delete(Long userId, Long groupId, Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);
-        User voucherUser = voucher.getUser();
 
-        validateVoucherOwner(userId, voucherUser);
-        validateUserAndVoucherInGroup(userId, groupId, voucher);
+        VoucherDeletionValidationRequest validationRequest = VoucherDeletionValidationRequest.builder()
+                .userId(userId)
+                .groupId(groupId)
+                .voucher(voucher)
+                .build();
+        voucherValidator.validateVoucherDeletion(validationRequest);
 
         voucherRepository.delete(voucher);
     }
@@ -110,6 +121,8 @@ public class VoucherService {
      *
      * @param userId
      * @param groupId
+     * @param cursorId
+     * @param size
      * @return
      */
     public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
@@ -143,87 +156,19 @@ public class VoucherService {
      */
     @Transactional
     public void changeVoucherStatus(Long userId, Long groupId, Long voucherId) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
-            throw new InvalidAccessVoucherException();
-        }
+
+        VoucherStatusChangeValidationRequest validationRequest =
+                VoucherStatusChangeValidationRequest.builder()
+                        .userId(userId)
+                        .groupId(groupId)
+                        .build();
+
+        voucherValidator.validateVoucherStatusChange(validationRequest);
 
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);
-        VoucherStatus nowStatus = voucher.getStatus();
 
-        if (nowStatus.equals(VoucherStatus.EXPIRED)) {
-            throw new ExpiredVoucherException();
-        }
-
-        if (nowStatus.equals(VoucherStatus.AVAILABLE)) {
-            voucher.changeStatus(VoucherStatus.USED);
-        } else if (nowStatus.equals(VoucherStatus.USED)) {
-            voucher.changeStatus(VoucherStatus.AVAILABLE);
-        }
+        voucher.changeStatus();
     }
 
-    /**
-     * 사용자와 쿠폰이 동일한 그룹 내에 속해있는지 검증합니다.
-     *
-     * @param userId
-     * @param groupId
-     * @param voucher
-     * @return
-     */
-    private void validateUserAndVoucherInGroup(Long userId, Long groupId, Voucher voucher) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
-            throw new InvalidVoucherDeleteException();
-        }
-        if (!voucher.getGroup().getId().equals(groupId)) {
-            throw new InvalidVoucherDeleteException();
-        }
-    }
-
-    /**
-     * 사용자가 그룹에 속해있는지 검증합니다.
-     *
-     * @param userId
-     * @param groupId
-     * @return
-     */
-    private void validateUserInGroup(Long userId, Long groupId) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
-            throw new InvalidAccessVoucherException();
-        }
-    }
-
-    /**
-     * 해당 유저가 쿠폰을 등록한 유저인지 검증합니다.
-     *
-     * @param userId
-     * @param voucherUser
-     */
-    private void validateVoucherOwner(Long userId, User voucherUser) {
-        if (!voucherUser.getId().equals(userId)) {
-            throw new InvalidVoucherDeleteException();
-        }
-    }
-
-    /**
-     * 유효한 이미지 파일의 MIME 타입이 image인지 검증합니다.
-     *
-     * @param image
-     */
-    private void validateImageFile(MultipartFile image) {
-        if (image == null || image.isEmpty()) {
-            throw new IllegalVoucherImageException();
-        }
-
-        String contentType = image.getContentType();
-        if (contentType == null || !contentType.startsWith("image")) {
-            throw new IllegalVoucherImageException();
-        }
-    }
-
-    private void validateVoucherDateExpiration(LocalDate expiration) {
-        LocalDate today = LocalDate.now(clock);
-        if(expiration.isBefore(today)) {
-            throw new InvalidVoucherExpireException();
-        }
-    }
 }
