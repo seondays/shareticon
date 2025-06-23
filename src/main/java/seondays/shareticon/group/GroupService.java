@@ -23,8 +23,10 @@ import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
 import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
+import seondays.shareticon.group.dto.GroupJoinApplyStatusChangeValidationRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
+import seondays.shareticon.group.dto.GroupTitleAliasChangeValidationRequest;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -40,6 +42,7 @@ public class GroupService {
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
     private final RandomCodeFactory randomCodeFactory;
+    private final GroupValidator groupValidator;
 
     @Transactional
     public GroupResponse createGroup(Long userId, CreateGroupRequest request) {
@@ -128,11 +131,12 @@ public class GroupService {
         Group targetGroup = groupRepository.findById(targetGroupId)
                 .orElseThrow(GroupNotFoundException::new);
 
-        if (!userRepository.existsById(targetUserId)) {
-            throw new UserNotFoundException();
-        }
-
-        validateLeader(leaderId, targetGroup);
+        GroupJoinApplyStatusChangeValidationRequest validationRequest =
+                GroupJoinApplyStatusChangeValidationRequest.builder()
+                        .leaderId(leaderId)
+                        .targetUserId(targetUserId)
+                        .targetGroup(targetGroup).build();
+        groupValidator.validateGroupJoinApplyStatusChange(validationRequest);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(targetUserId,
                 targetGroupId).orElseThrow(GroupUserNotFoundException::new);
@@ -153,7 +157,11 @@ public class GroupService {
     @Transactional
     public ChangeGroupTitleAliasResponse changeGroupTitleAlias(Long userId, Long groupId,
             ChangeGroupTitleAliasRequest request) {
-        validateUserAndGroupExist(userId, groupId);
+        GroupTitleAliasChangeValidationRequest validationRequest =
+                GroupTitleAliasChangeValidationRequest.builder()
+                        .requestUserId(userId)
+                        .targetGroupId(groupId).build();
+        groupValidator.validateGroupTitleAliasChange(validationRequest);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(GroupUserNotFoundException::new);
