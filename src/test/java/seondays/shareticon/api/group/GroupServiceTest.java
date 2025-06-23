@@ -576,8 +576,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User pendingUser = User.builder().id(123L).build();
         userRepository.save(leaderUser);
 
-        Group group = Group.builder().build();
+        Group group = Group.builder().leaderUser(leaderUser).build();
         groupRepository.save(group);
+
+        UserGroup leaderUserGroup = UserGroup.createLeaderUserGroup(leaderUser, group);
+        userGroupRepository.save(leaderUserGroup);
 
         //when //then
         ApprovalStatus leaderDecision = ApprovalStatus.APPROVED;
