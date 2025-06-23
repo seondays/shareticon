@@ -35,7 +35,7 @@ public class GroupValidator {
 
     private void validateLeader(Long leaderId, Group group) {
         if (userRepository.findById(leaderId).isEmpty()) {
-            throw new InvalidAcceptGroupJoinApplyException();
+            throw new UserNotFoundException();
         }
         if (!leaderId.equals(group.getLeaderUser().getId())) {
             throw new InvalidAcceptGroupJoinApplyException();

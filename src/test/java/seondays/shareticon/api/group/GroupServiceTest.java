@@ -541,7 +541,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         assertThatThrownBy(
                 () -> groupService.changeJoinApplyStatus(group.getId(), pendingUser.getId(),
                         leaderUser.getId(), leaderDecision))
-                .isInstanceOf(InvalidAcceptGroupJoinApplyException.class);
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
