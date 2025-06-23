@@ -19,7 +19,7 @@ public enum JoinStatus {
         }
     }
 
-    public void isWaitingAcceptJoinApply() {
+    public void validateWaitingAcceptJoinApply() {
         if (!this.equals(PENDING)) {
             throw new InvalidJoinGroupException();
         }

@@ -78,7 +78,7 @@ public class UserGroup extends BaseEntity {
     }
 
     public void approvalJoinStatus(ApprovalStatus approvalStatus) {
-        joinStatus.isWaitingAcceptJoinApply();
+        joinStatus.validateWaitingAcceptJoinApply();
 
         if (ApprovalStatus.isApproved(approvalStatus)) {
             joinStatus = JoinStatus.JOINED;
