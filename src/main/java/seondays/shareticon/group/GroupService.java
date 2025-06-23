@@ -53,11 +53,7 @@ public class GroupService {
             try {
                 String inviteCode = randomCodeFactory.createInviteCode();
 
-                Group newGroup = Group.builder()
-                        .leaderUser(user)
-                        .inviteCode(inviteCode)
-                        .title(request.title())
-                        .build();
+                Group newGroup = Group.createNewGroup(leaderUser, inviteCode, request.title());
                 groupRepository.save(newGroup);
 
                 userGroupRepository.save(UserGroup.builder()

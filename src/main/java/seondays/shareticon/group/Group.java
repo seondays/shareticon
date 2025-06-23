@@ -40,4 +40,12 @@ public class Group extends BaseEntity {
     private String title;
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
     private List<UserGroup> userGroups = new ArrayList<>();
+
+    public static Group createNewGroup(User leaderUser, String inviteCode, String title) {
+        return Group.builder()
+                .leaderUser(leaderUser)
+                .inviteCode(inviteCode)
+                .title(title)
+                .build();
+    }
 }
