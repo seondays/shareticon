@@ -7,3 +7,13 @@ include::{snippets}/user-profile/http-request.adoc[]
 ==== HTTP Response
 include::{snippets}/user-profile/http-response.adoc[]
 include::{snippets}/user-profile/response-fields.adoc[]
+
+
+=== 유저 닉네임 변경
+
+==== HTTP Request
+include::{snippets}/change-user-profile/http-request.adoc[]
+include::{snippets}/change-user-profile/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/change-user-profile/http-response.adoc[]

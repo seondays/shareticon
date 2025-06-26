@@ -22,6 +22,13 @@ include::{snippets}/group-join/request-fields.adoc[]
 ==== HTTP Response
 include::{snippets}/group-join/http-response.adoc[]
 
+=== 그룹 가입 신청 내역 조회
+==== HTTP Request
+include::{snippets}/group-joinList-get/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/group-joinList-get/http-response.adoc[]
+include::{snippets}/group-joinList-get/response-fields.adoc[]
+
 === 그룹 가입 신청 내역 처리
 ==== HTTP Request
 include::{snippets}/group-JoinList-approved/http-request.adoc[]
