@@ -14,7 +14,7 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
 
     boolean existsByUserIdAndGroupId(Long userId, Long groupId);
 
-    List<UserGroup> findAllByUserId(Long userId);
+    Long countByUserId(Long userId);
 
     Optional<UserGroup> findByUserIdAndGroupId(Long userId, Long groupId);
 
