@@ -93,6 +93,25 @@ public class UserServiceTest extends IntegrationTestSupport {
 
     }
 
+    @Test
+    @DisplayName("유저 정보 변경 시 닉네임이 업데이트 된다")
+    void changeUserProfile() {
+        //given
+        String nickname = "닉네임";
+        String email = "test@test";
+        User user = User.builder().nickname(nickname).email(email).build();
+        userRepository.save(user);
+
+        String newNickname = "새로운 닉네임";
+
+        //when
+        user.changeNickname(newNickname);
+
+        //then
+        assertThat(user.getNickname()).isEqualTo(newNickname);
+
+    }
+
     private UserGroup linkUserWithGroup(User user, Group group) {
         UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userGroupRepository.save(userGroup);
