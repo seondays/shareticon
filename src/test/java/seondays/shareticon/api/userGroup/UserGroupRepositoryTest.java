@@ -187,4 +187,42 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         assertThat(result.get().getModifiedDateTime()).isBeforeOrEqualTo(now);
 
     }
+
+    @Test
+    @DisplayName("특정 유저가 가입되어 있는 전체 그룹의 수를 조회한다")
+    void getUserJoinGroupCount() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder().build();
+        Group group2 = Group.builder().build();
+        groupRepository.saveAll(List.of(group, group2));
+
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
+        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
+        userGroupRepository.saveAll(List.of(userGroup, userGroup2));
+
+        //when
+        Long result = userGroupRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isEqualTo(2);
+
+    }
+
+    @Test
+    @DisplayName("특정 유저가 가입되어 있는 전체 그룹의 수가 0개여도 정상적으로 조회된다")
+    void getUserJoinGroupCountZero() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        //when
+        Long result = userGroupRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isZero();
+
+    }
 }
