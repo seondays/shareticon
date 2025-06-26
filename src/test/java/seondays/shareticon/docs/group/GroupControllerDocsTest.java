@@ -69,7 +69,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.post("/group")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -102,7 +102,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/group")
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -136,7 +136,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.post("/group/join")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent())
@@ -164,7 +164,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/group/join")
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -196,7 +196,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", 1L, userId)
                                 .queryParam("status", "APPROVED")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent())
@@ -234,7 +234,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())

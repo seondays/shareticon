@@ -1,6 +1,7 @@
 package seondays.shareticon.docs.user;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -8,11 +9,14 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -20,6 +24,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import seondays.shareticon.docs.RestDocsSupport;
 import seondays.shareticon.user.UserController;
 import seondays.shareticon.user.UserService;
+import seondays.shareticon.user.dto.UserProfileChangeRequest;
 import seondays.shareticon.user.dto.UserProfileResponse;
 
 public class UserControllerDocsTest extends RestDocsSupport {
@@ -63,6 +68,40 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("email").type(JsonFieldType.STRING).description("유저의 이메일"),
                                 fieldWithPath("joinGroupCount").type(JsonFieldType.NUMBER).description("유저가 가입되어 있는 그룹의 개수"),
                                 fieldWithPath("ownedVoucherCount").type(JsonFieldType.NUMBER).description("유저가 등록한 쿠폰의 총 개수")
+                        )));
+
+    }
+
+    @Test
+    @DisplayName("유효한 닉네임으로 유저 프로필을 변경한다")
+    void changeUserProfile() throws Exception {
+        //given
+        String newNickname = "새로운 닉네임";
+
+        UserProfileChangeRequest request = UserProfileChangeRequest
+                .builder()
+                .newNickname(newNickname)
+                .build();
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        //when
+        doNothing().when(userService)
+                .changeUserProfile(any(Long.class), any(UserProfileChangeRequest.class));
+
+        //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.patch("/profile")
+                                .with(addBearerToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(jsonRequest)
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isNoContent())
+                .andDo(document("change-user-profile",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("newNickname").type(JsonFieldType.STRING).description("유저가 새로 바꾸려는 닉네임")
                         )));
 
     }

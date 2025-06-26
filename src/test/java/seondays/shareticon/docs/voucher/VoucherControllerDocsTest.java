@@ -17,7 +17,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.partWith
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParts;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -97,7 +96,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                 .file(imagePart)
                                 .file(requestPart)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -150,7 +149,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.delete("/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -211,7 +210,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.get("/vouchers/{groupId}", groupId)
                                 .param("cursorId", cursorId.toString())
                                 .param("pageSize", String.valueOf(pageSize))
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -308,7 +307,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
