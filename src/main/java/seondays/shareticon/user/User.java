@@ -33,4 +33,8 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
     private String email;
+
+    public void changeNickname(String newNickname) {
+        nickname = newNickname;
+    }
 }
