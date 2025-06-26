@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.validation.Validator;
 import java.time.Clock;
 import java.time.Instant;
@@ -57,6 +58,12 @@ public abstract class RestDocsSupport {
 
     protected abstract Object initController();
 
+    protected RequestPostProcessor addBearerToken() {
+        return request -> {
+            request.addHeader("Authorization", "Bearer TOKEN_VALUE");
+            return request;
+        };
+    }
 
     private Validator validator(Clock clock) {
         ValidatorFactory factory = Validation.byDefaultProvider()
