@@ -39,6 +39,7 @@ import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
+import seondays.shareticon.group.dto.PendingMemberResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -162,8 +163,10 @@ public class GroupServiceTest extends IntegrationTestSupport {
         Group group2 = Group.builder().title(group2Title).build();
         groupRepository.saveAll(List.of(group1, group2));
 
-        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).groupTitleAlias(group1.getTitle()).build();
-        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).groupTitleAlias(group2.getTitle()).build();
+        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1)
+                .groupTitleAlias(group1.getTitle()).build();
+        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2)
+                .groupTitleAlias(group2.getTitle()).build();
         userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
 
         //when
@@ -172,7 +175,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //then
         assertThat(responseList).hasSize(2);
         assertThat(responseList).extracting("groupId", "groupTitleAlias", "memberCount")
-                .contains(tuple(group1.getId(), group1Title, 1), tuple(group2.getId(), group2Title, 1));
+                .contains(tuple(group1.getId(), group1Title, 1),
+                        tuple(group2.getId(), group2Title, 1));
     }
 
     @Test
@@ -327,28 +331,46 @@ public class GroupServiceTest extends IntegrationTestSupport {
     @DisplayName("리더에게 들어온 그룹 신청 내역 목록을 조회한다")
     void getAllApplyToJoinList() {
         //given
+        String user1Nickname = "1번 유저";
+        String user2Nickname = "2번 유저";
+
         User leaderUser = User.builder().build();
-        User pendingUser = User.builder().build();
-        userRepository.save(leaderUser);
-        userRepository.save(pendingUser);
+        User pendingUser1 = User.builder().nickname(user1Nickname).build();
+        User pendingUser2 = User.builder().nickname(user2Nickname).build();
+        userRepository.saveAll(List.of(leaderUser, pendingUser1, pendingUser2));
 
         Group group = Group.builder().leaderUser(leaderUser).build();
-        groupRepository.save(group);
+        groupRepository.saveAll(List.of(group));
 
-        UserGroup userGroup1 = UserGroup.builder().user(leaderUser).group(group)
-                .joinStatus(JoinStatus.JOINED).build();
-        UserGroup userGroup2 = UserGroup.builder().user(pendingUser).group(group)
+        String leaderAlias1 = "첫번째 그룹";
+
+        UserGroup userGroup1 = UserGroup.builder().user(leaderUser).groupTitleAlias(leaderAlias1)
+                .group(group).joinStatus(JoinStatus.JOINED).build();
+        UserGroup userGroup2 = UserGroup.builder().user(pendingUser1).group(group)
                 .joinStatus(JoinStatus.PENDING).build();
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
+        UserGroup userGroup3 = UserGroup.builder().user(pendingUser2).group(group)
+                .joinStatus(JoinStatus.PENDING).build();
+
+        userGroupRepository.saveAll(
+                List.of(userGroup1, userGroup2, userGroup3));
+
+        group.setUserGroups(List.of(userGroup1, userGroup2, userGroup3));
 
         //when
-        List<ApplyToJoinResponse> result = groupService.getAllApplyToJoinList(
+        List<ApplyToJoinResponse> result = groupService.getAllGroupPendingUserList(
                 leaderUser.getId());
 
         //then
+        PendingMemberResponse expectPendingUserResult1 = PendingMemberResponse.of(pendingUser1.getId(),
+                user1Nickname);
+        PendingMemberResponse expectPendingUserResult2 = PendingMemberResponse.of(pendingUser2.getId(),
+                user2Nickname);
+
+        ApplyToJoinResponse expectResult = ApplyToJoinResponse.of(group.getId(), leaderAlias1,
+                List.of(expectPendingUserResult1, expectPendingUserResult2));
+
         assertThat(result).hasSize(1)
-                .extracting("applyUserId", "targetGroupId")
-                .contains(tuple(pendingUser.getId(), group.getId()));
+                .contains(expectResult);
     }
 
     @Test
@@ -370,7 +392,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
 
         //when
-        List<ApplyToJoinResponse> result = groupService.getAllApplyToJoinList(
+        List<ApplyToJoinResponse> result = groupService.getAllGroupPendingUserList(
                 leaderUser.getId());
 
         //then
@@ -384,7 +406,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().id(1L).build();
 
         //when //then
-        assertThatThrownBy(() -> groupService.getAllApplyToJoinList(user.getId()))
+        assertThatThrownBy(() -> groupService.getAllGroupPendingUserList(user.getId()))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
