@@ -1,9 +1,5 @@
 package seondays.shareticon.group;
 
-import static seondays.shareticon.group.JoinStatus.JOINED;
-import static seondays.shareticon.group.JoinStatus.PENDING;
-import static seondays.shareticon.group.JoinStatus.REJECTED;
-
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.GroupUserNotFoundException;
-import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
-import seondays.shareticon.exception.InvalidJoinGroupException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.dto.ApplyToJoinRequest;
 import seondays.shareticon.group.dto.ApplyToJoinResponse;
@@ -93,13 +86,13 @@ public class GroupService {
         userGroupRepository.save(userGroup);
     }
 
-    public List<ApplyToJoinResponse> getAllApplyToJoinList(Long leaderUserId) {
-        User leaderUser = userRepository.findById(leaderUserId)
-                .orElseThrow(UserNotFoundException::new);
+    public List<ApplyToJoinResponse> getAllGroupPendingUserList(Long leaderUserId) {
+        groupValidator.validateExistTargetUser(leaderUserId);
 
-        return userGroupRepository.findByLeaderAndJoinStatus(leaderUser.getId(), PENDING)
-                .stream()
-                .map(ApplyToJoinResponse::of)
+        List<Group> allGroupByLeaderUserId = groupRepository.findAllByLeaderId(leaderUserId);
+        return allGroupByLeaderUserId.stream()
+                .map(group -> ApplyToJoinResponse.of(group.getId(),
+                        group.getGroupAlias(leaderUserId), group.getPendingMemberResponses()))
                 .toList();
     }
 

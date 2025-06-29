@@ -63,7 +63,7 @@ public class GroupController {
     public ResponseEntity<List<ApplyToJoinResponse>> getAllApplyToJoinList(
             @AuthenticationPrincipal CustomOAuth2User userDetails) {
         Long userId = userDetails.getId();
-        List<ApplyToJoinResponse> responseList = groupService.getAllApplyToJoinList(userId);
+        List<ApplyToJoinResponse> responseList = groupService.getAllGroupPendingUserList(userId);
         return ResponseEntity.ok().body(responseList);
     }
 
