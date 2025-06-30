@@ -36,10 +36,13 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void getUserWithGroup() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userGroupRepository.save(userGroup);
 
         //when
@@ -55,17 +58,18 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         //given
         User user = User.builder().build();
         User user2 = User.builder().build();
+        userRepository.saveAll(List.of(user, user2));
 
-        Group group1 = Group.builder().build();
-        Group group2 = Group.builder().build();
+        String inviteCode1 = "ABC";
+        Group group1 = createTestGroup(inviteCode1);
+        String inviteCode2 = "DEF";
+        Group group2 = createTestGroup(inviteCode2);
+        groupRepository.saveAll(List.of(group1, group2));
 
         UserGroup userGroup1 = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group1).build();
         UserGroup userGroup2 = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group2).build();
         UserGroup userGroup3 = UserGroup.builder().user(user2).joinStatus(JoinStatus.REJECTED).group(group1).build();
         UserGroup userGroup4 = UserGroup.builder().user(user2).joinStatus(JoinStatus.JOINED).group(group2).build();
-
-        userRepository.saveAll(List.of(user, user2));
-        groupRepository.saveAll(List.of(group1, group2));
         userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3, userGroup4));
 
         //when
@@ -104,8 +108,10 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void getUserGroupWithUserIdAndGroupId() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         UserGroup userGroup = UserGroup.builder().group(group).user(user).build();
@@ -127,12 +133,11 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void getUserGroupWithNotExistUserIdAndGroupId() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
         userRepository.save(user);
-        groupRepository.save(group);
 
-        UserGroup userGroup = UserGroup.builder().build();
-        userGroupRepository.save(userGroup);
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
 
         //when
         Optional<UserGroup> result = userGroupRepository.findByUserIdAndGroupId(
@@ -149,9 +154,9 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         //given
         User leader = User.builder().build();
         User user = User.builder().build();
+        userRepository.saveAll(List.of(leader, user));
 
         Group group = Group.builder().leaderUser(leader).build();
-        userRepository.saveAll(List.of(leader, user));
         groupRepository.save(group);
 
         UserGroup userGroup = UserGroup.builder().user(user).group(group)
@@ -174,10 +179,13 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void auditingUserGroup() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userGroupRepository.save(userGroup);
 
         //when
@@ -202,8 +210,11 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
-        Group group2 = Group.builder().build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+
+        String inviteCode2 = "DEF";
+        Group group2 = createTestGroup(inviteCode2);
         groupRepository.saveAll(List.of(group, group2));
 
         UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
@@ -231,5 +242,11 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         //then
         assertThat(result).isZero();
 
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 }

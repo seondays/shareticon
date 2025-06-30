@@ -42,8 +42,8 @@ public class UserServiceTest extends IntegrationTestSupport {
     void tearDown() {
         userGroupRepository.deleteAllInBatch();
         voucherRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
         groupRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
     @Test
@@ -55,9 +55,9 @@ public class UserServiceTest extends IntegrationTestSupport {
         User user = User.builder().nickname(nickname).email(email).build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
-        Group group2 = Group.builder().build();
-        Group group3 = Group.builder().build();
+        Group group = createTestGroup("A");
+        Group group2 = createTestGroup("B");
+        Group group3 = createTestGroup("C");
         groupRepository.saveAll(List.of(group3, group2, group));
 
         linkUserWithGroup(user, group);
@@ -116,5 +116,11 @@ public class UserServiceTest extends IntegrationTestSupport {
         UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userGroupRepository.save(userGroup);
         return userGroup;
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 }
