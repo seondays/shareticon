@@ -10,13 +10,16 @@ import seondays.shareticon.group.GroupService;
 import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.login.token.TokenController;
 import seondays.shareticon.login.token.TokenService;
+import seondays.shareticon.user.UserController;
+import seondays.shareticon.user.UserService;
 import seondays.shareticon.voucher.VoucherController;
 import seondays.shareticon.voucher.VoucherService;
 
 @WebMvcTest(controllers = {
         VoucherController.class,
         GroupController.class,
-        TokenController.class})
+        TokenController.class,
+        UserController.class})
 @Import({TestSecurityConfig.class, TestValidatorConfig.class})
 public abstract class ControllerTestSupport {
 
@@ -28,6 +31,9 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected TokenService tokenService;
+
+    @MockitoBean
+    protected UserService userService;
 
     @Autowired
     protected MockMvc mockMvc;

@@ -20,6 +20,7 @@ import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
+import seondays.shareticon.group.dto.PendingMemberResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -36,7 +37,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -69,7 +69,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.post("/group")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -102,7 +102,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/group")
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -136,7 +136,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.post("/group/join")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent())
@@ -153,35 +153,45 @@ public class GroupControllerDocsTest extends RestDocsSupport {
     @DisplayName("유저가 확인할 수 있는 가입 신청 리스트를 조회한다")
     void getAllApplyToJoinList() throws Exception {
         //given
-        Long userId = mockUser.getId();
-        String userName = mockUser.getName();
-        ApplyToJoinResponse response1 = new ApplyToJoinResponse(userId, userName, 1L);
-        ApplyToJoinResponse response2 = new ApplyToJoinResponse(userId, userName, 2L);
-        List<ApplyToJoinResponse> responseList = List.of(response1, response2);
+        Long userId = 1L;
+        String userName = "가입신청한 유저";
 
-        when(groupService.getAllApplyToJoinList(any(Long.class))).thenReturn(responseList);
+        Long groupId = 1L;
+        String groupAlias = "리더의 그룹 별칭";
+
+        ApplyToJoinResponse response = new ApplyToJoinResponse(groupId, groupAlias, List.of(
+                PendingMemberResponse.of(userId, userName)));
+
+        when(groupService.getAllGroupPendingUserList(any(Long.class))).thenReturn(List.of(response));
 
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/group/join")
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].targetGroupId").value(groupId))
+                .andExpect(jsonPath("$[0].leaderGroupAlias").value(groupAlias))
+                .andExpect(jsonPath("$[0].pendingMembers").isArray())
                 .andDo(document("group-joinList-get",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         responseFields(
                                 fieldWithPath("[]").type(JsonFieldType.ARRAY)
                                         .description("유저가 처리할 수 있는 그룹 가입 신청 리스트"),
-                                fieldWithPath("[].applyUserId").type(JsonFieldType.NUMBER)
-                                        .description("신청한 유저의 ID"),
-                                fieldWithPath("[].pendingUserName").type(JsonFieldType.STRING)
-                                        .description("신청한 유저의 닉네임"),
                                 fieldWithPath("[].targetGroupId").type(JsonFieldType.NUMBER)
-                                        .description("유저가 가입 신청한 그룹 ID")
+                                        .description("가입 신청이 들어온 그룹 ID"),
+                                fieldWithPath("[].leaderGroupAlias").type(JsonFieldType.STRING)
+                                        .description("리더가 설정한 가입 신청이 들어온 그룹의 별칭"),
+                                fieldWithPath("[].pendingMembers").type(JsonFieldType.ARRAY)
+                                        .description("가입을 신청한 유저의 리스트"),
+                                fieldWithPath("[].pendingMembers[].applyUserId").type(JsonFieldType.NUMBER)
+                                        .description("가입을 신청한 유저 ID"),
+                                fieldWithPath("[].pendingMembers[].applyUserNickname").type(JsonFieldType.STRING)
+                                        .description("가입을 신청한 유저의 닉네임")
                         )));
     }
 
@@ -196,7 +206,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", 1L, userId)
                                 .queryParam("status", "APPROVED")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isNoContent())
@@ -234,7 +244,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
-                                .with(authentication(auth))
+                                .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())

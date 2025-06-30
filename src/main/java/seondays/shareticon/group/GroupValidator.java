@@ -27,7 +27,7 @@ public class GroupValidator {
         validateExistTargetUser(request.targetUserId());
     }
 
-    private void validateExistTargetUser(Long targetUserId) {
+    public void validateExistTargetUser(Long targetUserId) {
         if (!userRepository.existsById(targetUserId)) {
             throw new UserNotFoundException();
         }

@@ -25,16 +25,24 @@ public class KakaoUser implements OAuth2Provider {
     }
 
     @Override
+    public String getEmail() {
+        Map<String, Object> account = (Map<String, Object>) attributes.get("kakao_account");
+        return account.get("email").toString();
+    }
+
+    @Override
     public UserRole getRole() {
         return UserRole.ROLE_USER;
     }
 
     @Override
     public User toEntity() {
+        getEmail();
         return User.builder()
                 .nickname(getNickName())
                 .oauth2Id(getProviderId())
                 .oauth2Type(OAuth2Type.KAKAO)
+                .email(getEmail())
                 .role(getRole())
                 .build();
     }

@@ -13,6 +13,8 @@ import org.springframework.data.domain.Slice;
 import seondays.shareticon.api.config.RepositoryTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.user.User;
+import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherStatus;
@@ -24,6 +26,9 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private VoucherRepository voucherRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("전체 쿠폰의 첫번째 페이지를 조회한다")
@@ -187,10 +192,59 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         assertThat(resultPage.hasNext()).isFalse();
     }
 
+    @Test
+    @DisplayName("특정 유저가 등록한 모든 쿠폰의 개수를 조회한다")
+    void getAllVoucherByUser() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = Group.builder()
+                .build();
+        groupRepository.save(group);
+
+        Voucher voucher1 = createVoucherWithUser(group, VoucherStatus.AVAILABLE, user);
+        Voucher voucher2 = createVoucherWithUser(group, VoucherStatus.USED, user);
+        Voucher voucher3 = createVoucherWithUser(group, VoucherStatus.EXPIRED, user);
+        Voucher voucher4 = createVoucherWithUser(group, VoucherStatus.AVAILABLE, user);
+        Voucher voucher5 = createVoucherWithUser(group, VoucherStatus.EXPIRED, user);
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
+
+        //when
+        Long result = voucherRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isEqualTo(5);
+
+    }
+
+    @Test
+    @DisplayName("특정 유저가 등록한 모든 쿠폰의 개수가 0개여도 정상적으로 조회된다")
+    void getAllVoucherByUserZero() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        //when
+        Long result = voucherRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isZero();
+
+    }
+
 
     private static Voucher createVoucher(Group group, VoucherStatus status) {
         return Voucher.builder()
                 .group(group)
+                .status(status)
+                .build();
+    }
+
+    private static Voucher createVoucherWithUser(Group group, VoucherStatus status, User user) {
+        return Voucher.builder()
+                .group(group)
+                .user(user)
                 .status(status)
                 .build();
     }

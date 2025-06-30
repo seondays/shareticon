@@ -1,16 +1,13 @@
 package seondays.shareticon.group.dto;
 
-import seondays.shareticon.group.Group;
-import seondays.shareticon.user.User;
-import seondays.shareticon.userGroup.UserGroup;
+import java.util.List;
 
-public record ApplyToJoinResponse(Long applyUserId,
-                                  String pendingUserName,
-                                  Long targetGroupId) {
+public record ApplyToJoinResponse(Long targetGroupId,
+                                  String leaderGroupAlias,
+                                  List<PendingMemberResponse> pendingMembers) {
 
-    public static ApplyToJoinResponse of(UserGroup userGroup) {
-        User user = userGroup.getUser();
-        Group group = userGroup.getGroup();
-        return new ApplyToJoinResponse(user.getId(), user.getNickname(), group.getId());
+    public static ApplyToJoinResponse of(Long targetGroupId, String leaderGroupAlias,
+            List<PendingMemberResponse> pendingMembers) {
+        return new ApplyToJoinResponse(targetGroupId, leaderGroupAlias, pendingMembers);
     }
 }

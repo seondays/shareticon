@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import seondays.shareticon.group.dto.PendingMemberResponse;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.utils.BaseEntity;
 import seondays.shareticon.user.User;
@@ -38,8 +39,24 @@ public class Group extends BaseEntity {
     @Column(unique = true)
     private String inviteCode;
     private String title;
+    @Builder.Default
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
     private List<UserGroup> userGroups = new ArrayList<>();
+
+    public List<PendingMemberResponse> getPendingMemberResponses() {
+        return this.userGroups.stream()
+                .filter(userGroup -> userGroup.getJoinStatus() == JoinStatus.PENDING)
+                .map(userGroup -> PendingMemberResponse.from(userGroup.getUser()))
+                .toList();
+    }
+
+    public String getGroupAlias(Long userId) {
+        return this.userGroups.stream()
+                .filter(userGroup -> userGroup.getUser().getId().equals(userId))
+                .map(UserGroup::getGroupTitleAlias)
+                .findFirst()
+                .orElse(title);
+    }
 
     public static Group createNewGroup(User leaderUser, String inviteCode, String title) {
         return Group.builder()
@@ -47,5 +64,10 @@ public class Group extends BaseEntity {
                 .inviteCode(inviteCode)
                 .title(title)
                 .build();
+    }
+
+    public static Group WithUserGroup(Group group, List<UserGroup> userGroups) {
+        group.userGroups = userGroups;
+        return group;
     }
 }
