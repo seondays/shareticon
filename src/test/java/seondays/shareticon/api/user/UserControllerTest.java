@@ -33,15 +33,16 @@ public class UserControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("유저 프로필 조회 시 결과에는 유저 닉네임, 유저 이메일, 유저가 가입한 그룹 카운트, 유저가 등록한 기프티콘 카운트가 포함된다")
+    @DisplayName("유저 프로필 조회 시 결과에는 유저 아이디, 유저 닉네임, 유저 이메일, 유저가 가입한 그룹 카운트, 유저가 등록한 기프티콘 카운트가 포함된다")
     void getUserProfile() throws Exception {
         //given
+        Long userId = mockUser.getId();
         String nickname = "닉네임";
         String email = "test@test";
         Long joinGroupCount = 1L;
         Long ownedVoucherCount = 2L;
 
-        UserProfileResponse mockResponse = UserProfileResponse.builder().nickName(nickname)
+        UserProfileResponse mockResponse = UserProfileResponse.builder().userId(userId).nickName(nickname)
                 .email(email).joinGroupCount(joinGroupCount).ownedVoucherCount(ownedVoucherCount)
                 .build();
 
@@ -55,6 +56,7 @@ public class UserControllerTest extends ControllerTestSupport {
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.nickName").value(nickname))
                 .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.joinGroupCount").value(joinGroupCount))

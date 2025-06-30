@@ -66,7 +66,8 @@ public class GroupService {
     }
 
     public List<GroupListResponse> getAllGroupList(Long userId) {
-        return userGroupRepository.findGroupsWithMemberCountByUserId(userId)
+        return userGroupRepository.findGroupsWithMemberCountByUserIdAndStatus(
+                userId, JoinStatus.getStatusesForAcceptedGroupMembers())
                 .stream()
                 .toList();
     }

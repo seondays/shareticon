@@ -36,10 +36,10 @@ public class Voucher extends BaseEntity {
     private String name;
     private LocalDate expiration;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     private String image;
     @Enumerated(value = EnumType.STRING)

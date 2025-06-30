@@ -37,14 +37,18 @@ public class UserControllerDocsTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("유저 프로필 조회 시 결과에는 유저 닉네임, 유저 이메일, 유저가 가입한 그룹 카운트, 유저가 등록한 기프티콘 카운트가 포함된다")
+    @DisplayName("유저 프로필 조회 시 결과에는 유저 아이디, 유저 닉네임, 유저 이메일, 유저가 가입한 그룹 카운트, 유저가 등록한 기프티콘 카운트가 포함된다")
     void getUserProfile() throws Exception {
         //given
+        Long userId = mockUser.getId();
         String nickname = "닉네임";
         String email = "test@test";
+        Long joinGroupCount = 1L;
+        Long ownedVoucherCount = 2L;
 
-        UserProfileResponse mockResponse = UserProfileResponse.builder().nickName(nickname)
-                .email(email).joinGroupCount(1L).ownedVoucherCount(2L).build();
+        UserProfileResponse mockResponse = UserProfileResponse.builder().userId(userId).nickName(nickname)
+                .email(email).joinGroupCount(joinGroupCount).ownedVoucherCount(ownedVoucherCount)
+                .build();
 
         //when
         when(userService.getUserProfile(any(Long.class))).thenReturn(mockResponse);
@@ -56,6 +60,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.nickName").value(nickname))
                 .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.joinGroupCount").value(1))
@@ -64,6 +69,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         responseFields(
+                                fieldWithPath("userId").type(JsonFieldType.NUMBER).description("서버에서의 유저 아이디"),
                                 fieldWithPath("nickName").type(JsonFieldType.STRING).description("유저의 닉네임"),
                                 fieldWithPath("email").type(JsonFieldType.STRING).description("유저의 이메일"),
                                 fieldWithPath("joinGroupCount").type(JsonFieldType.NUMBER).description("유저가 가입되어 있는 그룹의 개수"),

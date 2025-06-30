@@ -74,8 +74,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
     void tearDown() {
         userGroupRepository.deleteAllInBatch();
         voucherRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
         groupRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
     @Test
@@ -84,10 +84,13 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //given
         User user = User.builder()
                 .build();
-        Group group = Group.builder().inviteCode("123").build();
-        String userGroupAlias = "그룹 별칭";
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -124,12 +127,14 @@ class VoucherServiceTest extends IntegrationTestSupport {
     @DisplayName("쿠폰 등록시 첨부 파일이 이미지 파일이 아니라면 예외가 발생한다.")
     void voucherRegisterWithNoImage() {
         //given
-        User user = User.builder()
-                .build();
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
+        User user = User.builder().build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -156,8 +161,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //given
         User user = User.builder()
                 .build();
-        Group group = Group.builder().build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         String voucherName = "voucher name";
@@ -183,7 +190,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
     @DisplayName("존재하지 않는 그룹에 쿠폰을 등록하는 경우 예외가 발생한다.")
     void registerVoucherWithNoExistGroup() {
         //given
-        Group group = Group.builder().build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         Long noExistUserId = 1L;
@@ -240,10 +248,13 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //given
         User user = User.builder()
                 .build();
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -277,9 +288,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -301,15 +314,16 @@ class VoucherServiceTest extends IntegrationTestSupport {
     void deleteVoucherWithNotRegisterUser() {
         //given
         User registerUser = User.builder().build();
-        User NotRegisterUser = User.builder().build();
-        userRepository.save(registerUser);
-        userRepository.save(NotRegisterUser);
+        User notRegisterUser = User.builder().build();
+        userRepository.saveAll(List.of(registerUser, notRegisterUser));
 
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(registerUser, group, userGroupAlias);
-        linkUserWithGroup(NotRegisterUser, group, userGroupAlias);
+        linkUserWithGroup(notRegisterUser, group, userGroupAlias);
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -319,7 +333,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         //when //then
         assertThatThrownBy(() ->
-                voucherService.delete(NotRegisterUser.getId(), group.getId(), voucher.getId()))
+                voucherService.delete(notRegisterUser.getId(), group.getId(), voucher.getId()))
                 .isInstanceOf(InvalidVoucherDeleteException.class);
     }
 
@@ -332,9 +346,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         userRepository.save(userExistInGroup);
         userRepository.save(userNoExistInGroup);
 
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(userExistInGroup, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -357,9 +373,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         UserGroup userGroup = linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -406,9 +424,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().title("나의 그룹").build();
-        String userGroupAlias = "그룹 별칭";
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
         //when
@@ -433,7 +453,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         LocalDate expiration = LocalDate.of(2025, 1, 1);
@@ -455,9 +476,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
-        String userGroupAlias = "그룹 별칭";
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
         String voucherName = "voucher name";
@@ -489,5 +512,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         UserGroup userGroup = UserGroup.builder().user(user).group(group).groupTitleAlias(alias).build();
         userGroupRepository.save(userGroup);
         return userGroup;
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 }

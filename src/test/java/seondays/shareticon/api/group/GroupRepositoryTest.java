@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class GroupRepositoryTest extends RepositoryTestSupport {
     void findByInviteCode() {
         //given
         String inviteCode = "ABC";
-        Group group = Group.builder().inviteCode(inviteCode).build();
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         //when
@@ -49,7 +50,7 @@ public class GroupRepositoryTest extends RepositoryTestSupport {
     void findByNoExistInviteCode() {
         //given
         String inviteCode = "ABC";
-        Group group = Group.builder().inviteCode(inviteCode).build();
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         //when
@@ -66,7 +67,7 @@ public class GroupRepositoryTest extends RepositoryTestSupport {
     void existByInviteCode() {
         //given
         String inviteCode = "ABC";
-        Group group = Group.builder().inviteCode(inviteCode).build();
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         //when
@@ -82,7 +83,7 @@ public class GroupRepositoryTest extends RepositoryTestSupport {
     void noExistByInviteCode() {
         //given
         String inviteCode = "ABC";
-        Group group = Group.builder().inviteCode(inviteCode).build();
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         //when
@@ -99,7 +100,7 @@ public class GroupRepositoryTest extends RepositoryTestSupport {
     void auditingGroup() {
         // given
         String inviteCode = "ABC";
-        Group group = Group.builder().inviteCode(inviteCode).build();
+        Group group = createTestGroup(inviteCode);
 
         // when
         groupRepository.save(group);
@@ -163,6 +164,12 @@ public class GroupRepositoryTest extends RepositoryTestSupport {
         //then
         assertThat(result).isEmpty();
 
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 
 }
