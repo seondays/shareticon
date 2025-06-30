@@ -354,7 +354,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userGroupRepository.saveAll(
                 List.of(userGroup1, userGroup2, userGroup3));
 
-        group.setUserGroups(List.of(userGroup1, userGroup2, userGroup3));
+        Group.WithUserGroup(group, List.of(userGroup1, userGroup2, userGroup3));
 
         //when
         List<ApplyToJoinResponse> result = groupService.getAllGroupPendingUserList(

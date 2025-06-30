@@ -58,15 +58,16 @@ public class Group extends BaseEntity {
                 .orElse(title);
     }
 
-    public void setUserGroups(List<UserGroup> userGroups) {
-        this.userGroups = userGroups;
-    }
-
     public static Group createNewGroup(User leaderUser, String inviteCode, String title) {
         return Group.builder()
                 .leaderUser(leaderUser)
                 .inviteCode(inviteCode)
                 .title(title)
                 .build();
+    }
+
+    public static Group WithUserGroup(Group group, List<UserGroup> userGroups) {
+        group.userGroups = userGroups;
+        return group;
     }
 }
