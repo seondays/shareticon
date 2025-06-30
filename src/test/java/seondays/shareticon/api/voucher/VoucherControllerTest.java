@@ -76,8 +76,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 jsonRequest.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
-                VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
+                1L, expiration, VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -127,8 +127,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
-                VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
+                1L, expiration, VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -174,8 +174,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
-                VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
+                1L, expiration, VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -221,8 +221,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
-                VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
+                1L, expiration, VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -268,8 +268,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 jsonRequestWithoutGroupId.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
-                VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
+                1L, expiration, VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -362,17 +362,18 @@ public class VoucherControllerTest extends ControllerTestSupport {
         int pageSize = 1;
         String mockPresignedUrl = "mockPresignedUrl";
 
+        User user = User.builder()
+                .id(userId)
+                .build();
         Voucher voucher = Voucher.builder()
                 .id(voucherId)
                 .image("www.image.com")
+                .user(user)
                 .status(VoucherStatus.AVAILABLE)
                 .build();
         Group group = Group.builder()
                 .id(groupId)
                 .inviteCode("InviteCode")
-                .build();
-        User user = User.builder()
-                .id(userId)
                 .build();
         UserGroup userGroup = UserGroup.builder()
                 .user(user)
