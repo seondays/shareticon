@@ -83,8 +83,8 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 jsonRequest.getBytes(StandardCharsets.UTF_8)
         );
 
-        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName, expiration,
-                VoucherStatus.AVAILABLE);
+        VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
+                1L, expiration, VoucherStatus.AVAILABLE);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -104,6 +104,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.status").value("AVAILABLE"))
                 .andExpect(jsonPath("$.presignedImage").value("image"))
+                .andExpect(jsonPath("$.registeredUserId").value(1L))
                 .andExpect(jsonPath("$.name").value(voucherName))
                 .andExpect(jsonPath("$.expiration").value(
                         expiration.format(DateTimeFormatter.ISO_LOCAL_DATE)))
@@ -129,6 +130,8 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .description("이미지 URL"),
                                 fieldWithPath("status").type(JsonFieldType.STRING)
                                         .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)"),
+                                fieldWithPath("registeredUserId").type(JsonFieldType.NUMBER)
+                                                .description("쿠폰을 등록한 유저의 ID"),
                                 fieldWithPath("name").type(JsonFieldType.STRING)
                                         .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
                                 fieldWithPath("expiration").type(JsonFieldType.STRING)
@@ -175,19 +178,20 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         LocalDate expiration = LocalDate.of(2025,1,1);
         String mockPresignedUrl = "mockPresignedUrl";
 
+        User user = User.builder()
+                .id(userId)
+                .build();
         Voucher voucher = Voucher.builder()
                 .id(voucherId)
                 .image("www.image.com")
                 .status(VoucherStatus.AVAILABLE)
                 .name(voucherName)
+                .user(user)
                 .expiration(expiration)
                 .build();
         Group group = Group.builder()
                 .id(groupId)
                 .inviteCode("InviteCode")
-                .build();
-        User user = User.builder()
-                .id(userId)
                 .build();
         UserGroup userGroup = UserGroup.builder()
                 .user(user)
@@ -244,6 +248,8 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("content[].vouchers[].status").type(
                                                 JsonFieldType.STRING)
                                         .description("쿠폰 사용 상태 (AVAILABLE/EXPIRED/USED)"),
+                                fieldWithPath("content[].vouchers[].registeredUserId").type(JsonFieldType.NUMBER)
+                                                .description("쿠폰을 등록한 유저의 ID"),
                                 fieldWithPath("content[].vouchers[].name").type(JsonFieldType.STRING)
                                                 .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
                                 fieldWithPath("content[].vouchers[].expiration").type(JsonFieldType.STRING)
