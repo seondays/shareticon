@@ -85,10 +85,11 @@ public class VoucherService {
      */
     private Voucher createVoucherWithImage(User user, Group group, VoucherImage image, String name,
             LocalDate expiration) {
+        String imageUrl = imageService.uploadImage(image.getImageFile());
+
         Voucher voucher = Voucher.createAvailableStatus(user, group, name, expiration);
         voucherRepository.save(voucher);
 
-        String imageUrl = imageService.uploadImage(image.getImageFile());
         voucher.saveImage(imageUrl);
 
         return voucherRepository.save(voucher);
@@ -114,6 +115,8 @@ public class VoucherService {
         voucherValidator.validateVoucherDeletion(validationRequest);
 
         voucherRepository.delete(voucher);
+
+        imageService.deleteImage(voucher.getImage());
     }
 
     /**
