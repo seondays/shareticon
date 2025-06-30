@@ -93,8 +93,8 @@ public class GroupControllerDocsTest extends RestDocsSupport {
     @DisplayName("유저의 모든 그룹 리스트를 조회한다")
     void getAllGroupList() throws Exception {
         //given
-        GroupListResponse response1 = new GroupListResponse(1L, "title1", 2);
-        GroupListResponse response2 = new GroupListResponse(2L, "title2", 2);
+        GroupListResponse response1 = new GroupListResponse(1L, "title1", 2L);
+        GroupListResponse response2 = new GroupListResponse(2L, "title2", 2L);
         List<GroupListResponse> responseList = List.of(response1, response2);
 
         when(groupService.getAllGroupList(any(Long.class))).thenReturn(responseList);
