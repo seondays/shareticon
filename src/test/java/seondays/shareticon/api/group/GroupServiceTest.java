@@ -161,13 +161,16 @@ public class GroupServiceTest extends IntegrationTestSupport {
         String group2Title = "2번그룹";
         Group group1 = Group.builder().title(group1Title).build();
         Group group2 = Group.builder().title(group2Title).build();
-        groupRepository.saveAll(List.of(group1, group2));
+        Group group3 = Group.builder().title(group2Title).build();
+        groupRepository.saveAll(List.of(group1, group2, group3));
 
-        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1)
-                .groupTitleAlias(group1.getTitle()).build();
+        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).
+                joinStatus(JoinStatus.JOINED).groupTitleAlias(group1.getTitle()).build();
         UserGroup userGroup2 = UserGroup.builder().user(user).group(group2)
-                .groupTitleAlias(group2.getTitle()).build();
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
+                .joinStatus(JoinStatus.JOINED).groupTitleAlias(group2.getTitle()).build();
+        UserGroup userGroup3 = UserGroup.builder().user(user).group(group2)
+                .joinStatus(JoinStatus.REJECTED).groupTitleAlias(group2.getTitle()).build();
+        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3));
 
         //when
         List<GroupListResponse> responseList = groupService.getAllGroupList(user.getId());
@@ -175,8 +178,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //then
         assertThat(responseList).hasSize(2);
         assertThat(responseList).extracting("groupId", "groupTitleAlias", "memberCount")
-                .contains(tuple(group1.getId(), group1Title, 1),
-                        tuple(group2.getId(), group2Title, 1));
+                .contains(tuple(group1.getId(), group1Title, 1L),
+                        tuple(group2.getId(), group2Title, 1L));
     }
 
     @Test

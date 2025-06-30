@@ -6,6 +6,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.mapping.Join;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,23 +59,26 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         Group group1 = Group.builder().build();
         Group group2 = Group.builder().build();
 
-        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).build();
-        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
-        UserGroup userGroup3 = UserGroup.builder().user(user2).group(group2).build();
+        UserGroup userGroup1 = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group1).build();
+        UserGroup userGroup2 = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group2).build();
+        UserGroup userGroup3 = UserGroup.builder().user(user2).joinStatus(JoinStatus.REJECTED).group(group1).build();
+        UserGroup userGroup4 = UserGroup.builder().user(user2).joinStatus(JoinStatus.JOINED).group(group2).build();
 
         userRepository.saveAll(List.of(user, user2));
         groupRepository.saveAll(List.of(group1, group2));
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3));
+        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3, userGroup4));
 
         //when
-        List<GroupListResponse> result = userGroupRepository.findGroupsWithMemberCountByUserId(user.getId());
+        List<GroupListResponse> result = userGroupRepository
+                .findGroupsWithMemberCountByUserIdAndStatus(
+                        user.getId(), JoinStatus.getStatusesForAcceptedGroupMembers());
 
         //then
         assertThat(result.size()).isEqualTo(2);
         assertThat(result).extracting("groupId", "groupTitleAlias", "memberCount")
                 .containsExactlyInAnyOrder(
-                        tuple(group1.getId(), group1.getTitle(), 1),
-                        tuple(group2.getId(), group2.getTitle(), 2)
+                        tuple(group1.getId(), group1.getTitle(), 1L),
+                        tuple(group2.getId(), group2.getTitle(), 2L)
                 );
 
     }
@@ -87,7 +91,9 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         userRepository.save(user);
 
         //when
-        List<GroupListResponse> result = userGroupRepository.findGroupsWithMemberCountByUserId(user.getId());
+        List<GroupListResponse> result = userGroupRepository
+                .findGroupsWithMemberCountByUserIdAndStatus(
+                user.getId(), JoinStatus.getStatusesForAcceptedGroupMembers());
 
         //then
         assertThat(result).isEmpty();
@@ -115,7 +121,7 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         assertThat(result.get().getGroup()).isEqualTo(group);
 
     }
-    
+
     @Test
     @DisplayName("유저와 그룹 id에 해당하는 유저 그룹 정보가 없다면 빈 optional을 조회한다")
     void getUserGroupWithNotExistUserIdAndGroupId() {
@@ -145,10 +151,11 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         User user = User.builder().build();
 
         Group group = Group.builder().leaderUser(leader).build();
-        userRepository.saveAll(List.of(leader,user));
+        userRepository.saveAll(List.of(leader, user));
         groupRepository.save(group);
 
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).joinStatus(JoinStatus.PENDING).build();
+        UserGroup userGroup = UserGroup.builder().user(user).group(group)
+                .joinStatus(JoinStatus.PENDING).build();
         userGroupRepository.save(userGroup);
 
         //when
