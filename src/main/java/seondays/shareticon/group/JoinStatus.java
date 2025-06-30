@@ -1,5 +1,6 @@
 package seondays.shareticon.group;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.InvalidJoinGroupException;
@@ -23,5 +24,9 @@ public enum JoinStatus {
         if (!this.equals(PENDING)) {
             throw new InvalidJoinGroupException();
         }
+    }
+
+    public static List<JoinStatus> getStatusesForAcceptedGroupMembers() {
+        return List.of(JOINED);
     }
 }

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.group.dto.GroupListResponse;
@@ -31,11 +30,14 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
             SELECT new seondays.shareticon.group.dto.GroupListResponse(
                 g.id,
                 ug.groupTitleAlias,
-                SIZE(g.userGroups)
+                COUNT(ug2.id)
             )
             FROM UserGroup ug
             JOIN ug.group g
+            LEFT JOIN UserGroup ug2 ON ug2.group.id = g.id AND ug2.joinStatus IN :status
             WHERE ug.user.id = :userId
+            AND ug.joinStatus in :status
+            GROUP BY g.id, ug.groupTitleAlias
             """)
-    List<GroupListResponse> findGroupsWithMemberCountByUserId(Long userId);
+    List<GroupListResponse> findGroupsWithMemberCountByUserIdAndStatus(Long userId, List<JoinStatus> status);
 }
