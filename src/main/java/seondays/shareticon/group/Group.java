@@ -34,7 +34,7 @@ public class Group extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leader_user_id")
+    @JoinColumn(name = "leader_user_id", nullable = false)
     private User leaderUser;
     @Column(unique = true)
     private String inviteCode;
