@@ -17,6 +17,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
     private final VoucherRepository voucherRepository;
+    private final UserValidator userValidator;
 
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -32,6 +33,8 @@ public class UserService {
     public void changeUserProfile(Long userId, UserProfileChangeRequest request) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         String newNickname = request.newNickname();
+
+        userValidator.validateUserProfile(newNickname);
 
         user.changeNickname(newNickname);
     }
