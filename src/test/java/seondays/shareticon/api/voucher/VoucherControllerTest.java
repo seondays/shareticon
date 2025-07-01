@@ -85,7 +85,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when && //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/vouchers")
+                        MockMvcRequestBuilders.multipart("/api/vouchers")
                                 .file(imagePart)
                                 .file(requestPart)
                                 .with(csrf())
@@ -136,7 +136,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/vouchers")
+                        MockMvcRequestBuilders.multipart("/api/vouchers")
                                 .file(imagePart)
                                 .file(requestPart)
                                 .with(csrf())
@@ -183,7 +183,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/vouchers")
+                        MockMvcRequestBuilders.multipart("/api/vouchers")
                                 .file(imagePart)
                                 .file(requestPart)
                                 .with(csrf())
@@ -230,7 +230,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/vouchers")
+                        MockMvcRequestBuilders.multipart("/api/vouchers")
                                 .file(imagePart)
                                 .file(requestPart)
                                 .with(csrf())
@@ -277,7 +277,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/vouchers")
+                        MockMvcRequestBuilders.multipart("/api/vouchers")
                                 .file(imagePart)
                                 .file(requestPart)
                                 .with(csrf())
@@ -304,7 +304,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.delete("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -322,7 +322,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.delete("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -341,7 +341,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.delete("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -392,7 +392,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/vouchers/{groupId}", groupId)
+                        MockMvcRequestBuilders.get("/api/vouchers/{groupId}", groupId)
                                 .param("cursorId", cursorId.toString())
                                 .param("pageSize", String.valueOf(pageSize))
                                 .with(csrf())
@@ -423,7 +423,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/vouchers/{groupId}", groupId)
+                        MockMvcRequestBuilders.get("/api/vouchers/{groupId}", groupId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
@@ -443,7 +443,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -461,7 +461,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -480,7 +480,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
