@@ -25,7 +25,7 @@ import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/vouchers")
+@RequestMapping("/api/vouchers")
 public class VoucherController {
 
     private final VoucherService voucherService;

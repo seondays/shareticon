@@ -27,7 +27,7 @@ import seondays.shareticon.login.CustomOAuth2User;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/group")
+@RequestMapping("/api/group")
 public class GroupController {
 
     private final GroupService groupService;

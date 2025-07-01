@@ -16,7 +16,7 @@ import seondays.shareticon.user.dto.UserProfileResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/profile")
+@RequestMapping("/api/profile")
 public class UserController {
 
     private final UserService userService;
