@@ -6,6 +6,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.mapping.Join;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +36,13 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void getUserWithGroup() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userGroupRepository.save(userGroup);
 
         //when
@@ -54,27 +58,31 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         //given
         User user = User.builder().build();
         User user2 = User.builder().build();
-
-        Group group1 = Group.builder().build();
-        Group group2 = Group.builder().build();
-
-        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).build();
-        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
-        UserGroup userGroup3 = UserGroup.builder().user(user2).group(group2).build();
-
         userRepository.saveAll(List.of(user, user2));
+
+        String inviteCode1 = "ABC";
+        Group group1 = createTestGroup(inviteCode1);
+        String inviteCode2 = "DEF";
+        Group group2 = createTestGroup(inviteCode2);
         groupRepository.saveAll(List.of(group1, group2));
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3));
+
+        UserGroup userGroup1 = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group1).build();
+        UserGroup userGroup2 = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group2).build();
+        UserGroup userGroup3 = UserGroup.builder().user(user2).joinStatus(JoinStatus.REJECTED).group(group1).build();
+        UserGroup userGroup4 = UserGroup.builder().user(user2).joinStatus(JoinStatus.JOINED).group(group2).build();
+        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3, userGroup4));
 
         //when
-        List<GroupListResponse> result = userGroupRepository.findGroupsWithMemberCountByUserId(user.getId());
+        List<GroupListResponse> result = userGroupRepository
+                .findGroupsWithMemberCountByUserIdAndStatus(
+                        user.getId(), JoinStatus.getStatusesForAcceptedGroupMembers());
 
         //then
         assertThat(result.size()).isEqualTo(2);
         assertThat(result).extracting("groupId", "groupTitleAlias", "memberCount")
                 .containsExactlyInAnyOrder(
-                        tuple(group1.getId(), group1.getTitle(), 1),
-                        tuple(group2.getId(), group2.getTitle(), 2)
+                        tuple(group1.getId(), group1.getTitle(), 1L),
+                        tuple(group2.getId(), group2.getTitle(), 2L)
                 );
 
     }
@@ -87,7 +95,9 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         userRepository.save(user);
 
         //when
-        List<GroupListResponse> result = userGroupRepository.findGroupsWithMemberCountByUserId(user.getId());
+        List<GroupListResponse> result = userGroupRepository
+                .findGroupsWithMemberCountByUserIdAndStatus(
+                user.getId(), JoinStatus.getStatusesForAcceptedGroupMembers());
 
         //then
         assertThat(result).isEmpty();
@@ -98,8 +108,10 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void getUserGroupWithUserIdAndGroupId() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         UserGroup userGroup = UserGroup.builder().group(group).user(user).build();
@@ -115,18 +127,17 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         assertThat(result.get().getGroup()).isEqualTo(group);
 
     }
-    
+
     @Test
     @DisplayName("유저와 그룹 id에 해당하는 유저 그룹 정보가 없다면 빈 optional을 조회한다")
     void getUserGroupWithNotExistUserIdAndGroupId() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
         userRepository.save(user);
-        groupRepository.save(group);
 
-        UserGroup userGroup = UserGroup.builder().build();
-        userGroupRepository.save(userGroup);
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
 
         //when
         Optional<UserGroup> result = userGroupRepository.findByUserIdAndGroupId(
@@ -143,12 +154,13 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         //given
         User leader = User.builder().build();
         User user = User.builder().build();
+        userRepository.saveAll(List.of(leader, user));
 
         Group group = Group.builder().leaderUser(leader).build();
-        userRepository.saveAll(List.of(leader,user));
         groupRepository.save(group);
 
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).joinStatus(JoinStatus.PENDING).build();
+        UserGroup userGroup = UserGroup.builder().user(user).group(group)
+                .joinStatus(JoinStatus.PENDING).build();
         userGroupRepository.save(userGroup);
 
         //when
@@ -167,10 +179,13 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
     void auditingUserGroup() {
         //given
         User user = User.builder().build();
-        Group group = Group.builder().build();
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
+
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
         userGroupRepository.save(userGroup);
 
         //when
@@ -186,5 +201,52 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         assertThat(result.get().getCreatedDateTime()).isBeforeOrEqualTo(now);
         assertThat(result.get().getModifiedDateTime()).isBeforeOrEqualTo(now);
 
+    }
+
+    @Test
+    @DisplayName("특정 유저가 가입되어 있는 전체 그룹의 수를 조회한다")
+    void getUserJoinGroupCount() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+
+        String inviteCode2 = "DEF";
+        Group group2 = createTestGroup(inviteCode2);
+        groupRepository.saveAll(List.of(group, group2));
+
+        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
+        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
+        userGroupRepository.saveAll(List.of(userGroup, userGroup2));
+
+        //when
+        Long result = userGroupRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isEqualTo(2);
+
+    }
+
+    @Test
+    @DisplayName("특정 유저가 가입되어 있는 전체 그룹의 수가 0개여도 정상적으로 조회된다")
+    void getUserJoinGroupCountZero() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        //when
+        Long result = userGroupRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isZero();
+
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 }

@@ -32,4 +32,9 @@ public class User extends BaseEntity {
     private String oauth2Id;
     @Enumerated(EnumType.STRING)
     private UserRole role;
+    private String email;
+
+    public void changeNickname(String newNickname) {
+        nickname = newNickname;
+    }
 }

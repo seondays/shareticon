@@ -2,6 +2,7 @@ package seondays.shareticon.voucher;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import seondays.shareticon.exception.ExpiredVoucherException;
 
 @RequiredArgsConstructor
 public enum VoucherStatus {
@@ -13,5 +14,11 @@ public enum VoucherStatus {
 
     public static List<VoucherStatus> forDisplayVoucherStatus() {
         return List.of(USED, AVAILABLE, EXPIRED);
+    }
+
+    public void validateVoucherStatusExpired() {
+        if (this.equals(EXPIRED)) {
+            throw new ExpiredVoucherException();
+        }
     }
 }

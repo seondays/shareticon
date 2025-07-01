@@ -36,16 +36,17 @@ public class Voucher extends BaseEntity {
     private String name;
     private LocalDate expiration;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     private String image;
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
 
-    public static Voucher createAvailableStatus(User user, Group group, String name, LocalDate expiration) {
+    public static Voucher createAvailableStatus(User user, Group group, String name,
+            LocalDate expiration) {
         return Voucher.builder()
                 .user(user)
                 .group(group)
@@ -59,7 +60,12 @@ public class Voucher extends BaseEntity {
         this.image = image;
     }
 
-    public void changeStatus(VoucherStatus status) {
-        this.status = status;
+    public void changeStatus() {
+        status.validateVoucherStatusExpired();
+        if (status.equals(VoucherStatus.AVAILABLE)) {
+            status = VoucherStatus.USED;
+        } else if (status.equals(VoucherStatus.USED)) {
+            status = VoucherStatus.AVAILABLE;
+        }
     }
 }

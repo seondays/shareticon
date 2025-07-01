@@ -26,6 +26,7 @@ import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
+import seondays.shareticon.group.dto.PendingMemberResponse;
 import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
 
@@ -70,8 +71,8 @@ public class GroupControllerTest extends ControllerTestSupport {
     @DisplayName("유저의 모든 그룹 리스트를 조회한다")
     void getAllGroupList() throws Exception {
         //given
-        GroupListResponse response1 = new GroupListResponse(1L, "title1", 2);
-        GroupListResponse response2 = new GroupListResponse(2L, "title2", 2);
+        GroupListResponse response1 = new GroupListResponse(1L, "title1", 2L);
+        GroupListResponse response2 = new GroupListResponse(2L, "title2", 2L);
         List<GroupListResponse> responseList = List.of(response1, response2);
 
         when(groupService.getAllGroupList(any(Long.class))).thenReturn(responseList);
@@ -130,13 +131,16 @@ public class GroupControllerTest extends ControllerTestSupport {
     @DisplayName("유저가 확인할 수 있는 가입 신청 리스트를 조회한다")
     void getAllApplyToJoinList() throws Exception {
         //given
-        Long userId = mockUser.getId();
-        String userName = mockUser.getName();
-        ApplyToJoinResponse response1 = new ApplyToJoinResponse(userId, userName, 1L);
-        ApplyToJoinResponse response2 = new ApplyToJoinResponse(userId, userName, 2L);
-        List<ApplyToJoinResponse> responseList = List.of(response1, response2);
+        Long userId = 1L;
+        String userName = "가입신청한 유저";
 
-        when(groupService.getAllApplyToJoinList(any(Long.class))).thenReturn(responseList);
+        Long groupId = 1L;
+        String groupAlias = "리더의 그룹 별칭";
+
+        ApplyToJoinResponse response = new ApplyToJoinResponse(groupId, groupAlias, List.of(
+                PendingMemberResponse.of(userId, userName)));
+
+        when(groupService.getAllGroupPendingUserList(any(Long.class))).thenReturn(List.of(response));
 
         //when //then
         mockMvc.perform(
@@ -147,7 +151,10 @@ public class GroupControllerTest extends ControllerTestSupport {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].targetGroupId").value(groupId))
+                .andExpect(jsonPath("$[0].leaderGroupAlias").value(groupAlias))
+                .andExpect(jsonPath("$[0].pendingMembers").isArray());
     }
 
     @Test

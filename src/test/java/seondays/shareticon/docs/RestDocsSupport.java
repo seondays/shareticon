@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.validation.Validator;
 import java.time.Clock;
 import java.time.Instant;
@@ -43,7 +44,11 @@ public abstract class RestDocsSupport {
         // setMessageConverters를 통해 mockMvc의 LocalDate 역직렬화를 위한 컨버터 추가
         // DTO 검증을 수행할 validator에서 우리가 지정한 clock 객체를 사용하도록 직접 설정
         this.mockMvc = MockMvcBuilders.standaloneSetup(initController())
-                .apply(documentationConfiguration(provider))
+                .apply(documentationConfiguration(provider)
+                        .uris()
+                        .withScheme("https")
+                        .withHost("api.shareticon.site")
+                        .withPort(443))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .setValidator(validator(clock()))
@@ -57,6 +62,12 @@ public abstract class RestDocsSupport {
 
     protected abstract Object initController();
 
+    protected RequestPostProcessor addBearerToken() {
+        return request -> {
+            request.addHeader("Authorization", "Bearer TOKEN_VALUE");
+            return request;
+        };
+    }
 
     private Validator validator(Clock clock) {
         ValidatorFactory factory = Validation.byDefaultProvider()

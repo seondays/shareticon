@@ -13,6 +13,8 @@ import org.springframework.data.domain.Slice;
 import seondays.shareticon.api.config.RepositoryTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.user.User;
+import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherStatus;
@@ -25,19 +27,25 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private VoucherRepository voucherRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     @DisplayName("전체 쿠폰의 첫번째 페이지를 조회한다")
     void getAllVoucherWithFirstPage() {
         //given
-        Group group = Group.builder()
-                .build();
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher4 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, VoucherStatus.USED);
+        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
+        Voucher voucher3 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher5 = createVoucher(group, user, VoucherStatus.USED);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
         Pageable pageable = PageRequest.of(0, 2);
@@ -62,15 +70,18 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     @DisplayName("전체 쿠폰의 두번째 페이지를 조회한다")
     void getAllVoucherWithCursor() {
         //given
-        Group group = Group.builder()
-                .build();
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher4 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, VoucherStatus.USED);
+        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
+        Voucher voucher3 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher5 = createVoucher(group, user, VoucherStatus.USED);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
         Pageable pageable = PageRequest.of(0, 2);
@@ -100,15 +111,18 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     @DisplayName("전체 쿠폰의 마지막 페이지를 조회한다")
     void getAllVoucherWithLastPage() {
         //given
-        Group group = Group.builder()
-                .build();
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher4 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, VoucherStatus.USED);
+        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
+        Voucher voucher3 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher5 = createVoucher(group, user, VoucherStatus.USED);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
         Pageable pageable = PageRequest.of(0, 2);
@@ -140,15 +154,18 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     @DisplayName("사용가능, 사용완료, 사용만료 상태인 쿠폰만 조회된다")
     void getVoucherStatusUsedAndAvailable() {
         //given
-        Group group = Group.builder()
-                .build();
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, VoucherStatus.EXPIRED);
-        Voucher voucher4 = createVoucher(group, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, VoucherStatus.EXPIRED);
+        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
+        Voucher voucher3 = createVoucher(group, user, VoucherStatus.EXPIRED);
+        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
+        Voucher voucher5 = createVoucher(group, user, VoucherStatus.EXPIRED);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
@@ -170,8 +187,8 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     @DisplayName("쿠폰이 존재하지 않을 때 조회하는 경우 예외 없이 빈 목록을 반환한다")
     void getEmptyVoucher() {
         //given
-        Group group = Group.builder()
-                .build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         Pageable pageable = PageRequest.of(0, 2);
@@ -187,11 +204,66 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         assertThat(resultPage.hasNext()).isFalse();
     }
 
+    @Test
+    @DisplayName("특정 유저가 등록한 모든 쿠폰의 개수를 조회한다")
+    void getAllVoucherByUser() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
 
-    private static Voucher createVoucher(Group group, VoucherStatus status) {
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        Voucher voucher1 = createVoucherWithUser(group, VoucherStatus.AVAILABLE, user);
+        Voucher voucher2 = createVoucherWithUser(group, VoucherStatus.USED, user);
+        Voucher voucher3 = createVoucherWithUser(group, VoucherStatus.EXPIRED, user);
+        Voucher voucher4 = createVoucherWithUser(group, VoucherStatus.AVAILABLE, user);
+        Voucher voucher5 = createVoucherWithUser(group, VoucherStatus.EXPIRED, user);
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
+
+        //when
+        Long result = voucherRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isEqualTo(5);
+
+    }
+
+    @Test
+    @DisplayName("특정 유저가 등록한 모든 쿠폰의 개수가 0개여도 정상적으로 조회된다")
+    void getAllVoucherByUserZero() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        //when
+        Long result = voucherRepository.countByUserId(user.getId());
+
+        //then
+        assertThat(result).isZero();
+
+    }
+
+    private static Voucher createVoucher(Group group, User user, VoucherStatus status) {
         return Voucher.builder()
+                .user(user)
                 .group(group)
                 .status(status)
                 .build();
+    }
+
+    private static Voucher createVoucherWithUser(Group group, VoucherStatus status, User user) {
+        return Voucher.builder()
+                .group(group)
+                .user(user)
+                .status(status)
+                .build();
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 }

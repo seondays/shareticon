@@ -12,7 +12,6 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -71,7 +70,6 @@ public class TokenControllerDocsTest extends RestDocsSupport {
                         MockMvcRequestBuilders.post("/logout")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(HttpHeaders.AUTHORIZATION, accessToken)
-                                .with(authentication(auth))
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())

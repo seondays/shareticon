@@ -2,6 +2,7 @@ package seondays.shareticon.api.group;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.in;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,6 +41,7 @@ import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
+import seondays.shareticon.group.dto.PendingMemberResponse;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -96,10 +99,14 @@ public class GroupServiceTest extends IntegrationTestSupport {
     void createGroupWithRetry(String displayName, List<String> inviteCodes, String expectedCode,
             boolean expectException) {
         //given
-        User user = userRepository.save(User.builder().build());
-        groupRepository.save(Group.builder().leaderUser(user).inviteCode("AAAAAAAA").build());
+        User user = User.builder().build();
+        userRepository.save(user);
 
+        String inviteCode = "AAAAAAAA";
         String groupTitle = "그룹이름";
+        Group group = Group.createNewGroup(user, inviteCode, groupTitle);
+        groupRepository.save(group);
+
         CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         doReturn(inviteCodes.get(0), inviteCodes.get(1), inviteCodes.get(2))
@@ -153,26 +160,37 @@ public class GroupServiceTest extends IntegrationTestSupport {
     @DisplayName("해당 유저의 전체 그룹 리스트를 조회한다")
     void getAllGroupList() {
         //given
-        User user = User.builder().build();
-        userRepository.save(user);
+        User leader = User.builder().build();
+        User targetUser = User.builder().build();
+        userRepository.saveAll(List.of(leader, targetUser));
 
         String group1Title = "1번그룹";
         String group2Title = "2번그룹";
-        Group group1 = Group.builder().title(group1Title).build();
-        Group group2 = Group.builder().title(group2Title).build();
-        groupRepository.saveAll(List.of(group1, group2));
+        String inviteCode1 = "ABC";
+        String inviteCode2 = "DEF";
+        String inviteCode3 = "GHI";
 
-        UserGroup userGroup1 = UserGroup.builder().user(user).group(group1).groupTitleAlias(group1.getTitle()).build();
-        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).groupTitleAlias(group2.getTitle()).build();
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
+        Group group1 = Group.createNewGroup(leader, inviteCode1, group1Title);
+        Group group2 = Group.createNewGroup(leader, inviteCode2, group2Title);
+        Group group3 = Group.createNewGroup(leader, inviteCode3, group1Title);
+        groupRepository.saveAll(List.of(group1, group2, group3));
+
+        UserGroup userGroup1 = UserGroup.builder().user(targetUser).group(group1).
+                joinStatus(JoinStatus.JOINED).groupTitleAlias(group1.getTitle()).build();
+        UserGroup userGroup2 = UserGroup.builder().user(targetUser).group(group2)
+                .joinStatus(JoinStatus.JOINED).groupTitleAlias(group2.getTitle()).build();
+        UserGroup userGroup3 = UserGroup.builder().user(targetUser).group(group2)
+                .joinStatus(JoinStatus.REJECTED).groupTitleAlias(group2.getTitle()).build();
+        userGroupRepository.saveAll(List.of(userGroup1, userGroup2, userGroup3));
 
         //when
-        List<GroupListResponse> responseList = groupService.getAllGroupList(user.getId());
+        List<GroupListResponse> responseList = groupService.getAllGroupList(targetUser.getId());
 
         //then
         assertThat(responseList).hasSize(2);
         assertThat(responseList).extracting("groupId", "groupTitleAlias", "memberCount")
-                .contains(tuple(group1.getId(), group1Title, 1), tuple(group2.getId(), group2Title, 1));
+                .contains(tuple(group1.getId(), group1Title, 1L),
+                        tuple(group2.getId(), group2Title, 1L));
     }
 
     @Test
@@ -196,10 +214,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().inviteCode("ok").build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        ApplyToJoinRequest request = new ApplyToJoinRequest("ok");
+        ApplyToJoinRequest request = new ApplyToJoinRequest(inviteCode);
 
         //when
         groupService.applyToJoinGroup(request, user.getId());
@@ -210,7 +229,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
 
         assertThat(result).isNotEmpty();
         assertThat(result.get().getJoinStatus()).isEqualTo(JoinStatus.PENDING);
-        assertThat(result.get().getGroup().getInviteCode()).isEqualTo("ok");
+        assertThat(result.get().getGroup().getInviteCode()).isEqualTo(inviteCode);
         assertThat(result.get().getGroup().getId()).isEqualTo(group.getId());
         assertThat(result.get().getUser().getId()).isEqualTo(user.getId());
     }
@@ -221,10 +240,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //given
         User user = User.builder().id(1L).build();
 
-        Group group = Group.builder().inviteCode("ok").build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        ApplyToJoinRequest request = new ApplyToJoinRequest("ok");
+        ApplyToJoinRequest request = new ApplyToJoinRequest(inviteCode);
 
         //when //then
         assertThatThrownBy(() -> groupService.applyToJoinGroup(request, user.getId()))
@@ -252,7 +272,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().inviteCode("ok").build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         JoinStatus status = JoinStatus.PENDING;
@@ -260,7 +281,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
                 .build();
         userGroupRepository.save(userGroup);
 
-        ApplyToJoinRequest request = new ApplyToJoinRequest("ok");
+        ApplyToJoinRequest request = new ApplyToJoinRequest(inviteCode);
 
         //when //then
         assertThatThrownBy(() -> groupService.applyToJoinGroup(request, user.getId()))
@@ -274,7 +295,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().inviteCode("ok").build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         JoinStatus status = JoinStatus.JOINED;
@@ -282,7 +304,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
                 .build();
         userGroupRepository.save(userGroup);
 
-        ApplyToJoinRequest request = new ApplyToJoinRequest("ok");
+        ApplyToJoinRequest request = new ApplyToJoinRequest(inviteCode);
 
         //when //then
         assertThatThrownBy(() -> groupService.applyToJoinGroup(request, user.getId()))
@@ -296,7 +318,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().inviteCode("ok").build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         JoinStatus status = JoinStatus.REJECTED;
@@ -304,7 +327,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
                 .build();
         userGroupRepository.save(userGroup);
 
-        ApplyToJoinRequest request = new ApplyToJoinRequest("ok");
+        ApplyToJoinRequest request = new ApplyToJoinRequest(inviteCode);
 
         //when
         groupService.applyToJoinGroup(request, user.getId());
@@ -319,7 +342,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         Group resultGroup = result.get().getGroup();
 
         assertThat(resultGroup).isNotNull();
-        assertThat(resultGroup.getInviteCode()).isEqualTo("ok");
+        assertThat(resultGroup.getInviteCode()).isEqualTo(inviteCode);
         assertThat(resultGroup.getId()).isEqualTo(group.getId());
     }
 
@@ -327,28 +350,46 @@ public class GroupServiceTest extends IntegrationTestSupport {
     @DisplayName("리더에게 들어온 그룹 신청 내역 목록을 조회한다")
     void getAllApplyToJoinList() {
         //given
+        String user1Nickname = "1번 유저";
+        String user2Nickname = "2번 유저";
+
         User leaderUser = User.builder().build();
-        User pendingUser = User.builder().build();
-        userRepository.save(leaderUser);
-        userRepository.save(pendingUser);
+        User pendingUser1 = User.builder().nickname(user1Nickname).build();
+        User pendingUser2 = User.builder().nickname(user2Nickname).build();
+        userRepository.saveAll(List.of(leaderUser, pendingUser1, pendingUser2));
 
         Group group = Group.builder().leaderUser(leaderUser).build();
-        groupRepository.save(group);
+        groupRepository.saveAll(List.of(group));
 
-        UserGroup userGroup1 = UserGroup.builder().user(leaderUser).group(group)
-                .joinStatus(JoinStatus.JOINED).build();
-        UserGroup userGroup2 = UserGroup.builder().user(pendingUser).group(group)
+        String leaderAlias1 = "첫번째 그룹";
+
+        UserGroup userGroup1 = UserGroup.builder().user(leaderUser).groupTitleAlias(leaderAlias1)
+                .group(group).joinStatus(JoinStatus.JOINED).build();
+        UserGroup userGroup2 = UserGroup.builder().user(pendingUser1).group(group)
                 .joinStatus(JoinStatus.PENDING).build();
-        userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
+        UserGroup userGroup3 = UserGroup.builder().user(pendingUser2).group(group)
+                .joinStatus(JoinStatus.PENDING).build();
+
+        userGroupRepository.saveAll(
+                List.of(userGroup1, userGroup2, userGroup3));
+
+        Group.WithUserGroup(group, List.of(userGroup1, userGroup2, userGroup3));
 
         //when
-        List<ApplyToJoinResponse> result = groupService.getAllApplyToJoinList(
+        List<ApplyToJoinResponse> result = groupService.getAllGroupPendingUserList(
                 leaderUser.getId());
 
         //then
+        PendingMemberResponse expectPendingUserResult1 = PendingMemberResponse.of(pendingUser1.getId(),
+                user1Nickname);
+        PendingMemberResponse expectPendingUserResult2 = PendingMemberResponse.of(pendingUser2.getId(),
+                user2Nickname);
+
+        ApplyToJoinResponse expectResult = ApplyToJoinResponse.of(group.getId(), leaderAlias1,
+                List.of(expectPendingUserResult1, expectPendingUserResult2));
+
         assertThat(result).hasSize(1)
-                .extracting("applyUserId", "targetGroupId")
-                .contains(tuple(pendingUser.getId(), group.getId()));
+                .contains(expectResult);
     }
 
     @Test
@@ -360,7 +401,9 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userRepository.save(leaderUser);
         userRepository.save(pendingUser);
 
-        Group group = Group.builder().build();
+        String inviteCode = "ABC";
+        String title = "test title";
+        Group group = Group.createNewGroup(leaderUser, inviteCode, title);
         groupRepository.save(group);
 
         UserGroup userGroup1 = UserGroup.builder().user(leaderUser).group(group)
@@ -370,11 +413,13 @@ public class GroupServiceTest extends IntegrationTestSupport {
         userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
 
         //when
-        List<ApplyToJoinResponse> result = groupService.getAllApplyToJoinList(
+        List<ApplyToJoinResponse> result = groupService.getAllGroupPendingUserList(
                 leaderUser.getId());
 
         //then
-        assertThat(result).isEmpty();
+        assertThat(result.get(0).pendingMembers()).isEmpty();
+        assertThat(result.get(0).targetGroupId()).isEqualTo(group.getId());
+        assertThat(result.get(0).leaderGroupAlias()).isEqualTo(title);
     }
 
     @Test
@@ -384,7 +429,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().id(1L).build();
 
         //when //then
-        assertThatThrownBy(() -> groupService.getAllApplyToJoinList(user.getId()))
+        assertThatThrownBy(() -> groupService.getAllGroupPendingUserList(user.getId()))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -533,7 +578,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User pendingUser = User.builder().build();
         userRepository.save(pendingUser);
 
-        Group group = Group.builder().build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         //when //then
@@ -541,7 +587,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         assertThatThrownBy(
                 () -> groupService.changeJoinApplyStatus(group.getId(), pendingUser.getId(),
                         leaderUser.getId(), leaderDecision))
-                .isInstanceOf(InvalidAcceptGroupJoinApplyException.class);
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
@@ -576,8 +622,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User pendingUser = User.builder().id(123L).build();
         userRepository.save(leaderUser);
 
-        Group group = Group.builder().build();
+        Group group = Group.builder().leaderUser(leaderUser).build();
         groupRepository.save(group);
+
+        UserGroup leaderUserGroup = UserGroup.createLeaderUserGroup(leaderUser, group);
+        userGroupRepository.save(leaderUserGroup);
 
         //when //then
         ApprovalStatus leaderDecision = ApprovalStatus.APPROVED;
@@ -639,7 +688,8 @@ public class GroupServiceTest extends IntegrationTestSupport {
         User user = User.builder().build();
         userRepository.save(user);
 
-        Group group = Group.builder().build();
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
         UserGroup userGroup = UserGroup.builder().group(group).user(user)
@@ -656,5 +706,11 @@ public class GroupServiceTest extends IntegrationTestSupport {
         //then
         assertThat(result.titleAlias()).isEqualTo(newAlias);
 
+    }
+
+    public Group createTestGroup(String inviteCode) {
+        User user = User.builder().build();
+        userRepository.save(user);
+        return Group.builder().inviteCode(inviteCode).leaderUser(user).build();
     }
 }

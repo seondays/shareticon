@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import seondays.shareticon.exception.ImageDeleteException;
 import seondays.shareticon.exception.ImageUploadException;
 import seondays.shareticon.exception.PresignedUrlGenerationException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -68,6 +70,19 @@ public class ImageService {
             return generatedPresignedUrl.url().toString();
         } catch (Exception e) {
             throw new PresignedUrlGenerationException();
+        }
+    }
+
+    public void deleteImage(String key) {
+        try {
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            throw new ImageDeleteException();
         }
     }
 }

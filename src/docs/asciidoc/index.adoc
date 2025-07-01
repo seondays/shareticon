@@ -24,3 +24,8 @@ include::api/token/token.adoc[]
 == Group API
 
 include::api/group/group.adoc[]
+
+[[User-API]]
+== User API
+
+include::api/user/user.adoc[]

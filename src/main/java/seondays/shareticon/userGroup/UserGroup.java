@@ -1,5 +1,8 @@
 package seondays.shareticon.userGroup;
 
+import static seondays.shareticon.group.JoinStatus.JOINED;
+import static seondays.shareticon.group.JoinStatus.PENDING;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,11 +13,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import seondays.shareticon.group.ApprovalStatus;
 import seondays.shareticon.utils.BaseEntity;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.JoinStatus;
@@ -33,11 +38,11 @@ public class UserGroup extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
     @Enumerated(EnumType.STRING)
@@ -45,11 +50,49 @@ public class UserGroup extends BaseEntity {
 
     private String groupTitleAlias;
 
-    public void updateJoinStatus(JoinStatus joinStatus) {
-        this.joinStatus = joinStatus;
+    public static UserGroup createLeaderUserGroup(User leaderUser, Group group) {
+        return UserGroup.builder()
+                .group(group)
+                .user(leaderUser)
+                .groupTitleAlias(group.getTitle())
+                .joinStatus(JOINED)
+                .build();
+    }
+
+    public static UserGroup createNewPending(User user, Group group) {
+        return UserGroup.builder()
+                .group(group)
+                .groupTitleAlias(group.getTitle())
+                .user(user)
+                .joinStatus(PENDING)
+                .build();
+    }
+
+    public static UserGroup applyToJoin(User user, Group group,
+            Optional<UserGroup> existingUserGroup) {
+        return existingUserGroup.map(
+                existing -> {
+                    existing.changeJoinStatusToPending();
+                    return existing;
+                }).orElseGet(() -> UserGroup.createNewPending(user, group));
+    }
+
+    public void approvalJoinStatus(ApprovalStatus approvalStatus) {
+        joinStatus.validateWaitingAcceptJoinApply();
+
+        if (ApprovalStatus.isApproved(approvalStatus)) {
+            joinStatus = JoinStatus.JOINED;
+        } else {
+            joinStatus = JoinStatus.REJECTED;
+        }
     }
 
     public void changeGroupTitleAlias(String alias) {
         this.groupTitleAlias = alias;
+    }
+
+    public void changeJoinStatusToPending() {
+        joinStatus.validateAlreadyApplied();
+        joinStatus = PENDING;
     }
 }
