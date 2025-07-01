@@ -51,7 +51,7 @@ public class UserControllerTest extends ControllerTestSupport {
 
         //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/profile")
+                        MockMvcRequestBuilders.get("/api/profile")
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
                 .andDo(MockMvcResultHandlers.print())
@@ -82,7 +82,7 @@ public class UserControllerTest extends ControllerTestSupport {
 
         //then
         mockMvc.perform(
-                MockMvcRequestBuilders.patch("/profile")
+                MockMvcRequestBuilders.patch("/api/profile")
                         .with(oauth2Login().oauth2User(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest)
@@ -110,7 +110,7 @@ public class UserControllerTest extends ControllerTestSupport {
 
         //then
         mockMvc.perform(
-                MockMvcRequestBuilders.patch("/profile")
+                MockMvcRequestBuilders.patch("/api/profile")
                         .with(oauth2Login().oauth2User(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest)

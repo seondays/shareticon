@@ -56,7 +56,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/group")
+                        MockMvcRequestBuilders.post("/api/group")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                                 .with(csrf())
@@ -79,7 +79,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/group")
+                        MockMvcRequestBuilders.get("/api/group")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
@@ -98,7 +98,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/group/join")
+                        MockMvcRequestBuilders.post("/api/group/join")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                                 .with(csrf())
@@ -117,7 +117,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/group/join")
+                        MockMvcRequestBuilders.post("/api/group/join")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                                 .with(csrf())
@@ -144,7 +144,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/group/join")
+                        MockMvcRequestBuilders.get("/api/group/join")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
@@ -165,7 +165,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", 1L, userId)
+                        MockMvcRequestBuilders.patch("/api/group/{groupId}/user/{userId}", 1L, userId)
                                 .param("status", "APPROVED")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -182,7 +182,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", 1L, userId)
+                        MockMvcRequestBuilders.patch("/api/group/{groupId}/user/{userId}", 1L, userId)
                                 .param("status", "REJECTED")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -200,7 +200,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", groupId, userId)
+                        MockMvcRequestBuilders.patch("/api/group/{groupId}/user/{userId}", groupId, userId)
                                 .param("status", "REJECTED")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -218,7 +218,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/group/{groupId}/user/{userId}", groupId, userId)
+                        MockMvcRequestBuilders.patch("/api/group/{groupId}/user/{userId}", groupId, userId)
                                 .param("status", "REJECTED")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -244,7 +244,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
+                        MockMvcRequestBuilders.patch("/api/group/{groupId}", groupId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                                 .with(csrf())
@@ -267,7 +267,7 @@ public class GroupControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/group/{groupId}", groupId)
+                        MockMvcRequestBuilders.patch("/api/group/{groupId}", groupId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                                 .with(csrf())
