@@ -55,7 +55,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
 
         //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/profile")
+                        MockMvcRequestBuilders.get("/api/profile")
                                 .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
@@ -96,7 +96,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
 
         //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/profile")
+                        MockMvcRequestBuilders.patch("/api/profile")
                                 .with(addBearerToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(jsonRequest)

@@ -92,7 +92,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.multipart("/vouchers")
+                        MockMvcRequestBuilders.multipart("/api/vouchers")
                                 .file(imagePart)
                                 .file(requestPart)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -149,7 +149,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.delete("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .with(addBearerToken())
@@ -211,7 +211,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/vouchers/{groupId}", groupId)
+                        MockMvcRequestBuilders.get("/api/vouchers/{groupId}", groupId)
                                 .param("cursorId", cursorId.toString())
                                 .param("pageSize", String.valueOf(pageSize))
                                 .with(addBearerToken())
@@ -310,7 +310,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
                                         groupId, voucherId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .with(addBearerToken())
