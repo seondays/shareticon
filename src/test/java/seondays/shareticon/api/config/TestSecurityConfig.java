@@ -16,7 +16,7 @@ public class TestSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(
-                auth -> auth.requestMatchers("/", "/reissue", "/error", "/oauth2**",
+                auth -> auth.requestMatchers("/", "/api/reissue", "/error", "/oauth2**",
                                 "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**")
                         .permitAll()
                         .anyRequest().authenticated());

@@ -32,7 +32,7 @@ public class TokenControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/reissue")
+                        MockMvcRequestBuilders.get("/api/reissue")
                                 .cookie(new Cookie("refresh", "refreshtoken"))
                 )
                 .andDo(MockMvcResultHandlers.print())
@@ -49,7 +49,7 @@ public class TokenControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/reissue")
+                        MockMvcRequestBuilders.get("/api/reissue")
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized())
@@ -66,7 +66,7 @@ public class TokenControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/logout")
+                        MockMvcRequestBuilders.post("/api/logout")
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
                 )
@@ -81,7 +81,7 @@ public class TokenControllerTest extends ControllerTestSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/logout")
+                        MockMvcRequestBuilders.post("/api/logout")
                                 .with(csrf())
                 )
                 .andDo(MockMvcResultHandlers.print())
