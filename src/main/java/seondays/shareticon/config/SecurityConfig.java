@@ -1,5 +1,7 @@
 package seondays.shareticon.config;
 
+import java.util.Arrays;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.LogoutConf
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
 import seondays.shareticon.login.JwtAuthenticationConverter;
 import seondays.shareticon.login.LoginSuccessHandler;
 import seondays.shareticon.login.OAuth2UserService;
@@ -36,7 +39,8 @@ public class SecurityConfig {
         http.oauth2Login(oauth2 -> oauth2
                 .loginPage("/oauth2/authorization/kakao")
                 .userInfoEndpoint(
-                        userInfoEndpointConfig -> userInfoEndpointConfig.userService(oAuth2UserService))
+                        userInfoEndpointConfig -> userInfoEndpointConfig.userService(
+                                oAuth2UserService))
                 .successHandler(loginSuccessHandler));
 
         // stateless
@@ -55,7 +59,25 @@ public class SecurityConfig {
         http.oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(
                         jwtAuthenticationConverter.convertToAuthentication()))
-                        .authenticationEntryPoint(entryPoint));
+                .authenticationEntryPoint(entryPoint));
+
+        http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(
+                request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+
+                    config.setAllowedOrigins(Arrays.asList(
+                            "https://shareticon.site",
+                            "https://www.shareticon.site"
+                    ));
+                    config.setAllowedMethods(
+                            Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+                    config.setMaxAge(60 * 60L);
+
+                    return config;
+                }));
 
         return http.build();
     }
