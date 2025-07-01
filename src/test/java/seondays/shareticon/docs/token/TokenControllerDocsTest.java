@@ -44,7 +44,7 @@ public class TokenControllerDocsTest extends RestDocsSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/reissue")
+                        MockMvcRequestBuilders.get("/api/reissue")
                                 .cookie(new Cookie("refresh", "refreshtoken"))
                 )
                 .andDo(MockMvcResultHandlers.print())
@@ -67,7 +67,7 @@ public class TokenControllerDocsTest extends RestDocsSupport {
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.post("/logout")
+                        MockMvcRequestBuilders.post("/api/logout")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(HttpHeaders.AUTHORIZATION, accessToken)
                 )
