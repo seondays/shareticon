@@ -45,19 +45,16 @@ public class Voucher extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
 
-    public static Voucher createAvailableStatus(User user, Group group, String name,
+    public static Voucher createNewVoucher(User user, Group group, String name, String imageKey,
             LocalDate expiration) {
         return Voucher.builder()
                 .user(user)
                 .group(group)
                 .name(name)
+                .image(imageKey)
                 .expiration(expiration)
                 .status(VoucherStatus.AVAILABLE)
                 .build();
-    }
-
-    public void saveImage(String image) {
-        this.image = image;
     }
 
     public void changeStatus() {
