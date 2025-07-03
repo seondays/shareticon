@@ -28,7 +28,9 @@ public class ImageService {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
-    public String uploadImage(MultipartFile image) {
+    public String uploadImage(VoucherImage voucherImage) {
+        MultipartFile image = voucherImage.getImageFile();
+
         String uploadTitle = makeUploadTitle("voucher", image.getOriginalFilename());
 
         try {

@@ -39,6 +39,7 @@ public class VoucherService {
     private final VoucherRepository voucherRepository;
     private final UserGroupRepository userGroupRepository;
     private final VoucherValidator voucherValidator;
+    private final VoucherFactory voucherFactory;
 
     /**
      * 새로운 쿠폰을 등록합니다.
@@ -48,14 +49,11 @@ public class VoucherService {
      * @param image
      * @return
      */
-    @Transactional
     public VouchersResponse register(CreateVoucherRequest request, Long userId,
             MultipartFile image) {
         Long groupId = request.groupId();
-
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
-        VoucherImage voucherImage = VoucherImage.of(image);
 
         VoucherCreationValidationRequest validationRequest = VoucherCreationValidationRequest
                 .builder()
@@ -65,34 +63,14 @@ public class VoucherService {
                 .build();
         voucherValidator.validateVoucherCreation(validationRequest);
 
-        Voucher voucher = createVoucherWithImage(user, group, voucherImage, request.voucherName(),
-                request.expiration());
+        VoucherImage voucherImage = VoucherImage.of(image);
+        String imageKey = imageService.uploadImage(voucherImage);
+
+        Voucher voucher = voucherFactory.createVoucherWithImage(user, group, request, imageKey);
 
         String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
 
         return VouchersResponse.of(voucher, preSignedUrl);
-    }
-
-    /**
-     * 이미지를 포함하는 쿠폰 객체를 생성합니다.
-     *
-     * @param user
-     * @param group
-     * @param image
-     * @param name
-     * @param expiration
-     * @return
-     */
-    private Voucher createVoucherWithImage(User user, Group group, VoucherImage image, String name,
-            LocalDate expiration) {
-        String imageUrl = imageService.uploadImage(image.getImageFile());
-
-        Voucher voucher = Voucher.createAvailableStatus(user, group, name, expiration);
-        voucherRepository.save(voucher);
-
-        voucher.saveImage(imageUrl);
-
-        return voucherRepository.save(voucher);
     }
 
     /**
