@@ -50,7 +50,12 @@ public class ImageService {
     }
 
     public String makeUploadTitle(String prefix, String filename) {
-        return prefix + "/" + UUID.randomUUID() + "-" + filename;
+        String extension = "";
+        int index = filename.lastIndexOf('.');
+        if (index > 0) {
+            extension = filename.substring(index);
+        }
+        return prefix + "/" + UUID.randomUUID() + extension;
     }
 
     public String getPresignedImageUrl(String objectKey, Long expirationMinutes) {
