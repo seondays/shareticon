@@ -1,6 +1,5 @@
 package seondays.shareticon.voucher;
 
-import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -64,7 +63,7 @@ public class VoucherService {
         voucherValidator.validateVoucherCreation(validationRequest);
 
         VoucherImage voucherImage = VoucherImage.of(image);
-        String imageKey = imageService.uploadImage(voucherImage);
+        String imageKey = imageService.uploadImageWithRetry(voucherImage);
 
         Voucher voucher = voucherFactory.createVoucherWithImage(user, group, request, imageKey);
 
@@ -94,7 +93,7 @@ public class VoucherService {
 
         voucher.delete();
 
-        imageService.deleteImage(voucher.getImage());
+        imageService.deleteImageWithRetry(voucher);
     }
 
     /**

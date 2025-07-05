@@ -4,21 +4,27 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.exception.ImageDeleteException;
 import seondays.shareticon.exception.ImageUploadException;
 import seondays.shareticon.exception.PresignedUrlGenerationException;
+import seondays.shareticon.voucher.Voucher;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageService {
@@ -28,7 +34,12 @@ public class ImageService {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
-    public String uploadImage(VoucherImage voucherImage) {
+    @Retryable(
+            retryFor = {ImageUploadException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public String uploadImageWithRetry(VoucherImage voucherImage) {
         MultipartFile image = voucherImage.getImageFile();
 
         String uploadTitle = makeUploadTitle("voucher", image.getOriginalFilename());
@@ -51,15 +62,6 @@ public class ImageService {
         }
     }
 
-    public String makeUploadTitle(String prefix, String filename) {
-        String extension = "";
-        int index = filename.lastIndexOf('.');
-        if (index > 0) {
-            extension = filename.substring(index);
-        }
-        return prefix + "/" + UUID.randomUUID() + extension;
-    }
-
     public String getPresignedImageUrl(String objectKey, Long expirationMinutes) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
@@ -80,7 +82,13 @@ public class ImageService {
         }
     }
 
-    public void deleteImage(String key) {
+    @Retryable(
+            retryFor = {ImageDeleteException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public void deleteImageWithRetry(Voucher voucher) {
+        String key = voucher.getImage();
         try {
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                     .bucket(bucket)
@@ -88,8 +96,17 @@ public class ImageService {
                     .build();
 
             s3Client.deleteObject(deleteObjectRequest);
-        } catch (Exception e) {
+        } catch (S3Exception e) {
             throw new ImageDeleteException();
         }
+    }
+
+    private String makeUploadTitle(String prefix, String filename) {
+        String extension = "";
+        int index = filename.lastIndexOf('.');
+        if (index > 0) {
+            extension = filename.substring(index);
+        }
+        return prefix + "/" + UUID.randomUUID() + extension;
     }
 }
