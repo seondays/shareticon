@@ -92,7 +92,7 @@ public class VoucherService {
                 .build();
         voucherValidator.validateVoucherDeletion(validationRequest);
 
-        voucherRepository.delete(voucher);
+        voucher.delete();
 
         imageService.deleteImage(voucher.getImage());
     }
