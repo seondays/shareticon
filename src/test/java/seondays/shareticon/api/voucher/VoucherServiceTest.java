@@ -22,6 +22,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.GroupNotFoundException;
@@ -32,6 +33,7 @@ import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -60,6 +62,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private UserGroupRepository userGroupRepository;
+
+    @MockitoBean
+    protected ImageService imageService;
 
     private Instant testSystemTimeInstant;
 
