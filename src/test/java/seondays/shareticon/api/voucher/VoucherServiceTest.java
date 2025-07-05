@@ -106,7 +106,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
 
         //when
-        given(imageService.uploadImage(any()))
+        given(imageService.uploadImageWithRetry(any()))
                 .willReturn("https://test/test.jpg");
 
         given(imageService.getPresignedImageUrl(any(), any())).willReturn("presignedImageUrl");
@@ -270,7 +270,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
 
         //when //then
-        given(imageService.uploadImage(any()))
+        given(imageService.uploadImageWithRetry(any()))
                 .willThrow(ImageUploadException.class);
 
         assertThatThrownBy(
