@@ -51,7 +51,7 @@ public class GroupControllerTest extends ControllerTestSupport {
         CreateGroupRequest request = new CreateGroupRequest("그룹 이름");
         String json = mapper.writeValueAsString(request);
 
-        when(groupService.createGroup(any(Long.class), any(CreateGroupRequest.class)))
+        when(groupService.registerNewGroup(any(Long.class), any(CreateGroupRequest.class)))
                 .thenReturn(GroupResponse.of(createdGroup));
 
         //when //then
