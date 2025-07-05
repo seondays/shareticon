@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.GroupUserNotFoundException;
 import seondays.shareticon.exception.UserNotFoundException;
@@ -26,7 +24,6 @@ import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 
 @Slf4j
-@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -34,40 +31,19 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
-    private final RandomCodeFactory randomCodeFactory;
+    private final GroupFactory groupFactory;
     private final GroupValidator groupValidator;
 
-    @Transactional
-    public GroupResponse createGroup(Long userId, CreateGroupRequest request) {
+    public GroupResponse registerNewGroup(Long userId, CreateGroupRequest request) {
         User leaderUser = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        int maxRetry = 3;
-        int retryCount = 0;
-
-        while (retryCount < maxRetry) {
-
-            try {
-                String inviteCode = randomCodeFactory.createInviteCode();
-
-                Group newGroup = Group.createNewGroup(leaderUser, inviteCode, request.title());
-                groupRepository.save(newGroup);
-
-                UserGroup leaderUserGroup = UserGroup.createLeaderUserGroup(leaderUser, newGroup);
-                userGroupRepository.save(leaderUserGroup);
-
-                return GroupResponse.of(newGroup);
-            } catch (DataIntegrityViolationException e) {
-                retryCount++;
-                log.warn("{} 유저 그룹 생성 시도 중, 초대코드 중복 발생 : 재시도 {}/{}", userId,
-                        retryCount, maxRetry);
-            }
-        }
-        throw new GroupCreateException();
+        return groupFactory.createGroupWithRetry(leaderUser, request);
     }
 
+    @Transactional(readOnly = true)
     public List<GroupListResponse> getAllGroupList(Long userId) {
         return userGroupRepository.findGroupsWithMemberCountByUserIdAndStatus(
-                userId, JoinStatus.getStatusesForAcceptedGroupMembers())
+                        userId, JoinStatus.getStatusesForAcceptedGroupMembers())
                 .stream()
                 .toList();
     }
@@ -87,6 +63,7 @@ public class GroupService {
         userGroupRepository.save(userGroup);
     }
 
+    @Transactional(readOnly = true)
     public List<ApplyToJoinResponse> getAllGroupPendingUserList(Long leaderUserId) {
         groupValidator.validateExistTargetUser(leaderUserId);
 
