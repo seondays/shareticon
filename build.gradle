@@ -64,6 +64,9 @@ dependencies {
 	// RestDocs
 	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
+	// retry
+	implementation("org.springframework.retry:spring-retry:2.0.12")
 }
 
 tasks.named('test') {
