@@ -25,7 +25,7 @@ public class GroupFactory {
     @Retryable(
             retryFor = {DataIntegrityViolationException.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 50, multiplier = 2)
+            backoff = @Backoff(delayExpression = "${retry.group-creation.delay}", multiplier = 2)
     )
     @Transactional
     public GroupResponse createGroupWithRetry(User leaderUser, CreateGroupRequest request) {

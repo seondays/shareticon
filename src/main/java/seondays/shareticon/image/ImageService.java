@@ -40,7 +40,7 @@ public class ImageService {
             retryFor = {SdkClientException.class},
             noRetryFor = {S3Exception.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            backoff = @Backoff(delayExpression = "${retry.S3-Image-service.delay}", multiplier = 2)
     )
     public String uploadImageWithRetry(VoucherImage voucherImage) {
 
@@ -96,7 +96,7 @@ public class ImageService {
             retryFor = {SdkClientException.class},
             noRetryFor = {S3Exception.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            backoff = @Backoff(delayExpression = "${retry.S3-Image-service.delay}", multiplier = 2)
     )
     public void deleteImageWithRetry(Voucher voucher) {
         String key = voucher.getImage();
