@@ -109,6 +109,17 @@ public class ImageService {
         s3Client.deleteObject(deleteObjectRequest);
     }
 
+    public void deleteImage(Voucher voucher) {
+        String key = voucher.getImage();
+
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+
+        s3Client.deleteObject(deleteObjectRequest);
+    }
+
     @Recover
     public void recoverImageDelete(Exception e, Voucher voucher) {
         log.error("S3 이미지 삭제 시도 3회 실패 : {}번 쿠폰의 {}", voucher.getId(), voucher.getImage());
