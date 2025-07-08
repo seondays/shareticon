@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.voucher.Voucher;
+import seondays.shareticon.voucher.VoucherRepository;
 
 public class S3ImageCleanupBatchProcessTest extends IntegrationTestSupport {
 
@@ -57,6 +59,9 @@ public class S3ImageCleanupBatchProcessTest extends IntegrationTestSupport {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
+    @Autowired
+    private VoucherRepository voucherRepository;
+
     @BeforeEach
     void setUp() {
         Instant systemTime = Instant.parse("2025-05-01T00:00:00Z");
@@ -65,6 +70,11 @@ public class S3ImageCleanupBatchProcessTest extends IntegrationTestSupport {
         when(clock.instant()).thenReturn(systemTime);
         when(clock.getZone()).thenReturn(zoneId);
 
+    }
+
+    @AfterEach
+    void tearDown() {
+        voucherRepository.deleteAllInBatch();
     }
 
     @Test
