@@ -103,10 +103,10 @@ public class S3ImageCleanupBatchProcessTest extends IntegrationTestSupport {
 
         //then
         assertThat(run.getStatus()).isEqualTo(BatchStatus.COMPLETED);
-        verify(imageService, times(1)).deleteImage(any());
-        verify(imageService).deleteImage(argThat(voucher ->
+        verify(imageService, times(1)).deleteImageWithRetry(any());
+        verify(imageService).deleteImageWithRetry(argThat(voucher ->
                 voucher.getId().equals(expectedToBeDeleted.getId())));
-        verify(imageService, never()).deleteImage(argThat(voucher ->
+        verify(imageService, never()).deleteImageWithRetry(argThat(voucher ->
                 voucher.getId().equals(expectedToBeSkipped.getId())));
 
     }
