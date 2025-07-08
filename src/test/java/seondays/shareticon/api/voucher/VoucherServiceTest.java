@@ -22,6 +22,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.GroupNotFoundException;
@@ -32,6 +33,7 @@ import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -60,6 +62,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private UserGroupRepository userGroupRepository;
+
+    @MockitoBean
+    protected ImageService imageService;
 
     private Instant testSystemTimeInstant;
 
@@ -106,7 +111,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
 
         //when
-        given(imageService.uploadImage(any()))
+        given(imageService.uploadImageWithRetry(any()))
                 .willReturn("https://test/test.jpg");
 
         given(imageService.getPresignedImageUrl(any(), any())).willReturn("presignedImageUrl");
@@ -270,7 +275,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
 
         //when //then
-        given(imageService.uploadImage(any()))
+        given(imageService.uploadImageWithRetry(any()))
                 .willThrow(ImageUploadException.class);
 
         assertThatThrownBy(
@@ -298,7 +303,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
 
-        Voucher voucher = Voucher.createAvailableStatus(user, group, voucherName, expiration);
+        Voucher voucher = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
         voucherRepository.save(voucher);
 
         //when
@@ -327,8 +332,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher = Voucher.createAvailableStatus(registerUser, group, voucherName,
-                expiration);
+        Voucher voucher = Voucher.createNewVoucher(registerUser, group, voucherName,
+                "imageKey", expiration);
         voucherRepository.save(voucher);
 
         //when //then
@@ -355,8 +360,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher = Voucher.createAvailableStatus(userExistInGroup, group, voucherName,
-                expiration);
+        Voucher voucher = Voucher.createNewVoucher(userExistInGroup, group, voucherName,
+                "imageKey", expiration);
         voucherRepository.save(voucher);
 
         //when //then
@@ -382,12 +387,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher1 = Voucher.createAvailableStatus(user, group, voucherName, expiration);
-        Voucher voucher2 = Voucher.createAvailableStatus(user, group, voucherName, expiration);
-        Voucher voucher3 = Voucher.createAvailableStatus(user, group, voucherName, expiration);
-        voucher1.saveImage("image1");
-        voucher2.saveImage("image2");
-        voucher3.saveImage("image3");
+        Voucher voucher1 = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
+        Voucher voucher2 = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
+        Voucher voucher3 = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
 
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
 
@@ -458,9 +460,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
 
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher1 = Voucher.createAvailableStatus(user, group, "voucher name1", expiration);
-        Voucher voucher2 = Voucher.createAvailableStatus(user, group, "voucher name2", expiration);
-        Voucher voucher3 = Voucher.createAvailableStatus(user, group, "voucher name3", expiration);
+        Voucher voucher1 = Voucher.createNewVoucher(user, group, "voucher name1", "imageKey", expiration);
+        Voucher voucher2 = Voucher.createNewVoucher(user, group, "voucher name2", "imageKey", expiration);
+        Voucher voucher3 = Voucher.createNewVoucher(user, group, "voucher name3", "imageKey", expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
 
         //when //then
@@ -485,7 +487,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher = Voucher.createAvailableStatus(user, group, voucherName, expiration);
+        Voucher voucher = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
         voucherRepository.save(voucher);
 
         return Stream.of(

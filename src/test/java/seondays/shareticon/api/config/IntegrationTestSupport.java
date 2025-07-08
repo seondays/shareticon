@@ -3,6 +3,8 @@ package seondays.shareticon.api.config;
 import java.time.Clock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -12,6 +14,8 @@ import org.testcontainers.utility.DockerImageName;
 import seondays.shareticon.group.RandomCodeFactory;
 import seondays.shareticon.image.ImageService;
 
+@EnableScheduling
+@EnableRetry
 @Testcontainers
 @ActiveProfiles("test")
 @SpringBootTest
@@ -28,9 +32,6 @@ public abstract class IntegrationTestSupport {
 
     @MockitoSpyBean
      protected RandomCodeFactory randomCodeFactory;
-
-    @MockitoBean
-    protected ImageService imageService;
 
     @MockitoBean
     protected Clock clock;

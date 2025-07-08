@@ -223,7 +223,7 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
         //when
-        Long result = voucherRepository.countByUserId(user.getId());
+        Long result = voucherRepository.countByUserIdAndIsDeletedFalse(user.getId());
 
         //then
         assertThat(result).isEqualTo(5);
@@ -238,10 +238,39 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         userRepository.save(user);
 
         //when
-        Long result = voucherRepository.countByUserId(user.getId());
+        Long result = voucherRepository.countByUserIdAndIsDeletedFalse(user.getId());
 
         //then
         assertThat(result).isZero();
+
+    }
+
+    @Test
+    @DisplayName("삭제 상태인 쿠폰은 조회에 포함되지 않는다")
+    void getAllVoucherWithNotDeleted() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        Voucher voucher = Voucher.builder().user(user).group(group).isDeleted(true)
+                .status(VoucherStatus.AVAILABLE).build();
+        voucherRepository.save(voucher);
+
+        List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
+
+        Pageable pageable = PageRequest.of(0, 2);
+
+        //when
+        Slice<Voucher> resultPage = voucherRepository.findAllPageWithCursorByDesc(
+                group.getId(), voucherStatuses, null, pageable);
+
+        //then
+        assertThat(resultPage.getContent()).isEmpty();
+        assertThat(resultPage.hasNext()).isFalse();
 
     }
 
@@ -249,6 +278,7 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         return Voucher.builder()
                 .user(user)
                 .group(group)
+                .isDeleted(false)
                 .status(status)
                 .build();
     }

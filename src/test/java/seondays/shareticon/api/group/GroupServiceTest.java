@@ -2,7 +2,6 @@ package seondays.shareticon.api.group;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.in;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 
@@ -73,7 +72,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         //when
-        GroupResponse groupResponse = groupService.createGroup(user.getId(), request);
+        GroupResponse groupResponse = groupService.registerNewGroup(user.getId(), request);
 
         //then
         assertThat(groupResponse).isNotNull();
@@ -89,7 +88,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         //when //then
-        assertThatThrownBy(() -> groupService.createGroup(user.getId(), request)).isInstanceOf(
+        assertThatThrownBy(() -> groupService.registerNewGroup(user.getId(), request)).isInstanceOf(
                 UserNotFoundException.class);
     }
 
@@ -114,10 +113,10 @@ public class GroupServiceTest extends IntegrationTestSupport {
 
         //when //then
         if (expectException) {
-            assertThatThrownBy(() -> groupService.createGroup(user.getId(), request))
+            assertThatThrownBy(() -> groupService.registerNewGroup(user.getId(), request))
                     .isInstanceOf(GroupCreateException.class);
         } else {
-            GroupResponse groupResponse = groupService.createGroup(user.getId(), request);
+            GroupResponse groupResponse = groupService.registerNewGroup(user.getId(), request);
             assertThat(groupResponse.inviteCode()).isEqualTo(expectedCode);
         }
     }
@@ -145,7 +144,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         CreateGroupRequest request = new CreateGroupRequest(groupTitle);
 
         //when
-        GroupResponse createdGroup = groupService.createGroup(user.getId(), request);
+        GroupResponse createdGroup = groupService.registerNewGroup(user.getId(), request);
 
         //then
         Optional<UserGroup> result = userGroupRepository.findByUserIdAndGroupId(
@@ -658,7 +657,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         for (int i = 0; i < threadCount; i++) {
             executor.submit(() -> {
                 try {
-                    groupService.createGroup(leaderUser.getId(), request);
+                    groupService.registerNewGroup(leaderUser.getId(), request);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();

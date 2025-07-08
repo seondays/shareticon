@@ -1,5 +1,6 @@
 package seondays.shareticon.voucher;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,20 +45,24 @@ public class Voucher extends BaseEntity {
     private String image;
     @Enumerated(value = EnumType.STRING)
     private VoucherStatus status;
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
 
-    public static Voucher createAvailableStatus(User user, Group group, String name,
+    public static Voucher createNewVoucher(User user, Group group, String name, String imageKey,
             LocalDate expiration) {
         return Voucher.builder()
                 .user(user)
                 .group(group)
                 .name(name)
+                .image(imageKey)
                 .expiration(expiration)
+                .isDeleted(false)
                 .status(VoucherStatus.AVAILABLE)
                 .build();
     }
 
-    public void saveImage(String image) {
-        this.image = image;
+    public void delete() {
+        isDeleted = true;
     }
 
     public void changeStatus() {

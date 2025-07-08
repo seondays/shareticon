@@ -37,7 +37,7 @@ public class GroupController {
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @Valid @RequestBody CreateGroupRequest request) {
         Long userId = userDetails.getId();
-        GroupResponse createdGroupResponse = groupService.createGroup(userId, request);
+        GroupResponse createdGroupResponse = groupService.registerNewGroup(userId, request);
 
         return ResponseEntity.created(URI.create("/group/" + createdGroupResponse.id()))
                 .body(createdGroupResponse);

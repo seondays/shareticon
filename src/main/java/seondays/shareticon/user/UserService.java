@@ -24,7 +24,7 @@ public class UserService {
 
         Long joinGroupCount = userGroupRepository.countByUserId(userId);
 
-        Long ownedVoucherCount = voucherRepository.countByUserId(userId);
+        Long ownedVoucherCount = voucherRepository.countByUserIdAndIsDeletedFalse(userId);
 
         return UserProfileResponse.of(user, joinGroupCount, ownedVoucherCount);
     }
