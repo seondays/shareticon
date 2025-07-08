@@ -66,10 +66,10 @@ dependencies {
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
 	// retry
-	implementation("org.springframework.retry:spring-retry:2.0.12")
+	implementation("org.springframework.retry:spring-retry")
 
 	// batch
-	implementation("org.springframework.batch:spring-batch-core:5.2.1")
+	implementation("org.springframework.batch:spring-batch-core")
 }
 
 tasks.named('test') {
