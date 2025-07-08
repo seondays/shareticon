@@ -61,7 +61,7 @@ public class GroupControllerDocsTest extends RestDocsSupport {
         CreateGroupRequest request = new CreateGroupRequest("그룹 이름");
         String json = objectMapper.writeValueAsString(request);
 
-        when(groupService.createGroup(any(Long.class), any(CreateGroupRequest.class)))
+        when(groupService.registerNewGroup(any(Long.class), any(CreateGroupRequest.class)))
                 .thenReturn(GroupResponse.of(createdGroup));
 
         //when //then
