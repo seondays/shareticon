@@ -10,8 +10,8 @@
 - 개발 인원 : 1인 (백엔드 담당 / 프론트 Cursor AI 사용하여 구현)
 
 ## Link
-- [🔗 운영 서비스](www.shareticon.site)
-- [🔗 API 문서](api.shareticon.site/docs)
+- [🔗 운영 서비스](https://www.shareticon.site)
+- [🔗 API 문서](https://api.shareticon.site/docs)
 
 ## 기술 스택
 ### Backend
