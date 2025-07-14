@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.exception.ImageDeleteException;
@@ -98,6 +99,7 @@ public class ImageService {
             maxAttempts = 3,
             backoff = @Backoff(delayExpression = "${retry.S3-Image-service.delay}", multiplier = 2)
     )
+    @Async
     public void deleteImageWithRetry(Voucher voucher) {
         String key = voucher.getImage();
 
