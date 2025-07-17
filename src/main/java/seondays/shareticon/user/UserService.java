@@ -22,7 +22,7 @@ public class UserService {
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        Long joinGroupCount = userGroupRepository.countByUserId(userId);
+        Long joinGroupCount = userGroupRepository.countByUserIdAndJoined(userId);
 
         Long ownedVoucherCount = voucherRepository.countByUserIdAndIsDeletedFalse(userId);
 

@@ -422,6 +422,31 @@ public class GroupServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("정상적으로 본인의 그룹에 JOINED 중인 리더만 그룹 가입 신청 목록을 조회 가능하다")
+    void getAllApplyToJoinListWithJoinedLeader() {
+        //given
+        User leaderUser = User.builder().build();
+        User pendingUser = User.builder().build();
+        userRepository.saveAll(List.of(leaderUser, pendingUser));
+
+        String inviteCode = "ABC";
+        String title = "test title";
+        Group group = Group.createNewGroup(leaderUser, inviteCode, title);
+        groupRepository.save(group);
+
+        UserGroup userGroup1 = UserGroup.builder().user(leaderUser).group(group)
+                .joinStatus(JoinStatus.WITHDRAWN).build();
+        UserGroup userGroup2 = UserGroup.builder().user(pendingUser).group(group)
+                .joinStatus(JoinStatus.PENDING).build();
+        userGroupRepository.saveAll(List.of(userGroup1, userGroup2));
+
+        //when //then
+        assertThatThrownBy(() -> groupService.getAllGroupPendingUserList(leaderUser.getId()))
+                .isInstanceOf(InvalidAcceptGroupJoinApplyException.class);
+
+    }
+
+    @Test
     @DisplayName("그룹 신청 내역을 조회하는 유저는 DB에 저장된 회원이어야 한다")
     void getAllApplyToJoinListWithoutExistUser() {
         //given

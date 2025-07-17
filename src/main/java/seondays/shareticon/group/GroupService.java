@@ -17,7 +17,8 @@ import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupJoinApplyStatusChangeValidationRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
-import seondays.shareticon.group.dto.GroupTitleAliasChangeValidationRequest;
+import seondays.shareticon.group.dto.LeaderIdAndGroupsValidationRequest;
+import seondays.shareticon.group.dto.UserIdAndGroupIdValidationRequest;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -66,8 +67,13 @@ public class GroupService {
     @Transactional(readOnly = true)
     public List<ApplyToJoinResponse> getAllGroupPendingUserList(Long leaderUserId) {
         groupValidator.validateExistTargetUser(leaderUserId);
-
         List<Group> allGroupByLeaderUserId = groupRepository.findAllByLeaderId(leaderUserId);
+
+        LeaderIdAndGroupsValidationRequest request = LeaderIdAndGroupsValidationRequest.builder()
+                .leaderId(leaderUserId)
+                .targetGroups(allGroupByLeaderUserId).build();
+        groupValidator.validateLeaderForPendingUserList(request);
+
         return allGroupByLeaderUserId.stream()
                 .map(group -> ApplyToJoinResponse.of(group.getId(),
                         group.getGroupAlias(leaderUserId), group.getPendingMemberResponses()))
@@ -97,8 +103,8 @@ public class GroupService {
     @Transactional
     public ChangeGroupTitleAliasResponse changeGroupTitleAlias(Long userId, Long groupId,
             ChangeGroupTitleAliasRequest request) {
-        GroupTitleAliasChangeValidationRequest validationRequest =
-                GroupTitleAliasChangeValidationRequest.builder()
+        UserIdAndGroupIdValidationRequest validationRequest =
+                UserIdAndGroupIdValidationRequest.builder()
                         .requestUserId(userId)
                         .targetGroupId(groupId).build();
         groupValidator.validateGroupTitleAliasChange(validationRequest);

@@ -6,7 +6,8 @@ import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.dto.GroupJoinApplyStatusChangeValidationRequest;
-import seondays.shareticon.group.dto.GroupTitleAliasChangeValidationRequest;
+import seondays.shareticon.group.dto.LeaderIdAndGroupsValidationRequest;
+import seondays.shareticon.group.dto.UserIdAndGroupIdValidationRequest;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroupRepository;
 
@@ -18,13 +19,20 @@ public class GroupValidator {
     private final UserGroupRepository userGroupRepository;
     private final GroupRepository groupRepository;
 
-    public void validateGroupTitleAliasChange(GroupTitleAliasChangeValidationRequest request) {
+    public void validateGroupTitleAliasChange(UserIdAndGroupIdValidationRequest request) {
         validateUserAndGroupExist(request.requestUserId(), request.targetGroupId());
     }
 
-    public void validateGroupJoinApplyStatusChange(GroupJoinApplyStatusChangeValidationRequest request) {
+    public void validateGroupJoinApplyStatusChange(
+            GroupJoinApplyStatusChangeValidationRequest request) {
         validateLeader(request.leaderId(), request.targetGroup());
         validateExistTargetUser(request.targetUserId());
+    }
+
+    public void validateLeaderForPendingUserList(LeaderIdAndGroupsValidationRequest request) {
+        for (Group g : request.targetGroups()) {
+            validateLeader(request.leaderId(), g);
+        }
     }
 
     public void validateExistTargetUser(Long targetUserId) {
@@ -40,7 +48,7 @@ public class GroupValidator {
         if (!leaderId.equals(group.getLeaderUser().getId())) {
             throw new InvalidAcceptGroupJoinApplyException();
         }
-        if (!userGroupRepository.existsByUserIdAndGroupId(leaderId, group.getId())) {
+        if (!userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(leaderId, group.getId(), JoinStatus.JOINED)) {
             throw new InvalidAcceptGroupJoinApplyException();
         }
     }

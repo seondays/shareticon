@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.exception.ImageDeleteException;
@@ -90,6 +91,11 @@ public class ImageService {
         } catch (Exception e) {
             throw new PresignedUrlGenerationException();
         }
+    }
+
+    @Async
+    public void deleteImageAsync(Voucher voucher) {
+        deleteImageWithRetry(voucher);
     }
 
     @Retryable(
