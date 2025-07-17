@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import seondays.shareticon.exception.InvalidAccessVoucherException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.InvalidVoucherExpireException;
+import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.user.User;
 import seondays.shareticon.userGroup.UserGroupRepository;
 import seondays.shareticon.voucher.dto.VoucherCreationValidationRequest;
@@ -39,7 +40,7 @@ public class VoucherValidator {
     }
 
     private void validateUserAndVoucherInGroup(Long userId, Long groupId, Voucher voucher) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
+        if (!userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(userId, groupId, JoinStatus.JOINED)) {
             throw new InvalidVoucherDeleteException();
         }
         if (!voucher.getGroup().getId().equals(groupId)) {
@@ -48,7 +49,7 @@ public class VoucherValidator {
     }
 
     private void validateUserInGroup(Long userId, Long groupId) {
-        if (!userGroupRepository.existsByUserIdAndGroupId(userId, groupId)) {
+        if (!userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(userId, groupId, JoinStatus.JOINED)) {
             throw new InvalidAccessVoucherException();
         }
     }

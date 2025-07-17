@@ -12,6 +12,7 @@ import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.user.UserService;
@@ -113,7 +114,7 @@ public class UserServiceTest extends IntegrationTestSupport {
     }
 
     private UserGroup linkUserWithGroup(User user, Group group) {
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
+        UserGroup userGroup = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group).build();
         userGroupRepository.save(userGroup);
         return userGroup;
     }

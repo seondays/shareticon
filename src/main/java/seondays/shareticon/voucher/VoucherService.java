@@ -93,7 +93,7 @@ public class VoucherService {
 
         voucher.delete();
 
-        imageService.deleteImageWithRetry(voucher);
+        imageService.deleteImageAsync(voucher);
     }
 
     /**
