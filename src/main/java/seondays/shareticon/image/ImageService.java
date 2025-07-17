@@ -93,13 +93,17 @@ public class ImageService {
         }
     }
 
+    @Async
+    public void deleteImageAsync(Voucher voucher) {
+        deleteImageWithRetry(voucher);
+    }
+
     @Retryable(
             retryFor = {SdkClientException.class},
             noRetryFor = {S3Exception.class},
             maxAttempts = 3,
             backoff = @Backoff(delayExpression = "${retry.S3-Image-service.delay}", multiplier = 2)
     )
-    @Async
     public void deleteImageWithRetry(Voucher voucher) {
         String key = voucher.getImage();
 
