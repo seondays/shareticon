@@ -27,6 +27,12 @@ public class GroupValidator {
         validateExistTargetUser(request.targetUserId());
     }
 
+    public void validateLeaderForPendingUserList(LeaderIdAndGroupsValidationRequest request) {
+        for (Group g : request.targetGroups()) {
+            validateLeader(request.leaderId(), g);
+        }
+    }
+
     public void validateExistTargetUser(Long targetUserId) {
         if (!userRepository.existsById(targetUserId)) {
             throw new UserNotFoundException();
