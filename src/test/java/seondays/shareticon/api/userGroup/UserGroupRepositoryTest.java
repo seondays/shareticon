@@ -241,16 +241,11 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         String inviteCode2 = "DEF";
         Group group2 = createTestGroup(inviteCode2);
 
-        String inviteCode3 = "GHI";
-        Group group3 = createTestGroup(inviteCode3);
-
-        String inviteCode4 = "JKL";
-        Group group4 = createTestGroup(inviteCode4);
-        groupRepository.saveAll(List.of(group, group2, group3, group4));
+        groupRepository.saveAll(List.of(group, group2));
 
         UserGroup userGroup = UserGroup.builder().joinStatus(JoinStatus.JOINED).user(user).group(group).build();
         UserGroup userGroup2 = UserGroup.builder().joinStatus(JoinStatus.WITHDRAWN).user(user).group(group2).build();
-        UserGroup userGroup3 = UserGroup.builder().joinStatus(JoinStatus.REJECTED).user(user).group(group2).build();
+        UserGroup userGroup3 = UserGroup.builder().joinStatus(JoinStatus.REJECTED).user(user).group(group).build();
         UserGroup userGroup4 = UserGroup.builder().joinStatus(JoinStatus.PENDING).user(user).group(group2).build();
         userGroupRepository.saveAll(List.of(userGroup, userGroup2, userGroup3, userGroup4));
 
