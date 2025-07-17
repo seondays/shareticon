@@ -6,7 +6,6 @@ import static org.assertj.core.groups.Tuple.tuple;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.hibernate.mapping.Join;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,15 +216,49 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         Group group2 = createTestGroup(inviteCode2);
         groupRepository.saveAll(List.of(group, group2));
 
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
-        UserGroup userGroup2 = UserGroup.builder().user(user).group(group2).build();
+        UserGroup userGroup = UserGroup.builder().joinStatus(JoinStatus.JOINED).user(user).group(group).build();
+        UserGroup userGroup2 = UserGroup.builder().joinStatus(JoinStatus.JOINED).user(user).group(group2).build();
         userGroupRepository.saveAll(List.of(userGroup, userGroup2));
 
         //when
-        Long result = userGroupRepository.countByUserId(user.getId());
+        Long result = userGroupRepository.countByUserIdAndJoined(user.getId());
 
         //then
         assertThat(result).isEqualTo(2);
+
+    }
+
+    @Test
+    @DisplayName("그룹 가입 상태가 JOINED가 아닌 경우에는 전체 그룹 수에 포함되지 않는다")
+    void getUserJoinGroupCountWithJoined() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+
+        String inviteCode2 = "DEF";
+        Group group2 = createTestGroup(inviteCode2);
+
+        String inviteCode3 = "GHI";
+        Group group3 = createTestGroup(inviteCode3);
+
+        String inviteCode4 = "JKL";
+        Group group4 = createTestGroup(inviteCode4);
+        groupRepository.saveAll(List.of(group, group2, group3, group4));
+
+        UserGroup userGroup = UserGroup.builder().joinStatus(JoinStatus.JOINED).user(user).group(group).build();
+        UserGroup userGroup2 = UserGroup.builder().joinStatus(JoinStatus.WITHDRAWN).user(user).group(group2).build();
+        UserGroup userGroup3 = UserGroup.builder().joinStatus(JoinStatus.REJECTED).user(user).group(group2).build();
+        UserGroup userGroup4 = UserGroup.builder().joinStatus(JoinStatus.PENDING).user(user).group(group2).build();
+        userGroupRepository.saveAll(List.of(userGroup, userGroup2, userGroup3, userGroup4));
+
+        //when
+        Long result = userGroupRepository.countByUserIdAndJoined(user.getId());
+
+        //then
+        assertThat(result).isEqualTo(1);
 
     }
 
@@ -237,7 +270,7 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         userRepository.save(user);
 
         //when
-        Long result = userGroupRepository.countByUserId(user.getId());
+        Long result = userGroupRepository.countByUserIdAndJoined(user.getId());
 
         //then
         assertThat(result).isZero();
