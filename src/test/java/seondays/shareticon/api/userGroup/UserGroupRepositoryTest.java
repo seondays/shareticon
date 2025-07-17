@@ -41,11 +41,11 @@ public class UserGroupRepositoryTest extends RepositoryTestSupport {
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).build();
+        UserGroup userGroup = UserGroup.builder().user(user).joinStatus(JoinStatus.JOINED).group(group).build();
         userGroupRepository.save(userGroup);
 
         //when
-        boolean result = userGroupRepository.existsByUserIdAndGroupId(user.getId(), group.getId());
+        boolean result = userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(user.getId(), group.getId(), JoinStatus.JOINED);
 
         //then
         assertThat(result).isTrue();

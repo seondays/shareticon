@@ -511,7 +511,9 @@ class VoucherServiceTest extends IntegrationTestSupport {
     }
 
     private UserGroup linkUserWithGroup(User user, Group group, String alias) {
-        UserGroup userGroup = UserGroup.builder().user(user).group(group).groupTitleAlias(alias).build();
+        UserGroup userGroup = UserGroup.builder()
+                .user(user).group(group).groupTitleAlias(alias).joinStatus(JoinStatus.JOINED)
+                .build();
         userGroupRepository.save(userGroup);
         return userGroup;
     }
