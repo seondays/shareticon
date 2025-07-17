@@ -11,7 +11,7 @@ import seondays.shareticon.group.dto.GroupListResponse;
 @Repository
 public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
 
-    boolean existsByUserIdAndGroupId(Long userId, Long groupId);
+    boolean existsByUserIdAndGroupIdAndJoinStatus(Long userId, Long groupId, JoinStatus status);
 
     @Query("""
             SELECT COUNT(ug)

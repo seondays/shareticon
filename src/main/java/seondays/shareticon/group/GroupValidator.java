@@ -40,7 +40,7 @@ public class GroupValidator {
         if (!leaderId.equals(group.getLeaderUser().getId())) {
             throw new InvalidAcceptGroupJoinApplyException();
         }
-        if (!userGroupRepository.existsByUserIdAndGroupId(leaderId, group.getId())) {
+        if (!userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(leaderId, group.getId(), JoinStatus.JOINED)) {
             throw new InvalidAcceptGroupJoinApplyException();
         }
     }
