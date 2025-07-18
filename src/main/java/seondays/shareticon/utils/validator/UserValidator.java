@@ -1,4 +1,4 @@
-package seondays.shareticon.user;
+package seondays.shareticon.utils.validator;
 
 import org.springframework.stereotype.Component;
 
