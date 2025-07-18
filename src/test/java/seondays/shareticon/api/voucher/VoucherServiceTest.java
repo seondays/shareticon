@@ -28,11 +28,12 @@ import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
-import seondays.shareticon.exception.InvalidAccessVoucherException;
+import seondays.shareticon.exception.InvalidAccessException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
@@ -187,7 +188,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //when //then
         assertThatThrownBy(
                 () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
-                InvalidAccessVoucherException.class);
+                InvalidAccessException.class);
 
     }
 
@@ -367,7 +368,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //when //then
         assertThatThrownBy(() ->
                 voucherService.delete(userNoExistInGroup.getId(), group.getId(), voucher.getId()))
-                .isInstanceOf(InvalidVoucherDeleteException.class);
+                .isInstanceOf(InvalidAccessException.class);
     }
 
     @Test
@@ -467,7 +468,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         //when //then
         assertThatThrownBy(() -> voucherService.getAllVoucher(user.getId(),
-                group.getId(), null, 3)).isInstanceOf(InvalidAccessVoucherException.class);
+                group.getId(), null, 3)).isInstanceOf(InvalidAccessException.class);
     }
 
     @TestFactory
