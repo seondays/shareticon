@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.exception.GroupNotFoundException;
-import seondays.shareticon.exception.InvalidAccessVoucherException;
+import seondays.shareticon.exception.InvalidAccessException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
@@ -21,13 +21,15 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.utils.validator.ValidationFacade;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
-import seondays.shareticon.voucher.dto.VoucherCreationValidationRequest;
-import seondays.shareticon.voucher.dto.VoucherDeletionValidationRequest;
+import seondays.shareticon.utils.validator.dto.VoucherCreationValidationRequest;
+import seondays.shareticon.utils.validator.dto.VoucherDeletionValidationRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
-import seondays.shareticon.voucher.dto.VoucherStatusChangeValidationRequest;
+import seondays.shareticon.utils.validator.dto.VoucherStatusChangeValidationRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class VoucherService {
@@ -37,7 +39,7 @@ public class VoucherService {
     private final GroupRepository groupRepository;
     private final VoucherRepository voucherRepository;
     private final UserGroupRepository userGroupRepository;
-    private final VoucherValidator voucherValidator;
+    private final ValidationFacade validationFacade;
     private final VoucherFactory voucherFactory;
 
     /**
@@ -48,19 +50,16 @@ public class VoucherService {
      * @param image
      * @return
      */
+    @Transactional
     public VouchersResponse register(CreateVoucherRequest request, Long userId,
             MultipartFile image) {
         Long groupId = request.groupId();
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
 
-        VoucherCreationValidationRequest validationRequest = VoucherCreationValidationRequest
-                .builder()
-                .userId(userId)
-                .groupId(groupId)
-                .expiration(request.expiration())
-                .build();
-        voucherValidator.validateVoucherCreation(validationRequest);
+        VoucherCreationValidationRequest validationRequest = VoucherCreationValidationRequest.of(
+                userId, groupId, request.expiration());
+        validationFacade.validateVoucherCreation(validationRequest);
 
         VoucherImage voucherImage = VoucherImage.of(image);
         String imageKey = imageService.uploadImageWithRetry(voucherImage);
@@ -84,12 +83,9 @@ public class VoucherService {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);
 
-        VoucherDeletionValidationRequest validationRequest = VoucherDeletionValidationRequest.builder()
-                .userId(userId)
-                .groupId(groupId)
-                .voucher(voucher)
-                .build();
-        voucherValidator.validateVoucherDeletion(validationRequest);
+        VoucherDeletionValidationRequest validationRequest =
+                VoucherDeletionValidationRequest.of(userId, groupId, voucher);
+        validationFacade.validateVoucherDeletion(validationRequest);
 
         voucher.delete();
 
@@ -108,7 +104,7 @@ public class VoucherService {
     public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
             int size) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
-                .orElseThrow(InvalidAccessVoucherException::new);
+                .orElseThrow(InvalidAccessException::new);
 
         Pageable pageable = PageRequest.of(0, size);
         Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursorByDesc(groupId,
@@ -138,12 +134,8 @@ public class VoucherService {
     public void changeVoucherStatus(Long userId, Long groupId, Long voucherId) {
 
         VoucherStatusChangeValidationRequest validationRequest =
-                VoucherStatusChangeValidationRequest.builder()
-                        .userId(userId)
-                        .groupId(groupId)
-                        .build();
-
-        voucherValidator.validateVoucherStatusChange(validationRequest);
+                VoucherStatusChangeValidationRequest.of(userId, groupId, voucherId);
+        validationFacade.validateVoucherStatusChange(validationRequest);
 
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);

@@ -7,6 +7,7 @@ import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.user.dto.UserProfileChangeRequest;
 import seondays.shareticon.user.dto.UserProfileResponse;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.utils.validator.ValidationFacade;
 import seondays.shareticon.voucher.VoucherRepository;
 
 @Service
@@ -17,7 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
     private final VoucherRepository voucherRepository;
-    private final UserValidator userValidator;
+    private final ValidationFacade validationFacade;
 
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -34,7 +35,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         String newNickname = request.newNickname();
 
-        userValidator.validateUserProfile(newNickname);
+        validationFacade.validateUserProfile(newNickname);
 
         user.changeNickname(newNickname);
     }
