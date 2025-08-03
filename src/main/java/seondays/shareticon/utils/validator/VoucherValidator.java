@@ -9,7 +9,7 @@ import seondays.shareticon.exception.InvalidVoucherExpireException;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.utils.validator.dto.VoucherCreationValidationRequest;
 import seondays.shareticon.utils.validator.dto.VoucherDeletionValidationRequest;
-import seondays.shareticon.utils.validator.dto.VoucherStatusChangeValidationRequest;
+import seondays.shareticon.utils.validator.dto.VoucherAccessValidationRequest;
 
 @Component
 @RequiredArgsConstructor
@@ -38,9 +38,9 @@ public class VoucherValidator {
         validateVoucherInGroup(targetGroupId, targetVoucher);
     }
 
-    public void validateVoucherStatusChange(VoucherStatusChangeValidationRequest request) {
+    public void validateAccessVoucher(VoucherAccessValidationRequest request) {
         basicValidator.validateVoucherExist(request.targetVoucherId());
-        basicValidator.validateUserJoinGroup(request.targetUserId(), request.targetGroupId());
+        basicValidator.validateJoinedGroupMember(request.targetUserId(), request.targetGroupId());
     }
 
     private void validateVoucherInGroup(Long expectedGroupId, Voucher voucher) {

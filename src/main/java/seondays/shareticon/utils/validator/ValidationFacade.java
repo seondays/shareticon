@@ -7,7 +7,7 @@ import seondays.shareticon.utils.validator.dto.LeaderIdAndGroupsValidationReques
 import seondays.shareticon.utils.validator.dto.UserIdAndGroupIdValidationRequest;
 import seondays.shareticon.utils.validator.dto.VoucherCreationValidationRequest;
 import seondays.shareticon.utils.validator.dto.VoucherDeletionValidationRequest;
-import seondays.shareticon.utils.validator.dto.VoucherStatusChangeValidationRequest;
+import seondays.shareticon.utils.validator.dto.VoucherAccessValidationRequest;
 
 @Component
 @RequiredArgsConstructor
@@ -37,8 +37,8 @@ public class ValidationFacade {
         voucherValidator.validateVoucherDeletion(request);
     }
 
-    public void validateVoucherStatusChange(VoucherStatusChangeValidationRequest request) {
-        voucherValidator.validateVoucherStatusChange(request);
+    public void validateAccessVoucher(VoucherAccessValidationRequest request) {
+        voucherValidator.validateAccessVoucher(request);
     }
 
     public void validateUserProfile(String nickName) {

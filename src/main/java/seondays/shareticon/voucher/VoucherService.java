@@ -26,7 +26,7 @@ import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.utils.validator.dto.VoucherCreationValidationRequest;
 import seondays.shareticon.utils.validator.dto.VoucherDeletionValidationRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
-import seondays.shareticon.utils.validator.dto.VoucherStatusChangeValidationRequest;
+import seondays.shareticon.utils.validator.dto.VoucherAccessValidationRequest;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Transactional(readOnly = true)
@@ -133,9 +133,9 @@ public class VoucherService {
     @Transactional
     public void changeVoucherStatus(Long userId, Long groupId, Long voucherId) {
 
-        VoucherStatusChangeValidationRequest validationRequest =
-                VoucherStatusChangeValidationRequest.of(userId, groupId, voucherId);
-        validationFacade.validateVoucherStatusChange(validationRequest);
+        VoucherAccessValidationRequest validationRequest =
+                VoucherAccessValidationRequest.of(userId, groupId, voucherId);
+        validationFacade.validateAccessVoucher(validationRequest);
 
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(VoucherNotFoundException::new);
