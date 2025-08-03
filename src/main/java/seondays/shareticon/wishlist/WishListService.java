@@ -43,4 +43,21 @@ public class WishListService {
         return SliceResponse.from(responses);
     }
 
+
+    @Transactional
+    public void toggleWishList(Long userId, Long groupId, Long voucherId) {
+        VoucherAccessValidationRequest validationRequest =
+                VoucherAccessValidationRequest.of(userId, groupId, voucherId);
+        validationFacade.validateWishList(validationRequest);
+
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(VoucherNotFoundException::new);
+
+        Optional<WishList> existingWishList = wishListRepository.findByUserIdAndVoucherId(userId,
+                voucherId);
+
+        WishList wishList = WishList.toggleActive(user, voucher, existingWishList);
+        wishListRepository.save(wishList);
+    }
+
 }

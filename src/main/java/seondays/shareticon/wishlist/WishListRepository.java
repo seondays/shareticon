@@ -20,4 +20,11 @@ public interface WishListRepository extends JpaRepository<WishList, Long> {
             """)
     Slice<WishList> findAllByUserId(Long userId, Long cursorId, Pageable pageable);
 
+
+    @Query("""
+            SELECT w FROM WishList w
+            WHERE w.user.id = :userId
+            AND w.voucher.id = :voucherId
+            """)
+    Optional<WishList> findByUserIdAndVoucherId(Long userId, Long voucherId);
 }

@@ -34,4 +34,14 @@ public class WishListController {
         return ResponseEntity.ok(allWishList);
     }
 
+    @PatchMapping("/group/{groupId}/voucher/{voucherId}")
+    public ResponseEntity<Void> toggleWishListStatus(
+            @AuthenticationPrincipal CustomOAuth2User userDetails,
+            @PathVariable("groupId") Long groupId, @PathVariable("voucherId") Long voucherId) {
+
+        Long userId = userDetails.getId();
+        wishListService.toggleWishList(userId, groupId, voucherId);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

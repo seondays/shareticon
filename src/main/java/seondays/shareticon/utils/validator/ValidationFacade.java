@@ -45,4 +45,12 @@ public class ValidationFacade {
         userValidator.validateUserProfile(nickName);
     }
 
+    public void validateWishList(VoucherAccessValidationRequest request) {
+        voucherValidator.validateAccessVoucher(request);
+    }
+
+    public void validateGetWishList(Long userId) {
+        userValidator.validateUserExist(userId);
+    }
+
 }
