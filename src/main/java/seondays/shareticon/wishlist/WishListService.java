@@ -19,7 +19,7 @@ import seondays.shareticon.utils.validator.ValidationFacade;
 import seondays.shareticon.utils.validator.dto.VoucherAccessValidationRequest;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
-import seondays.shareticon.voucher.dto.VouchersResponse;
+import seondays.shareticon.wishlist.dto.WishListResponse;
 
 @Service
 @Transactional(readOnly = true)
@@ -33,15 +33,15 @@ public class WishListService {
     private final ImageService imageService;
     private final ValidationFacade validationFacade;
 
-    public SliceResponse<VouchersResponse> getAllWishList(Long userId, Long cursorId, int size) {
+    public SliceResponse<WishListResponse> getAllWishList(Long userId, Long cursorId, int size) {
         validationFacade.validateGetWishList(userId);
         Pageable pageable = Pageable.ofSize(size);
         Slice<WishList> wishLists = wishListRepository.findAllByUserId(userId, cursorId, pageable);
 
-        Slice<VouchersResponse> responses = wishLists.map(wishList -> {
+        Slice<WishListResponse> responses = wishLists.map(wishList -> {
             Voucher voucher = wishList.getVoucher();
             String presignedImageUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
-            return VouchersResponse.withWishList(voucher, presignedImageUrl, true);
+            return WishListResponse.of(wishList, presignedImageUrl);
         });
 
         return SliceResponse.from(responses);

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.utils.SliceResponse;
-import seondays.shareticon.voucher.dto.VouchersResponse;
+import seondays.shareticon.wishlist.dto.WishListResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,13 +22,13 @@ public class WishListController {
     private final WishListService wishListService;
 
     @GetMapping
-    public ResponseEntity<SliceResponse<VouchersResponse>> getAllWishList(
+    public ResponseEntity<SliceResponse<WishListResponse>> getAllWishList(
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "5") int pageSize) {
 
         Long userId = userDetails.getId();
-        SliceResponse<VouchersResponse> allWishList = wishListService.getAllWishList(userId, cursorId,
+        SliceResponse<WishListResponse> allWishList = wishListService.getAllWishList(userId, cursorId,
                 pageSize);
 
         return ResponseEntity.ok(allWishList);
