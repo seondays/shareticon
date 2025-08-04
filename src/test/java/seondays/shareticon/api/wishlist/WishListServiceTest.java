@@ -112,6 +112,7 @@ class WishListServiceTest extends IntegrationTestSupport {
                 .isActive(!active)
                 .voucher(voucher)
                 .user(user)
+                .group(group)
                 .build();
         wishListRepository.save(wishList);
 
@@ -133,10 +134,10 @@ class WishListServiceTest extends IntegrationTestSupport {
                         true),
                 Arguments.of("쿠폰 찜 상태가 활성화된 경우 토글을 통해 비활성 상태로 변경한다",
                         false
-                        )
+                )
         );
     }
-    
+
     @Test
     @DisplayName("쿠폰 찜을 요청한 유저가 존재하지 않는 경우 찜을 할 수 없다")
     void toggleWishListWithUserNotExist() {
@@ -151,7 +152,7 @@ class WishListServiceTest extends IntegrationTestSupport {
                 .isInstanceOf(UserNotFoundException.class);
 
     }
-    
+
     @Test
     @DisplayName("쿠폰 찜 대상 쿠폰이 존재하지 않는 경우 찜을 할 수 없다")
     void toggleWishListWithVoucherNotExist() {
@@ -163,9 +164,9 @@ class WishListServiceTest extends IntegrationTestSupport {
         //when //then
         assertThatThrownBy(() -> wishListService.toggleWishList(user.getId(), group.getId(), 100L))
                 .isInstanceOf(VoucherNotFoundException.class);
-    
+
     }
-    
+
     @Test
     @DisplayName("쿠폰 찜을 요청한 유저가 대상 쿠폰에 접근할 수 없는 경우 찜을 할 수 없다")
     void toggleWishListWithUserGroupNotExist() {
@@ -177,7 +178,7 @@ class WishListServiceTest extends IntegrationTestSupport {
         //when //then
         assertThatThrownBy(() -> wishListService.toggleWishList(user.getId(), group.getId(), voucher.getId()))
                 .isInstanceOf(InvalidAccessException.class);
-    
+
     }
 
     @Test
@@ -191,8 +192,8 @@ class WishListServiceTest extends IntegrationTestSupport {
         Voucher voucher1 = createNewVoucher(user, group);
         Voucher voucher2 = createNewVoucher(user, group);
 
-        createWishList(user, voucher1);
-        createWishList(user, voucher2);
+        createWishList(user, voucher1, group);
+        createWishList(user, voucher2, group);
 
         //when
         SliceResponse<VouchersResponse> result = wishListService.getAllWishList(user.getId(),
@@ -249,12 +250,14 @@ class WishListServiceTest extends IntegrationTestSupport {
         return voucherRepository.save(voucher);
     }
 
-    private WishList createWishList(User user, Voucher voucher) {
-        return wishListRepository.save(WishList.builder().isActive(true).voucher(voucher).user(user).build());
+    private WishList createWishList(User user, Voucher voucher, Group group) {
+        return wishListRepository.save(
+                WishList.builder().isActive(true).voucher(voucher).user(user).group(group).build());
     }
 
     private void linkUserGroup(User user, Group group) {
-        UserGroup userGroup = UserGroup.builder().group(group).user(user).joinStatus(JoinStatus.JOINED).build();
+        UserGroup userGroup = UserGroup.builder().group(group).user(user)
+                .joinStatus(JoinStatus.JOINED).build();
         userGroupRepository.save(userGroup);
     }
 

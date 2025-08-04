@@ -51,10 +51,10 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         Voucher voucher3 = createVoucher(user, group);
         Voucher voucher4 = createVoucher(user, group);
 
-        WishList wishList1 = createWishList(user, voucher1);
-        WishList wishList2 = createWishList(user, voucher2);
-        WishList wishList3 = createWishList(user, voucher3);
-        WishList wishList4 = createWishList(user, voucher4);
+        WishList wishList1 = createWishList(user, voucher1, group);
+        WishList wishList2 = createWishList(user, voucher2, group);
+        WishList wishList3 = createWishList(user, voucher3, group);
+        WishList wishList4 = createWishList(user, voucher4, group);
 
         Pageable pageable = Pageable.ofSize(2);
 
@@ -82,12 +82,13 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         Voucher voucher2 = createVoucher(user, group);
         Voucher voucher3 = createVoucher(user, group);
         Voucher voucher4 = createVoucher(user, group);
+        Voucher voucher5 = createVoucher(user, group);
 
-        WishList wishList1 = createWishList(user, voucher1);
-        WishList wishList2 = createWishList(user, voucher2);
-        WishList wishList3 = createWishList(user, voucher3);
-        WishList wishList4 = createWishList(user, voucher4);
-        WishList wishList5 = createWishList(user, voucher4);
+        WishList wishList1 = createWishList(user, voucher1, group);
+        WishList wishList2 = createWishList(user, voucher2, group);
+        WishList wishList3 = createWishList(user, voucher3, group);
+        WishList wishList4 = createWishList(user, voucher4, group);
+        WishList wishList5 = createWishList(user, voucher5, group);
 
         Pageable pageable = Pageable.ofSize(2);
 
@@ -119,12 +120,13 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         Voucher voucher2 = createVoucher(user, group);
         Voucher voucher3 = createVoucher(user, group);
         Voucher voucher4 = createVoucher(user, group);
+        Voucher voucher5 = createVoucher(user, group);
 
-        WishList wishList1 = createWishList(user, voucher1);
-        WishList wishList2 = createWishList(user, voucher2);
-        WishList wishList3 = createWishList(user, voucher3);
-        WishList wishList4 = createWishList(user, voucher4);
-        WishList wishList5 = createWishList(user, voucher4);
+        WishList wishList1 = createWishList(user, voucher1, group);
+        WishList wishList2 = createWishList(user, voucher2, group);
+        WishList wishList3 = createWishList(user, voucher3, group);
+        WishList wishList4 = createWishList(user, voucher4, group);
+        WishList wishList5 = createWishList(user, voucher5, group);
 
         Pageable pageable = Pageable.ofSize(2);
 
@@ -158,12 +160,13 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         Voucher voucher2 = createVoucher(user, group);
         Voucher voucher3 = createVoucher(user, group);
         Voucher voucher4 = createVoucher(user, group);
+        Voucher voucher5 = createVoucher(user, group);
 
-        WishList wishList1 = createWishList(user, voucher1);
-        WishList wishList2 = createWishList(user, voucher2);
-        WishList wishList3 = createWishList(user, voucher3);
-        WishList wishList4 = createWishList(user, voucher4);
-        WishList wishList5 = createWishList(user, voucher4);
+        WishList wishList1 = createWishList(user, voucher1, group);
+        WishList wishList2 = createWishList(user, voucher2, group);
+        WishList wishList3 = createWishList(user, voucher3, group);
+        WishList wishList4 = createWishList(user, voucher4, group);
+        WishList wishList5 = createWishList(user, voucher5, group);
 
         Pageable pageable = Pageable.ofSize(5);
 
@@ -188,12 +191,13 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         Voucher voucher2 = createVoucher(user, group);
         Voucher voucher3 = createVoucher(user, group);
         Voucher voucher4 = createVoucher(user, group);
+        Voucher voucher5 = createVoucher(user, group);
 
-        WishList wishList1 = createWishList(user, voucher1);
-        WishList wishList2 = createWishListWithNotActive(user, voucher2);
-        WishList wishList3 = createWishList(user, voucher3);
-        WishList wishList4 = createWishListWithNotActive(user, voucher4);
-        WishList wishList5 = createWishList(user, voucher4);
+        WishList wishList1 = createWishList(user, voucher1, group);
+        WishList wishList2 = createWishListWithNotActive(user, voucher2, group);
+        WishList wishList3 = createWishList(user, voucher3, group);
+        WishList wishList4 = createWishListWithNotActive(user, voucher4, group);
+        WishList wishList5 = createWishList(user, voucher5, group);
 
         Pageable pageable = Pageable.ofSize(5);
 
@@ -232,7 +236,7 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         Group group = createNewGroup(user);
         Voucher voucher = createVoucher(user, group);
 
-        createWishList(user, voucher);
+        WishList wishList = createWishList(user, voucher, group);
 
         //when
         Optional<WishList> result = wishListRepository.findByUserIdAndVoucherId(user.getId(),
@@ -276,14 +280,14 @@ public class WishListRepositoryTest extends RepositoryTestSupport {
         return voucherRepository.save(voucher);
     }
 
-    private WishList createWishList(User user, Voucher voucher) {
+    private WishList createWishList(User user, Voucher voucher, Group group) {
         return wishListRepository.save(
-                WishList.builder().isActive(true).voucher(voucher).user(user).build());
+                WishList.builder().isActive(true).group(group).voucher(voucher).user(user).build());
     }
 
-    private WishList createWishListWithNotActive(User user, Voucher voucher) {
+    private WishList createWishListWithNotActive(User user, Voucher voucher, Group group) {
         return wishListRepository.save(
-                WishList.builder().isActive(false).voucher(voucher).user(user).build());
+                WishList.builder().isActive(false).voucher(voucher).group(group).user(user).build());
     }
 
 }

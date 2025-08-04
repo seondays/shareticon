@@ -50,7 +50,7 @@ public class WishListControllerTest extends ControllerTestSupport {
         User user = createNewUser();
         Group group = createNewGroup(user);
         Voucher voucher = createNewVoucher(user, group, 1L);
-        createWishList(user, voucher);
+        WishList wishList = createWishList(user, group, voucher);
         String mockPresignedUrl = "mockPresignedUrl";
         Long cursorId = 1L;
         int pageSize = 3;
@@ -85,7 +85,7 @@ public class WishListControllerTest extends ControllerTestSupport {
         User user = createNewUser();
         Group group = createNewGroup(user);
         Voucher voucher = createNewVoucher(user, group, 1L);
-        createWishList(user, voucher);
+        WishList wishList = createWishList(user, group, voucher);
         String mockPresignedUrl = "mockPresignedUrl";
 
         int defaultPageSize = 5;
@@ -184,8 +184,8 @@ public class WishListControllerTest extends ControllerTestSupport {
         return voucher;
     }
 
-    private WishList createWishList(User user, Voucher voucher) {
-        WishList wishList = WishList.builder().isActive(true).voucher(voucher).user(user).build();
+    private WishList createWishList(User user, Group group, Voucher voucher) {
+        WishList wishList = WishList.builder().isActive(true).voucher(voucher).user(user).group(group).build();
         return wishList;
     }
 
