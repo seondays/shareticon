@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import seondays.shareticon.group.Group;
 import seondays.shareticon.user.User;
 import seondays.shareticon.utils.BaseEntity;
 import seondays.shareticon.voucher.Voucher;
@@ -38,21 +39,26 @@ public class WishList extends BaseEntity {
     @JoinColumn(name = "voucher_id", nullable = false)
     private Voucher voucher;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
+
     private boolean isActive;
 
-    public static WishList toggleActive(User user, Voucher voucher,
+    public static WishList toggleActive(User user, Voucher voucher, Group group,
             Optional<WishList> existingWishList) {
         return existingWishList.map(
                 existing -> {
                     existing.isActive = !existing.isActive;
                     return existing;
-                }).orElseGet(() -> WishList.of(user, voucher));
+                }).orElseGet(() -> WishList.of(user, voucher, group));
     }
 
-    public static WishList of(User user, Voucher voucher) {
+    public static WishList of(User user, Voucher voucher, Group group) {
         return WishList.builder()
                 .user(user)
                 .voucher(voucher)
+                .group(group)
                 .isActive(true)
                 .build();
     }

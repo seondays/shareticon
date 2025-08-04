@@ -6,8 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.exception.VoucherNotFoundException;
+import seondays.shareticon.group.Group;
+import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
@@ -26,6 +29,7 @@ public class WishListService {
     private final WishListRepository wishListRepository;
     private final UserRepository userRepository;
     private final VoucherRepository voucherRepository;
+    private final GroupRepository groupRepository;
     private final ImageService imageService;
     private final ValidationFacade validationFacade;
 
@@ -52,11 +56,12 @@ public class WishListService {
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(VoucherNotFoundException::new);
+        Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
 
         Optional<WishList> existingWishList = wishListRepository.findByUserIdAndVoucherId(userId,
                 voucherId);
 
-        WishList wishList = WishList.toggleActive(user, voucher, existingWishList);
+        WishList wishList = WishList.toggleActive(user, voucher, group, existingWishList);
         wishListRepository.save(wishList);
     }
 
