@@ -324,49 +324,6 @@ class VoucherServiceTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("동시에 쿠폰을 삭제하는 경우를 다룬다")
-    void deleteConcurrency() throws InterruptedException {
-        //given
-        User user = User.builder().nickname("유저").build();
-        userRepository.save(user);
-
-        Group group = Group.createNewGroup(user, "ABC", "그룹명");
-        groupRepository.save(group);
-        linkUserWithGroup(user, group, "별칭");
-
-        int numberOfVouchersToDelete = 1000;
-        List<Voucher> vouchersToDelete = new ArrayList<>();
-        for (int i = 0; i < numberOfVouchersToDelete; i++) {
-            Voucher voucher = Voucher.createNewVoucher(user, group, "voucherName_" + i,
-                    "imageKey_" + i, LocalDate.of(2025, 1, 1));
-            voucherRepository.save(voucher);
-            vouchersToDelete.add(voucher);
-        }
-
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        CountDownLatch countDownLatch = new CountDownLatch(numberOfVouchersToDelete);
-
-        long startTime = System.nanoTime();
-
-        for (Voucher v : vouchersToDelete) {
-            executorService.submit(() -> {
-                try {
-                    voucherService.delete(user.getId(), group.getId(), v.getId());
-                } catch (Exception e) {
-                    System.out.println("예외가 발생");
-                }
-                countDownLatch.countDown();
-            });
-        }
-
-        countDownLatch.await();
-        long endTime = System.nanoTime();
-        long resultTime = endTime - startTime;
-
-        System.out.println("결과 시간:" + resultTime);
-    }
-
-    @Test
     @DisplayName("쿠폰을 등록하지 않은 사람이 쿠폰을 삭제하면 예외가 발생한다")
     void deleteVoucherWithNotRegisterUser() {
         //given
