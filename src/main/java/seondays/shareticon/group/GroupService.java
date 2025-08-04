@@ -14,15 +14,16 @@ import seondays.shareticon.group.dto.ApplyToJoinResponse;
 import seondays.shareticon.group.dto.ChangeGroupTitleAliasRequest;
 import seondays.shareticon.group.dto.ChangeGroupTitleAliasResponse;
 import seondays.shareticon.group.dto.CreateGroupRequest;
-import seondays.shareticon.group.dto.GroupJoinApplyStatusChangeValidationRequest;
+import seondays.shareticon.utils.validator.dto.GroupJoinApplyStatusChangeValidationRequest;
 import seondays.shareticon.group.dto.GroupListResponse;
 import seondays.shareticon.group.dto.GroupResponse;
-import seondays.shareticon.group.dto.LeaderIdAndGroupsValidationRequest;
-import seondays.shareticon.group.dto.UserIdAndGroupIdValidationRequest;
+import seondays.shareticon.utils.validator.dto.LeaderIdAndGroupsValidationRequest;
+import seondays.shareticon.utils.validator.dto.UserIdAndGroupIdValidationRequest;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.utils.validator.ValidationFacade;
 
 @Slf4j
 @Service
@@ -33,7 +34,7 @@ public class GroupService {
     private final UserRepository userRepository;
     private final UserGroupRepository userGroupRepository;
     private final GroupFactory groupFactory;
-    private final GroupValidator groupValidator;
+    private final ValidationFacade validationFacade;
 
     public GroupResponse registerNewGroup(Long userId, CreateGroupRequest request) {
         User leaderUser = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -66,13 +67,11 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public List<ApplyToJoinResponse> getAllGroupPendingUserList(Long leaderUserId) {
-        groupValidator.validateExistTargetUser(leaderUserId);
         List<Group> allGroupByLeaderUserId = groupRepository.findAllByLeaderId(leaderUserId);
 
-        LeaderIdAndGroupsValidationRequest request = LeaderIdAndGroupsValidationRequest.builder()
-                .leaderId(leaderUserId)
-                .targetGroups(allGroupByLeaderUserId).build();
-        groupValidator.validateLeaderForPendingUserList(request);
+        LeaderIdAndGroupsValidationRequest request = LeaderIdAndGroupsValidationRequest.of(
+                leaderUserId, allGroupByLeaderUserId);
+        validationFacade.validateLeaderForPendingUserList(request);
 
         return allGroupByLeaderUserId.stream()
                 .map(group -> ApplyToJoinResponse.of(group.getId(),
@@ -87,11 +86,8 @@ public class GroupService {
                 .orElseThrow(GroupNotFoundException::new);
 
         GroupJoinApplyStatusChangeValidationRequest validationRequest =
-                GroupJoinApplyStatusChangeValidationRequest.builder()
-                        .leaderId(leaderId)
-                        .targetUserId(targetUserId)
-                        .targetGroup(targetGroup).build();
-        groupValidator.validateGroupJoinApplyStatusChange(validationRequest);
+                GroupJoinApplyStatusChangeValidationRequest.of(leaderId, targetUserId, targetGroup);
+        validationFacade.validateGroupJoinApplyStatusChange(validationRequest);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(targetUserId,
                 targetGroupId).orElseThrow(GroupUserNotFoundException::new);
@@ -104,10 +100,8 @@ public class GroupService {
     public ChangeGroupTitleAliasResponse changeGroupTitleAlias(Long userId, Long groupId,
             ChangeGroupTitleAliasRequest request) {
         UserIdAndGroupIdValidationRequest validationRequest =
-                UserIdAndGroupIdValidationRequest.builder()
-                        .requestUserId(userId)
-                        .targetGroupId(groupId).build();
-        groupValidator.validateGroupTitleAliasChange(validationRequest);
+                UserIdAndGroupIdValidationRequest.of(userId, groupId);
+        validationFacade.validateGroupTitleAliasChange(validationRequest);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(GroupUserNotFoundException::new);

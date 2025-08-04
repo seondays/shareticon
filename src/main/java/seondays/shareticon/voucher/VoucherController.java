@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.login.CustomOAuth2User;
+import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
@@ -51,14 +52,14 @@ public class VoucherController {
     }
 
     @GetMapping(value = "/{groupId}")
-    public ResponseEntity<Slice<VoucherListResponse>> getAllVoucherInGroup(
+    public ResponseEntity<SliceResponse<VoucherListResponse>> getAllVoucherInGroup(
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @PathVariable("groupId") Long groupId,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "10") int pageSize) {
         Long userId = userDetails.getId();
-        Slice<VoucherListResponse> response = voucherService.getAllVoucher(userId, groupId,
-                cursorId, pageSize);
+        SliceResponse<VoucherListResponse> response = voucherService.getAllVoucher(userId,
+                groupId, cursorId, pageSize);
         return ResponseEntity.ok(response);
     }
 

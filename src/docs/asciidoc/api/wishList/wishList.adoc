@@ -1,0 +1,19 @@
+[[wishList-get]]
+=== 찜 목록 조회
+
+==== Http Request
+include::{snippets}/wishList-get/http-request.adoc[]
+include::{snippets}/wishList-get/query-parameters.adoc[]
+==== Http Response
+include::{snippets}/wishList-get/response-body.adoc[]
+include::{snippets}/wishList-get/response-fields.adoc[]
+
+[[wishList-toggle]]
+=== 찜하기 / 찜 해제하기
+
+==== Http Request
+include::{snippets}/wishList-toggle/http-request.adoc[]
+include::{snippets}/wishList-toggle/path-parameters.adoc[]
+
+==== Http Response
+include::{snippets}/wishList-toggle/http-response.adoc[]
