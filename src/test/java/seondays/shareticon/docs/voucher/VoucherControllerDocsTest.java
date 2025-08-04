@@ -82,7 +82,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, true);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -133,7 +133,9 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("name").type(JsonFieldType.STRING)
                                         .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
                                 fieldWithPath("expiration").type(JsonFieldType.STRING)
-                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간")
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
+                                fieldWithPath("isWishList").type(JsonFieldType.BOOLEAN)
+                                        .description("쿠폰이 찜 되어 있는지의 여부")
                         )
                 ));
     }
@@ -197,7 +199,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .build();
 
         VoucherListResponse mockResponse = VoucherListResponse.of(
-                List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup);
+                List.of(VouchersResponse.withWishList(voucher, mockPresignedUrl, true)), userGroup);
 
         SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
                 pageSize);
@@ -251,6 +253,8 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .type(JsonFieldType.STRING).description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
                                 fieldWithPath("content[].vouchers[].status").type(JsonFieldType.STRING)
                                         .description("쿠폰의 현재 상태"),
+                                fieldWithPath("content[].vouchers[].isWishList").type(JsonFieldType.BOOLEAN)
+                                        .description("쿠폰이 찜 되어 있는지의 여부"),
 
                                 fieldWithPath("hasNext").type(JsonFieldType.BOOLEAN)
                                         .description("다음 페이지가 존재하는지 여부"),

@@ -63,7 +63,7 @@ public class WishListControllerDocsTest extends RestDocsSupport {
         int pageSize = 3;
 
         List<VouchersResponse> vouchersResponse = List.of(
-                VouchersResponse.of(voucher, mockPresignedUrl));
+                VouchersResponse.withWishList(voucher, mockPresignedUrl, false));
         Slice<VouchersResponse> mockSlice =
                 new SliceImpl<>(vouchersResponse, PageRequest.of(0, pageSize), false);
 
@@ -107,6 +107,8 @@ public class WishListControllerDocsTest extends RestDocsSupport {
                                         .description("유저가 찜한 쿠폰의 만료일"),
                                 fieldWithPath("content[].status").type(JsonFieldType.STRING)
                                         .description("유저가 찜한 쿠폰의 상태"),
+                                fieldWithPath("content[].isWishList").type(JsonFieldType.BOOLEAN)
+                                        .description("쿠폰이 찜 되어 있는지의 여부"),
 
                                 fieldWithPath("hasNext").type(JsonFieldType.BOOLEAN)
                                         .description("다음 페이지가 존재하는지 여부"),
