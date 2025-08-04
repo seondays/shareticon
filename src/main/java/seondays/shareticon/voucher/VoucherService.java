@@ -21,6 +21,7 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.utils.validator.ValidationFacade;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.utils.validator.dto.VoucherCreationValidationRequest;
@@ -101,7 +102,7 @@ public class VoucherService {
      * @param size
      * @return
      */
-    public Slice<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
+    public SliceResponse<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
             int size) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(InvalidAccessException::new);
@@ -119,7 +120,7 @@ public class VoucherService {
         VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList,
                 userGroup);
 
-        return new SliceImpl<>(List.of(voucherListResponse), pageable, vouchers.hasNext());
+        return SliceResponse.of(voucherListResponse, vouchers.hasNext(), pageable.getPageSize());
     }
 
     /**
