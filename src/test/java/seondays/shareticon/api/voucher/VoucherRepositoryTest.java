@@ -18,6 +18,7 @@ import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherStatus;
+import seondays.shareticon.voucher.dto.VoucherWithWishListResponse;
 
 class VoucherRepositoryTest extends RepositoryTestSupport {
 
@@ -53,17 +54,18 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
         //when
-        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursorByDesc(group.getId(),
-                voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.findAllPageWithCursorByDesc(
+                user.getId(), group.getId(), voucherStatuses, null, pageable);
 
         //then
         assertThat(firstPage.getContent()).hasSize(pageable.getPageSize());
         assertThat(firstPage.hasNext()).isTrue();
         assertThat(firstPage.getContent())
-                .allMatch(v -> voucherStatuses.contains(v.getStatus()));
+                .allMatch(v -> voucherStatuses.contains(v.status()));
         assertThat(firstPage.getContent()).isSortedAccordingTo(
-                Comparator.comparing(Voucher::getId).reversed());
-        assertThat(firstPage.getContent()).containsExactly(voucher5, voucher4);
+                Comparator.comparing(VoucherWithWishListResponse::id).reversed());
+        assertThat(firstPage.getContent()).extracting("id")
+                .containsExactly(voucher5.getId(), voucher4.getId());
     }
 
     @Test
@@ -88,23 +90,24 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursorByDesc(
-                group.getId(), voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.findAllPageWithCursorByDesc(
+                user.getId(), group.getId(), voucherStatuses, null, pageable);
 
-        Long cursor = firstPage.getContent().get(firstPage.getContent().size() - 1).getId();
+        Long cursor = firstPage.getContent().get(firstPage.getContent().size() - 1).id();
 
         //when
-        Slice<Voucher> secondPage = voucherRepository.findAllPageWithCursorByDesc(group.getId(),
-                voucherStatuses, cursor, pageable);
+        Slice<VoucherWithWishListResponse> secondPage = voucherRepository.findAllPageWithCursorByDesc(
+                user.getId(), group.getId(), voucherStatuses, cursor, pageable);
 
         //then
         assertThat(secondPage.getContent()).hasSize(pageable.getPageSize());
         assertThat(secondPage.hasNext()).isTrue();
         assertThat(secondPage.getContent())
-                .allMatch(v -> voucherStatuses.contains(v.getStatus()));
+                .allMatch(v -> voucherStatuses.contains(v.status()));
         assertThat(secondPage.getContent()).isSortedAccordingTo(
-                Comparator.comparing(Voucher::getId).reversed());
-        assertThat(secondPage.getContent()).containsExactly(voucher3, voucher2);
+                Comparator.comparing(VoucherWithWishListResponse::id).reversed());
+        assertThat(firstPage.getContent()).extracting("id")
+                .containsExactly(voucher5.getId(), voucher4.getId());
     }
 
     @Test
@@ -129,25 +132,25 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Slice<Voucher> firstPage = voucherRepository.findAllPageWithCursorByDesc(
-                group.getId(), voucherStatuses, null, pageable);
-        Long firstCursor = firstPage.getContent().get(firstPage.getContent().size() - 1).getId();
+        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.findAllPageWithCursorByDesc(
+                user.getId(), group.getId(), voucherStatuses, null, pageable);
+        Long firstCursor = firstPage.getContent().get(firstPage.getContent().size() - 1).id();
 
-        Slice<Voucher> secondPage = voucherRepository.findAllPageWithCursorByDesc(
-                group.getId(), voucherStatuses, firstCursor, pageable);
-        Long secondCursor = secondPage.getContent().get(secondPage.getContent().size() - 1).getId();
+        Slice<VoucherWithWishListResponse> secondPage = voucherRepository.findAllPageWithCursorByDesc(
+                user.getId(), group.getId(), voucherStatuses, firstCursor, pageable);
+        Long secondCursor = secondPage.getContent().get(secondPage.getContent().size() - 1).id();
 
         //when
-        Slice<Voucher> lastPage = voucherRepository.findAllPageWithCursorByDesc(
-                group.getId(), voucherStatuses, secondCursor, pageable);
+        Slice<VoucherWithWishListResponse> lastPage = voucherRepository.findAllPageWithCursorByDesc(
+                user.getId(), group.getId(), voucherStatuses, secondCursor, pageable);
 
         //then
         assertThat(lastPage.getContent()).hasSize(1);
         assertThat(lastPage.hasNext()).isFalse();
         assertThat(lastPage.getContent())
-                .allMatch(v -> voucherStatuses.contains(v.getStatus()));
+                .allMatch(v -> voucherStatuses.contains(v.status()));
         assertThat(lastPage.getContent()).isSortedAccordingTo(
-                Comparator.comparing(Voucher::getId).reversed());
+                Comparator.comparing(VoucherWithWishListResponse::id).reversed());
     }
 
     @Test
@@ -173,7 +176,8 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Pageable pageable = PageRequest.of(0, 5);
 
         //when
-        Slice<Voucher> result = voucherRepository.findAllPageWithCursorByDesc(
+        Slice<VoucherWithWishListResponse> result =
+                voucherRepository.findAllPageWithCursorByDesc(user.getId(),
                 group.getId(), voucherStatuses, null, pageable);
 
         //then
@@ -188,6 +192,7 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     void getEmptyVoucher() {
         //given
         String inviteCode = "ABC";
+        Long userId = 1L;
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
@@ -196,12 +201,13 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
         //when
-        Slice<Voucher> resultPage = voucherRepository.findAllPageWithCursorByDesc(
-                group.getId(), voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> result =
+                voucherRepository.findAllPageWithCursorByDesc(userId,
+                        group.getId(), voucherStatuses, null, pageable);
 
         //then
-        assertThat(resultPage.getContent()).isEmpty();
-        assertThat(resultPage.hasNext()).isFalse();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.hasNext()).isFalse();
     }
 
     @Test
@@ -265,12 +271,13 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Pageable pageable = PageRequest.of(0, 2);
 
         //when
-        Slice<Voucher> resultPage = voucherRepository.findAllPageWithCursorByDesc(
-                group.getId(), voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> result =
+                voucherRepository.findAllPageWithCursorByDesc(user.getId(),
+                        group.getId(), voucherStatuses, null, pageable);
 
         //then
-        assertThat(resultPage.getContent()).isEmpty();
-        assertThat(resultPage.hasNext()).isFalse();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.hasNext()).isFalse();
 
     }
 

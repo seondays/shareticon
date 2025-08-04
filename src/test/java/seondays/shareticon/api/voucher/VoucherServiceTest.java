@@ -10,8 +10,12 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +43,7 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherService;
@@ -308,11 +313,57 @@ class VoucherServiceTest extends IntegrationTestSupport {
         voucherRepository.save(voucher);
 
         //when
+        Long startTime = System.nanoTime();
         voucherService.delete(user.getId(), group.getId(), voucher.getId());
-
+        Long endTime = System.nanoTime();
+        long resultTime = startTime - endTime;
+        System.out.println("소요시간" + resultTime + "나노초");
         //then
         Optional<Voucher> result = voucherRepository.findById(voucher.getId());
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("동시에 쿠폰을 삭제하는 경우를 다룬다")
+    void deleteConcurrency() throws InterruptedException {
+        //given
+        User user = User.builder().nickname("유저").build();
+        userRepository.save(user);
+
+        Group group = Group.createNewGroup(user, "ABC", "그룹명");
+        groupRepository.save(group);
+        linkUserWithGroup(user, group, "별칭");
+
+        int numberOfVouchersToDelete = 1000;
+        List<Voucher> vouchersToDelete = new ArrayList<>();
+        for (int i = 0; i < numberOfVouchersToDelete; i++) {
+            Voucher voucher = Voucher.createNewVoucher(user, group, "voucherName_" + i,
+                    "imageKey_" + i, LocalDate.of(2025, 1, 1));
+            voucherRepository.save(voucher);
+            vouchersToDelete.add(voucher);
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CountDownLatch countDownLatch = new CountDownLatch(numberOfVouchersToDelete);
+
+        long startTime = System.nanoTime();
+
+        for (Voucher v : vouchersToDelete) {
+            executorService.submit(() -> {
+                try {
+                    voucherService.delete(user.getId(), group.getId(), v.getId());
+                } catch (Exception e) {
+                    System.out.println("예외가 발생");
+                }
+                countDownLatch.countDown();
+            });
+        }
+
+        countDownLatch.await();
+        long endTime = System.nanoTime();
+        long resultTime = endTime - startTime;
+
+        System.out.println("결과 시간:" + resultTime);
     }
 
     @Test
@@ -398,7 +449,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         String preSignedImageUrl = "presignedImageUrlResult";
         given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
 
-        Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3);
 
         VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
@@ -406,7 +457,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //then
         assertThat(allVoucher).isNotNull();
         assertThat(allVoucher.getSize()).isEqualTo(3);
-        assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
+        assertThat(allVoucher.getContent().size()).isEqualTo(1);
 
         assertThat(voucherListResponse.groupTitle()).isEqualTo(userGroup.getGroupTitleAlias());
         assertThat(voucherListResponse.vouchers())
@@ -435,7 +486,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         linkUserWithGroup(user, group, userGroupAlias);
 
         //when
-        Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3);
 
         VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
@@ -443,7 +494,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //then
         assertThat(allVoucher).isNotNull();
         assertThat(allVoucher.getSize()).isEqualTo(3);
-        assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
+        assertThat(allVoucher.getContent().size()).isEqualTo(1);
 
         assertThat(voucherListResponse.vouchers()).isEmpty();
         assertThat(voucherListResponse.groupTitle()).isEqualTo(userGroupAlias);

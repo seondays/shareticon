@@ -56,7 +56,7 @@ public class WishListControllerTest extends ControllerTestSupport {
         int pageSize = 3;
 
         List<VouchersResponse> vouchersResponse = List.of(
-                VouchersResponse.of(voucher, mockPresignedUrl));
+                VouchersResponse.withWishList(voucher, mockPresignedUrl, true));
         Slice<VouchersResponse> mockSlice =
                 new SliceImpl<>(vouchersResponse, PageRequest.of(0, pageSize), false);
 
@@ -91,7 +91,7 @@ public class WishListControllerTest extends ControllerTestSupport {
         int defaultPageSize = 5;
 
         List<VouchersResponse> vouchersResponse = List.of(
-                VouchersResponse.of(voucher, mockPresignedUrl));
+                VouchersResponse.withWishList(voucher, mockPresignedUrl, true));
         Slice<VouchersResponse> mockSlice =
                 new SliceImpl<>(vouchersResponse, PageRequest.of(0, defaultPageSize), false);
 

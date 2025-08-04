@@ -78,7 +78,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, false);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -129,7 +129,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, false);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -176,7 +176,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, false);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -223,7 +223,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, false);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -270,7 +270,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, false);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -383,7 +383,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .groupTitleAlias("나의 그룹 이름")
                 .build();
         VoucherListResponse mockResponse = VoucherListResponse.of(
-                List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup);
+                List.of(VouchersResponse.withWishList(voucher, mockPresignedUrl, false)), userGroup);
 
         SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
                 pageSize);
@@ -440,7 +440,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .build();
 
         VoucherListResponse mockResponse = VoucherListResponse.of(
-                List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup);
+                List.of(VouchersResponse.withWishList(voucher, mockPresignedUrl, false)), userGroup);
 
         SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
                 pageSize);
