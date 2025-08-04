@@ -107,7 +107,7 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         assertThat(secondPage.getContent()).isSortedAccordingTo(
                 Comparator.comparing(VoucherWithWishListResponse::id).reversed());
         assertThat(secondPage.getContent()).extracting("id")
-                .containsExactly(voucher5.getId(), voucher4.getId());
+                .containsExactly(voucher3.getId(), voucher2.getId());
     }
 
     @Test
