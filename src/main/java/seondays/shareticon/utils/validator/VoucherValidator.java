@@ -67,7 +67,7 @@ public class VoucherValidator {
 
     private void validateVoucherDateExpiration(LocalDate expiration) {
         LocalDate today = LocalDate.now(clock);
-        if(expiration.isBefore(today)) {
+        if(today.isAfter(expiration)) {
             throw new InvalidVoucherExpireException();
         }
     }
