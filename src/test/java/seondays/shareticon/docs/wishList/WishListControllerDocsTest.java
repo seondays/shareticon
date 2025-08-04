@@ -36,10 +36,10 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
-import seondays.shareticon.voucher.dto.VouchersResponse;
 import seondays.shareticon.wishlist.WishList;
 import seondays.shareticon.wishlist.WishListController;
 import seondays.shareticon.wishlist.WishListService;
+import seondays.shareticon.wishlist.dto.WishListResponse;
 
 public class WishListControllerDocsTest extends RestDocsSupport {
 
@@ -57,18 +57,18 @@ public class WishListControllerDocsTest extends RestDocsSupport {
         User user = createNewUser();
         Group group = createNewGroup(user);
         Voucher voucher = createNewVoucher(user, group);
-        WishList wishList = createWishList(user, voucher);
+        WishList wishList = createWishList(user, voucher, group);
         String mockPresignedUrl = "mockPresignedUrl";
         Long cursorId = 1L;
         int pageSize = 3;
 
-        List<VouchersResponse> vouchersResponse = List.of(
-                VouchersResponse.withWishList(voucher, mockPresignedUrl, false));
-        Slice<VouchersResponse> mockSlice =
-                new SliceImpl<>(vouchersResponse, PageRequest.of(0, pageSize), false);
+        WishListResponse mockResponse = WishListResponse.of(wishList, mockPresignedUrl);
+
+        SliceResponse<WishListResponse> mockSlice = SliceResponse.of(
+                mockResponse, false, pageSize);
 
         when(wishListService.getAllWishList(any(Long.class), any(Long.class), anyInt()))
-                .thenReturn(SliceResponse.from(mockSlice));
+                .thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(
@@ -80,7 +80,7 @@ public class WishListControllerDocsTest extends RestDocsSupport {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.content.length()").value(vouchersResponse.size()))
+                .andExpect(jsonPath("$.content.length()").value(mockSlice.getContent().size()))
                 .andExpect(jsonPath("$.hasNext").value(false))
                 .andExpect(jsonPath("$.size").value(pageSize))
                 .andDo(document("wishList-get",
@@ -95,11 +95,13 @@ public class WishListControllerDocsTest extends RestDocsSupport {
                         responseFields(
                                 fieldWithPath("content").type(JsonFieldType.ARRAY)
                                         .description("조회된 찜 목록에 속하는 쿠폰 객체 배열"),
-                                fieldWithPath("content[].id").type(JsonFieldType.NUMBER)
+                                fieldWithPath("content[].voucherId").type(JsonFieldType.NUMBER)
                                         .description("유저가 찜한 쿠폰 ID"),
+                                fieldWithPath("content[].groupId").type(JsonFieldType.NUMBER)
+                                                .description("유저가 찜한 쿠폰이 속한 그룹 ID"),
                                 fieldWithPath("content[].presignedImage").type(JsonFieldType.STRING)
                                         .description("유저가 찜한 쿠폰 이미지 URL"),
-                                fieldWithPath("content[].name").type(JsonFieldType.STRING)
+                                fieldWithPath("content[].voucherName").type(JsonFieldType.STRING)
                                         .description("유저가 찜한 쿠폰 이름"),
                                 fieldWithPath("content[].registeredUserId").type(
                                         JsonFieldType.NUMBER).description("쿠폰을 등록한 유저 ID"),
@@ -107,8 +109,6 @@ public class WishListControllerDocsTest extends RestDocsSupport {
                                         .description("유저가 찜한 쿠폰의 만료일"),
                                 fieldWithPath("content[].status").type(JsonFieldType.STRING)
                                         .description("유저가 찜한 쿠폰의 상태"),
-                                fieldWithPath("content[].isWishList").type(JsonFieldType.BOOLEAN)
-                                        .description("쿠폰이 찜 되어 있는지의 여부"),
 
                                 fieldWithPath("hasNext").type(JsonFieldType.BOOLEAN)
                                         .description("다음 페이지가 존재하는지 여부"),
@@ -153,7 +153,7 @@ public class WishListControllerDocsTest extends RestDocsSupport {
     }
 
     private Group createNewGroup(User user) {
-        return Group.createNewGroup(user, "TestCode", "테스트 그룹");
+        return Group.builder().id(1L).leaderUser(user).inviteCode("TestCode").title("테스트 그룹").build();
     }
 
     private Voucher createNewVoucher(User user, Group group) {
@@ -162,8 +162,8 @@ public class WishListControllerDocsTest extends RestDocsSupport {
                 .expiration(LocalDate.of(2020, 1, 1)).build();
     }
 
-    private WishList createWishList(User user, Voucher voucher) {
-        return WishList.builder().isActive(true).voucher(voucher).user(user).build();
+    private WishList createWishList(User user, Voucher voucher, Group group) {
+        return WishList.builder().isActive(true).voucher(voucher).user(user).group(group).build();
     }
 
 }
