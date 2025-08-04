@@ -16,7 +16,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     @Query("""
               select new seondays.shareticon.voucher.dto.VoucherWithWishListResponse(
                           v,
-                          case when w.id is not null then true else false end)
+                          case when w.isActive = true then true else false end)
               from Voucher v
               left join WishList w on v = w.voucher and w.user.id = :userId
               where v.group.id= :groupId
