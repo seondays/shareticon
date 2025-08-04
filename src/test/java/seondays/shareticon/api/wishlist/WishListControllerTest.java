@@ -30,8 +30,8 @@ import seondays.shareticon.user.User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
 import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
-import seondays.shareticon.voucher.dto.VouchersResponse;
 import seondays.shareticon.wishlist.WishList;
+import seondays.shareticon.wishlist.dto.WishListResponse;
 
 public class WishListControllerTest extends ControllerTestSupport {
 
@@ -55,13 +55,13 @@ public class WishListControllerTest extends ControllerTestSupport {
         Long cursorId = 1L;
         int pageSize = 3;
 
-        List<VouchersResponse> vouchersResponse = List.of(
-                VouchersResponse.withWishList(voucher, mockPresignedUrl, true));
-        Slice<VouchersResponse> mockSlice =
-                new SliceImpl<>(vouchersResponse, PageRequest.of(0, pageSize), false);
+        WishListResponse mockResponse = WishListResponse.of(wishList, mockPresignedUrl);
+
+        SliceResponse<WishListResponse> mockSlice = SliceResponse.of(
+                mockResponse, false, pageSize);
 
         when(wishListService.getAllWishList(any(Long.class), any(Long.class), anyInt()))
-                .thenReturn(SliceResponse.from(mockSlice));
+                .thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(
@@ -73,7 +73,7 @@ public class WishListControllerTest extends ControllerTestSupport {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.content.length()").value(vouchersResponse.size()))
+                .andExpect(jsonPath("$.content.length()").value(mockSlice.getContent().size()))
                 .andExpect(jsonPath("$.size").value(pageSize));
 
     }
@@ -90,13 +90,13 @@ public class WishListControllerTest extends ControllerTestSupport {
 
         int defaultPageSize = 5;
 
-        List<VouchersResponse> vouchersResponse = List.of(
-                VouchersResponse.withWishList(voucher, mockPresignedUrl, true));
-        Slice<VouchersResponse> mockSlice =
-                new SliceImpl<>(vouchersResponse, PageRequest.of(0, defaultPageSize), false);
+        WishListResponse mockResponse = WishListResponse.of(wishList, mockPresignedUrl);
+
+        SliceResponse<WishListResponse> mockSlice = SliceResponse.of(
+                mockResponse, false, defaultPageSize);
 
         when(wishListService.getAllWishList(any(Long.class), isNull(), eq(defaultPageSize)))
-                .thenReturn(SliceResponse.from(mockSlice));
+                .thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(

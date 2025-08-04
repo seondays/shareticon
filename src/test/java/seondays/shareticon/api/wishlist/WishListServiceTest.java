@@ -33,10 +33,10 @@ import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherStatus;
-import seondays.shareticon.voucher.dto.VouchersResponse;
 import seondays.shareticon.wishlist.WishList;
 import seondays.shareticon.wishlist.WishListRepository;
 import seondays.shareticon.wishlist.WishListService;
+import seondays.shareticon.wishlist.dto.WishListResponse;
 
 class WishListServiceTest extends IntegrationTestSupport {
 
@@ -196,17 +196,17 @@ class WishListServiceTest extends IntegrationTestSupport {
         createWishList(user, voucher2, group);
 
         //when
-        SliceResponse<VouchersResponse> result = wishListService.getAllWishList(user.getId(),
+        SliceResponse<WishListResponse> result = wishListService.getAllWishList(user.getId(),
                 null, 5);
 
         //then
         assertThat(result.getSize()).isEqualTo(5);
         assertThat(result.hasNext()).isFalse();
 
-        List<VouchersResponse> content = result.getContent();
+        List<WishListResponse> content = result.getContent();
         assertThat(content).isNotEmpty();
         assertThat(content.size()).isEqualTo(2);
-        assertThat(content).extracting("id").contains(voucher1.getId(), voucher2.getId());
+        assertThat(content).extracting("voucherId").contains(voucher1.getId(), voucher2.getId());
 
     }
 
@@ -226,7 +226,7 @@ class WishListServiceTest extends IntegrationTestSupport {
         User user = createNewUser();
 
         //when
-        SliceResponse<VouchersResponse> result = wishListService.getAllWishList(user.getId(),
+        SliceResponse<WishListResponse> result = wishListService.getAllWishList(user.getId(),
                 null, 5);
 
         //then
