@@ -26,6 +26,7 @@ import seondays.shareticon.login.CustomOAuth2User;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.dto.UserOAuth2Dto;
 import seondays.shareticon.userGroup.UserGroup;
+import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
@@ -249,7 +250,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
     void registerVoucherWithNoVoucherExpirationBeforeToday() throws Exception {
         Long groupId = 1L;
         String voucherName = "voucher name";
-        LocalDate expiration = LocalDate.of(2024,11,30);
+        LocalDate expiration = LocalDate.of(2024, 11, 30);
 
         CreateVoucherRequest request = new CreateVoucherRequest(groupId, voucherName, expiration);
         String jsonRequestWithoutGroupId = objectMapper.writeValueAsString(request);
@@ -360,6 +361,7 @@ public class VoucherControllerTest extends ControllerTestSupport {
         Long voucherId = 1L;
         Long cursorId = 1L;
         int pageSize = 1;
+        boolean hasNext = false;
         String mockPresignedUrl = "mockPresignedUrl";
 
         User user = User.builder()
@@ -380,15 +382,14 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .group(group)
                 .groupTitleAlias("나의 그룹 이름")
                 .build();
-        List<VoucherListResponse> mockResponse = List.of(
-                VoucherListResponse.of(List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup));
+        VoucherListResponse mockResponse = VoucherListResponse.of(
+                List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup);
 
-        Slice<VoucherListResponse> mockSlice =
-                new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
+        SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
+                pageSize);
 
         when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
-                eq(pageSize)))
-                .thenReturn(mockSlice);
+                eq(pageSize))).thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(
@@ -400,10 +401,9 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.pageable").exists())
-                .andExpect(jsonPath("$.pageable.pageSize").value(pageSize))
+                .andExpect(jsonPath("$.content").isNotEmpty())
                 .andExpect(jsonPath("$.size").value(pageSize))
-                .andExpect(jsonPath("$.content[0].vouchers").isArray());
+                .andExpect(jsonPath("$.hasNext").value(hasNext));
     }
 
     @Test
@@ -413,13 +413,40 @@ public class VoucherControllerTest extends ControllerTestSupport {
         Long groupId = 1L;
         Long cursorId = null;
         int pageSize = 10;
+        Long userId = mockUser.getId();
+        Long voucherId = 1L;
+        boolean hasNext = false;
+        String mockPresignedUrl = "mockPresignedUrl";
 
-        Slice<VoucherListResponse> mockSlice =
-                new SliceImpl<>(Collections.emptyList(), Pageable.ofSize(pageSize), false);
+        User user = User.builder()
+                .id(userId)
+                .build();
+        Voucher voucher = Voucher.builder()
+                .id(voucherId)
+                .image("www.image.com")
+                .name("쿠폰 이름")
+                .user(user)
+                .expiration(LocalDate.of(2020, 1, 1))
+                .status(VoucherStatus.AVAILABLE)
+                .build();
+        Group group = Group.builder()
+                .id(groupId)
+                .inviteCode("InviteCode")
+                .build();
+        UserGroup userGroup = UserGroup.builder()
+                .user(user)
+                .group(group)
+                .groupTitleAlias("나의 그룹 이름")
+                .build();
+
+        VoucherListResponse mockResponse = VoucherListResponse.of(
+                List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup);
+
+        SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
+                pageSize);
 
         when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
-                eq(pageSize)))
-                .thenReturn(mockSlice);
+                eq(pageSize))).thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(
@@ -429,8 +456,8 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.pageable").exists())
-                .andExpect(jsonPath("$.pageable.pageSize").value(pageSize))
+                .andExpect(jsonPath("$.content").isNotEmpty())
+                .andExpect(jsonPath("$.hasNext").value(hasNext))
                 .andExpect(jsonPath("$.size").value(pageSize));
     }
 
