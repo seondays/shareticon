@@ -25,7 +25,6 @@ import seondays.shareticon.utils.BaseEntity;
 @Entity
 @Table(name = "voucher")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

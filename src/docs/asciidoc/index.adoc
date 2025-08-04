@@ -29,3 +29,8 @@ include::api/group/group.adoc[]
 == User API
 
 include::api/user/user.adoc[]
+
+[[WishList-API]]
+== WishList API
+
+include::api/wishList/wishList.adoc[]

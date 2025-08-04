@@ -12,7 +12,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,7 +24,8 @@ import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.GroupCreateException;
 import seondays.shareticon.exception.GroupNotFoundException;
-import seondays.shareticon.exception.InvalidAcceptGroupJoinApplyException;
+import seondays.shareticon.exception.InvalidAccessException;
+import seondays.shareticon.exception.InvalidGroupLeaderException;
 import seondays.shareticon.exception.InvalidJoinGroupException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.ApprovalStatus;
@@ -442,7 +442,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
 
         //when //then
         assertThatThrownBy(() -> groupService.getAllGroupPendingUserList(leaderUser.getId()))
-                .isInstanceOf(InvalidAcceptGroupJoinApplyException.class);
+                .isInstanceOf(InvalidAccessException.class);
 
     }
 
@@ -591,7 +591,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         assertThatThrownBy(
                 () -> groupService.changeJoinApplyStatus(group.getId(), pendingUser.getId(),
                         notLeaderUser.getId(), leaderDecision))
-                .isInstanceOf(InvalidAcceptGroupJoinApplyException.class);
+                .isInstanceOf(InvalidGroupLeaderException.class);
     }
 
     @Test
@@ -635,7 +635,7 @@ public class GroupServiceTest extends IntegrationTestSupport {
         assertThatThrownBy(
                 () -> groupService.changeJoinApplyStatus(group.getId(), pendingUser.getId(),
                         leaderUser.getId(), leaderDecision))
-                .isInstanceOf(InvalidAcceptGroupJoinApplyException.class);
+                .isInstanceOf(InvalidAccessException.class);
     }
 
     @Test

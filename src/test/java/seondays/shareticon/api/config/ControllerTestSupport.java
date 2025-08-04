@@ -14,12 +14,15 @@ import seondays.shareticon.user.UserController;
 import seondays.shareticon.user.UserService;
 import seondays.shareticon.voucher.VoucherController;
 import seondays.shareticon.voucher.VoucherService;
+import seondays.shareticon.wishlist.WishListController;
+import seondays.shareticon.wishlist.WishListService;
 
 @WebMvcTest(controllers = {
         VoucherController.class,
         GroupController.class,
         TokenController.class,
-        UserController.class})
+        UserController.class,
+        WishListController.class})
 @Import({TestSecurityConfig.class, TestValidatorConfig.class})
 public abstract class ControllerTestSupport {
 
@@ -34,6 +37,9 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected UserService userService;
+
+    @MockitoBean
+    protected WishListService wishListService;
 
     @Autowired
     protected MockMvc mockMvc;

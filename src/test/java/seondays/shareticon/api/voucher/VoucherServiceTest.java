@@ -10,8 +10,12 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,16 +32,18 @@ import seondays.shareticon.api.config.IntegrationTestSupport;
 import seondays.shareticon.exception.GroupNotFoundException;
 import seondays.shareticon.exception.IllegalVoucherImageException;
 import seondays.shareticon.exception.ImageUploadException;
-import seondays.shareticon.exception.InvalidAccessVoucherException;
+import seondays.shareticon.exception.InvalidAccessException;
 import seondays.shareticon.exception.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
+import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
+import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherService;
@@ -187,7 +193,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //when //then
         assertThatThrownBy(
                 () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
-                InvalidAccessVoucherException.class);
+                InvalidAccessException.class);
 
     }
 
@@ -307,8 +313,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
         voucherRepository.save(voucher);
 
         //when
+        Long startTime = System.nanoTime();
         voucherService.delete(user.getId(), group.getId(), voucher.getId());
-
+        Long endTime = System.nanoTime();
+        long resultTime = startTime - endTime;
+        System.out.println("소요시간" + resultTime + "나노초");
         //then
         Optional<Voucher> result = voucherRepository.findById(voucher.getId());
         assertThat(result).isEmpty();
@@ -367,7 +376,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //when //then
         assertThatThrownBy(() ->
                 voucherService.delete(userNoExistInGroup.getId(), group.getId(), voucher.getId()))
-                .isInstanceOf(InvalidVoucherDeleteException.class);
+                .isInstanceOf(InvalidAccessException.class);
     }
 
     @Test
@@ -397,7 +406,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         String preSignedImageUrl = "presignedImageUrlResult";
         given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
 
-        Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3);
 
         VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
@@ -405,7 +414,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //then
         assertThat(allVoucher).isNotNull();
         assertThat(allVoucher.getSize()).isEqualTo(3);
-        assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
+        assertThat(allVoucher.getContent().size()).isEqualTo(1);
 
         assertThat(voucherListResponse.groupTitle()).isEqualTo(userGroup.getGroupTitleAlias());
         assertThat(voucherListResponse.vouchers())
@@ -434,7 +443,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         linkUserWithGroup(user, group, userGroupAlias);
 
         //when
-        Slice<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
                 group.getId(), null, 3);
 
         VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
@@ -442,7 +451,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //then
         assertThat(allVoucher).isNotNull();
         assertThat(allVoucher.getSize()).isEqualTo(3);
-        assertThat(allVoucher.getNumberOfElements()).isEqualTo(1);
+        assertThat(allVoucher.getContent().size()).isEqualTo(1);
 
         assertThat(voucherListResponse.vouchers()).isEmpty();
         assertThat(voucherListResponse.groupTitle()).isEqualTo(userGroupAlias);
@@ -467,7 +476,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         //when //then
         assertThatThrownBy(() -> voucherService.getAllVoucher(user.getId(),
-                group.getId(), null, 3)).isInstanceOf(InvalidAccessVoucherException.class);
+                group.getId(), null, 3)).isInstanceOf(InvalidAccessException.class);
     }
 
     @TestFactory

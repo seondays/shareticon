@@ -27,9 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -41,6 +38,7 @@ import seondays.shareticon.docs.RestDocsSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.user.User;
 import seondays.shareticon.userGroup.UserGroup;
+import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherController;
 import seondays.shareticon.voucher.VoucherService;
@@ -84,7 +82,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         );
 
         VouchersResponse mockResponse = new VouchersResponse(1L, "image", voucherName,
-                1L, expiration, VoucherStatus.AVAILABLE);
+                1L, expiration, VoucherStatus.AVAILABLE, true);
 
         when(voucherService.register(
                 any(CreateVoucherRequest.class), any(Long.class), any(MultipartFile.class)))
@@ -131,11 +129,13 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("status").type(JsonFieldType.STRING)
                                         .description("쿠폰 상태 (AVAILABLE/EXPIRED/USED)"),
                                 fieldWithPath("registeredUserId").type(JsonFieldType.NUMBER)
-                                                .description("쿠폰을 등록한 유저의 ID"),
+                                        .description("쿠폰을 등록한 유저의 ID"),
                                 fieldWithPath("name").type(JsonFieldType.STRING)
                                         .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
                                 fieldWithPath("expiration").type(JsonFieldType.STRING)
-                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간")
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
+                                fieldWithPath("isWishList").type(JsonFieldType.BOOLEAN)
+                                        .description("쿠폰이 찜 되어 있는지의 여부")
                         )
                 ));
     }
@@ -170,12 +170,11 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
     void getAllVoucherInGroup() throws Exception {
         //given
         Long groupId = 1L;
+        Long cursorId = null;
+        int pageSize = 10;
         Long userId = mockUser.getId();
         Long voucherId = 1L;
-        Long cursorId = 1L;
-        int pageSize = 1;
-        String voucherName = "my voucherName";
-        LocalDate expiration = LocalDate.of(2025,1,1);
+        boolean hasNext = false;
         String mockPresignedUrl = "mockPresignedUrl";
 
         User user = User.builder()
@@ -184,10 +183,10 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
         Voucher voucher = Voucher.builder()
                 .id(voucherId)
                 .image("www.image.com")
-                .status(VoucherStatus.AVAILABLE)
-                .name(voucherName)
+                .name("쿠폰 이름")
                 .user(user)
-                .expiration(expiration)
+                .expiration(LocalDate.of(2020, 1, 1))
+                .status(VoucherStatus.AVAILABLE)
                 .build();
         Group group = Group.builder()
                 .id(groupId)
@@ -199,29 +198,27 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .groupTitleAlias("나의 그룹 이름")
                 .build();
 
-        List<VoucherListResponse> mockResponse = List.of(
-                VoucherListResponse.of(List.of(VouchersResponse.of(voucher, mockPresignedUrl)), userGroup));
+        VoucherListResponse mockResponse = VoucherListResponse.of(
+                List.of(VouchersResponse.withWishList(voucher, mockPresignedUrl, true)), userGroup);
 
-        Slice<VoucherListResponse> mockSlice =
-                new SliceImpl<>(mockResponse, PageRequest.of(0, pageSize), false);
+        SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
+                pageSize);
 
         when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
-                eq(pageSize)))
-                .thenReturn(mockSlice);
+                eq(pageSize))).thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/api/vouchers/{groupId}", groupId)
-                                .param("cursorId", cursorId.toString())
-                                .param("pageSize", String.valueOf(pageSize))
+                                .contentType(MediaType.APPLICATION_JSON)
                                 .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.pageable").exists())
-                .andExpect(jsonPath("$.pageable.pageSize").value(pageSize))
+                .andExpect(jsonPath("$.content").isNotEmpty())
+                .andExpect(jsonPath("$.hasNext").value(hasNext))
                 .andExpect(jsonPath("$.size").value(pageSize))
-                .andExpect(jsonPath("$.content[0].vouchers").isArray())
+
                 .andDo(document("voucher-get",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -238,66 +235,31 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .description("조회된 쿠폰 객체들의 배열"),
                                 fieldWithPath("content[].groupTitle").type(JsonFieldType.STRING)
                                         .description("해당 쿠폰 객체가 속해있는 그룹의 사용자별 별칭"),
-                                fieldWithPath("content[].groupInviteCode").type(JsonFieldType.STRING)
-                                                .description("해당 쿠폰 객체가 속해있는 그룹의 초대코드"),
+                                fieldWithPath("content[].groupInviteCode")
+                                        .type(JsonFieldType.STRING)
+                                        .description("해당 쿠폰 객체가 속해있는 그룹의 초대코드"),
                                 fieldWithPath("content[].vouchers[].id").type(JsonFieldType.NUMBER)
                                         .description("쿠폰 ID"),
-                                fieldWithPath("content[].vouchers[].presignedImage").type(
-                                                JsonFieldType.STRING)
-                                        .description("쿠폰 이미지 URL"),
-                                fieldWithPath("content[].vouchers[].status").type(
-                                                JsonFieldType.STRING)
+                                fieldWithPath("content[].vouchers[].presignedImage")
+                                        .type(JsonFieldType.STRING).description("쿠폰 이미지 URL"),
+                                fieldWithPath("content[].vouchers[].status")
+                                        .type(JsonFieldType.STRING)
                                         .description("쿠폰 사용 상태 (AVAILABLE/EXPIRED/USED)"),
-                                fieldWithPath("content[].vouchers[].registeredUserId").type(JsonFieldType.NUMBER)
-                                                .description("쿠폰을 등록한 유저의 ID"),
-                                fieldWithPath("content[].vouchers[].name").type(JsonFieldType.STRING)
-                                                .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
-                                fieldWithPath("content[].vouchers[].expiration").type(JsonFieldType.STRING)
-                                                .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
+                                fieldWithPath("content[].vouchers[].registeredUserId")
+                                        .type(JsonFieldType.NUMBER).description("쿠폰을 등록한 유저의 ID"),
+                                fieldWithPath("content[].vouchers[].name")
+                                        .type(JsonFieldType.STRING).description("쿠폰 등록자가 설정한 쿠폰의 이름"),
+                                fieldWithPath("content[].vouchers[].expiration")
+                                        .type(JsonFieldType.STRING).description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
+                                fieldWithPath("content[].vouchers[].status").type(JsonFieldType.STRING)
+                                        .description("쿠폰의 현재 상태"),
+                                fieldWithPath("content[].vouchers[].isWishList").type(JsonFieldType.BOOLEAN)
+                                        .description("쿠폰이 찜 되어 있는지의 여부"),
 
-                                subsectionWithPath("pageable").type(JsonFieldType.OBJECT)
-                                        .description("페이지네이션 요청 정보"),
-                                fieldWithPath("pageable.pageNumber").type(JsonFieldType.NUMBER)
-                                        .description("현재 페이지 번호"),
-                                fieldWithPath("pageable.pageSize").type(JsonFieldType.NUMBER)
-                                        .description("요청된 페이지 크기"),
-                                subsectionWithPath("pageable.sort").type(JsonFieldType.OBJECT)
-                                        .description("요청된 정렬 정보"),
-                                fieldWithPath("pageable.sort.empty").type(JsonFieldType.BOOLEAN)
-                                        .description("정렬 기준 존재 여부"),
-                                fieldWithPath("pageable.sort.sorted").type(JsonFieldType.BOOLEAN)
-                                        .description("정렬이 적용되었는지 여부"),
-                                fieldWithPath("pageable.sort.unsorted").type(JsonFieldType.BOOLEAN)
-                                        .description("정렬이 적용되지 않았는지 여부"),
-                                fieldWithPath("pageable.offset").type(JsonFieldType.NUMBER)
-                                        .description("요청 오프셋"),
-                                fieldWithPath("pageable.paged").type(JsonFieldType.BOOLEAN)
-                                        .description("페이지네이션이 적용되었는지 여부"),
-                                fieldWithPath("pageable.unpaged").type(JsonFieldType.BOOLEAN)
-                                        .description("페이지네이션이 적용되지 않았는지 여부"),
-
+                                fieldWithPath("hasNext").type(JsonFieldType.BOOLEAN)
+                                        .description("다음 페이지가 존재하는지 여부"),
                                 fieldWithPath("size").type(JsonFieldType.NUMBER)
-                                        .description("페이지 크기"),
-                                fieldWithPath("number").type(JsonFieldType.NUMBER)
-                                        .description("현재 페이지 번호"),
-
-                                subsectionWithPath("sort").type(JsonFieldType.OBJECT)
-                                        .description("실제 적용된 정렬 정보"),
-                                fieldWithPath("sort.empty").type(JsonFieldType.BOOLEAN)
-                                        .description("정렬 기준 존재 여부"),
-                                fieldWithPath("sort.sorted").type(JsonFieldType.BOOLEAN)
-                                        .description("정렬이 적용되었는지 여부"),
-                                fieldWithPath("sort.unsorted").type(JsonFieldType.BOOLEAN)
-                                        .description("정렬이 적용되지 않았는지 여부"),
-
-                                fieldWithPath("first").type(JsonFieldType.BOOLEAN)
-                                        .description("첫 페이지인지 여부"),
-                                fieldWithPath("last").type(JsonFieldType.BOOLEAN)
-                                        .description("마지막 페이지인지 여부"),
-                                fieldWithPath("numberOfElements").type(JsonFieldType.NUMBER)
-                                        .description("현재 페이지에 실제 포함된 요소 개수"),
-                                fieldWithPath("empty").type(JsonFieldType.BOOLEAN)
-                                        .description("현재 페이지가 비어 있는지 여부")
+                                        .description("요청한 페이지의 사이즈")
                         )));
     }
 
