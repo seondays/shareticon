@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.data.domain.Slice;
-import seondays.shareticon.voucher.dto.VoucherListResponse;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SliceResponse<T> {
@@ -21,7 +20,7 @@ public class SliceResponse<T> {
         return new SliceResponse<>(slice.getContent(), slice.hasNext(), slice.getSize());
     }
 
-    public static <T> SliceResponse<VoucherListResponse> of(VoucherListResponse response, boolean hasNext, int size) {
+    public static <T> SliceResponse<T> of(T response, boolean hasNext, int size) {
         return new SliceResponse<>(List.of(response), hasNext, size);
     }
 
