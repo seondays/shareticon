@@ -37,7 +37,7 @@ public class WishListService {
         Slice<VouchersResponse> responses = wishLists.map(wishList -> {
             Voucher voucher = wishList.getVoucher();
             String presignedImageUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
-            return VouchersResponse.of(voucher, presignedImageUrl);
+            return VouchersResponse.withWishList(voucher, presignedImageUrl, true);
         });
 
         return SliceResponse.from(responses);

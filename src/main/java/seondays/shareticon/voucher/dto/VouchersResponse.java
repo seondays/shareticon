@@ -9,15 +9,29 @@ public record VouchersResponse(Long id,
                                String name,
                                Long registeredUserId,
                                LocalDate expiration,
-                               VoucherStatus status) {
-    public static VouchersResponse of(Voucher voucher, String presignedImage) {
+                               VoucherStatus status,
+                               boolean isWishList) {
+    public static VouchersResponse of(VoucherWithWishListResponse voucher, String presignedImage) {
+        return new VouchersResponse(
+                voucher.id(),
+                presignedImage,
+                voucher.name(),
+                voucher.registeredUserId(),
+                voucher.expiration(),
+                voucher.status(),
+                voucher.isWishList()
+        );
+    }
+
+    public static VouchersResponse withWishList(Voucher voucher, String presignedImage, boolean isWishList) {
         return new VouchersResponse(
                 voucher.getId(),
                 presignedImage,
                 voucher.getName(),
                 voucher.getUser().getId(),
                 voucher.getExpiration(),
-                voucher.getStatus()
+                voucher.getStatus(),
+                isWishList
         );
     }
 

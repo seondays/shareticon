@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +27,7 @@ import seondays.shareticon.utils.validator.dto.VoucherCreationValidationRequest;
 import seondays.shareticon.utils.validator.dto.VoucherDeletionValidationRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.utils.validator.dto.VoucherAccessValidationRequest;
+import seondays.shareticon.voucher.dto.VoucherWithWishListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
 @Transactional(readOnly = true)
@@ -68,8 +68,7 @@ public class VoucherService {
         Voucher voucher = voucherFactory.createVoucherWithImage(user, group, request, imageKey);
 
         String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
-
-        return VouchersResponse.of(voucher, preSignedUrl);
+        return VouchersResponse.withWishList(voucher, preSignedUrl, false);
     }
 
     /**
@@ -108,15 +107,17 @@ public class VoucherService {
                 .orElseThrow(InvalidAccessException::new);
 
         Pageable pageable = PageRequest.of(0, size);
-        Slice<Voucher> vouchers = voucherRepository.findAllPageWithCursorByDesc(groupId,
+
+        Slice<VoucherWithWishListResponse> vouchers =
+                voucherRepository.findAllPageWithCursorByDesc(userId, groupId,
                 VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
 
         List<VouchersResponse> vouchersResponseList = vouchers.stream()
                 .map(voucher -> {
-                    String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
+                    String preSignedUrl = imageService.getPresignedImageUrl(voucher.image(), 5L);
                     return VouchersResponse.of(voucher, preSignedUrl);
-                })
-                .toList();
+                }).toList();
+
         VoucherListResponse voucherListResponse = VoucherListResponse.of(vouchersResponseList,
                 userGroup);
 
