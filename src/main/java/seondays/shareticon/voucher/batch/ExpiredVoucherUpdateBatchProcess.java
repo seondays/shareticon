@@ -69,7 +69,7 @@ public class ExpiredVoucherUpdateBatchProcess {
                 .name("voucherReader")
                 .entityManagerFactory(entityManagerFactory)
                 .queryString(
-                        "SELECT v FROM Voucher v WHERE v.isDeleted = false AND v.expiration > :startOfDay AND v.expiration < :endOfDay AND status = :status"
+                        "SELECT v FROM Voucher v WHERE v.isDeleted = false AND v.expiration >= :startOfDay AND v.expiration < :endOfDay AND status = :status"
                 )
                 .parameterValues(parameters)
                 .pageSize(100)
