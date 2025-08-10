@@ -15,7 +15,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,14 +65,13 @@ public class ExpiredVoucherUpdateBatchProcess {
         parameters.put("endOfDay", endOfDay);
         parameters.put("status", VoucherStatus.AVAILABLE);
 
-        return new JpaPagingItemReaderBuilder<Voucher>()
-                .name("voucherReader")
+        return new JpaCursorItemReaderBuilder<Voucher>()
+                .name("expiredVoucherReader")
                 .entityManagerFactory(entityManagerFactory)
                 .queryString(
                         "SELECT v FROM Voucher v WHERE v.isDeleted = false AND v.expiration >= :startOfDay AND v.expiration < :endOfDay AND status = :status"
                 )
                 .parameterValues(parameters)
-                .pageSize(100)
                 .build();
     }
 
