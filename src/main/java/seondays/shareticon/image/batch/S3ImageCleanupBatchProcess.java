@@ -17,7 +17,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,13 +67,12 @@ public class S3ImageCleanupBatchProcess {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("executionScope", executionScope);
 
-        return new JpaPagingItemReaderBuilder<Voucher>()
+        return new JpaCursorItemReaderBuilder<Voucher>()
                 .name("voucherReader")
                 .entityManagerFactory(entityManagerFactory)
                 .queryString(
                         "SELECT v FROM Voucher v WHERE v.isDeleted = true AND v.modifiedDateTime >= :executionScope")
                 .parameterValues(parameters)
-                .pageSize(100)
                 .build();
     }
 
