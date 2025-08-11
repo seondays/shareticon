@@ -2,11 +2,14 @@ package seondays.shareticon.api.voucher.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static seondays.shareticon.voucher.VoucherStatus.AVAILABLE;
+import static seondays.shareticon.voucher.VoucherStatus.USED;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +56,13 @@ public class ExpiredVoucherUpdateBatchTest extends IntegrationTestSupport {
 
     }
 
+    @AfterEach
+    void tearDown() {
+        voucherRepository.deleteAllInBatch();
+        groupRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+    }
+
     @Test
     @DisplayName("Job은 전날이 만료일인 쿠폰들의 상태를 만료로 변경한다")
     void ExpiredVoucherUpdateJob() throws Exception {
@@ -61,7 +71,7 @@ public class ExpiredVoucherUpdateBatchTest extends IntegrationTestSupport {
         Group group = createGroup(user);
         LocalDate now = LocalDate.now(clock);
 
-        Voucher expectedToBeExpired = createVoucher(user, group, now.minusDays(1));
+        Voucher expectedToBeExpired = createVoucher(user, group, now.minusDays(1), AVAILABLE);
 
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("jobId", "test")
@@ -73,8 +83,76 @@ public class ExpiredVoucherUpdateBatchTest extends IntegrationTestSupport {
 
         //then
         assertThat(run.getStatus()).isEqualTo(BatchStatus.COMPLETED);
-        Voucher updateVoucher = voucherRepository.findById(expectedToBeExpired.getId()).orElseThrow();
+        Voucher updateVoucher = voucherRepository.findById(expectedToBeExpired.getId())
+                .orElseThrow();
         assertThat(updateVoucher.getStatus()).isEqualTo(VoucherStatus.EXPIRED);
+    }
+
+    @Test
+    @DisplayName("만료일이 실행 시점 전날이 아닌 쿠폰은 Job에 의해 변경되지 않는다")
+    void ExpiredVoucherUpdateJobWithNotExpired() throws Exception {
+        //given
+        User user = createUser();
+        Group group = createGroup(user);
+        LocalDate now = LocalDate.now(clock);
+
+        Voucher expectedToBeAvailable = createVoucher(user, group, now.plusDays(1), AVAILABLE);
+        Voucher expectedToBeAvailable2 = createVoucher(user, group, now, AVAILABLE);
+        Voucher expectedToBeExpired = createVoucher(user, group, now.minusDays(1), AVAILABLE);
+
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("jobId", "test2")
+                .addString("currentDate", now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                .toJobParameters();
+
+        //when
+        JobExecution run = jobLauncher.run(expiredVoucherUpdateJob, jobParameters);
+
+        //then
+        assertThat(run.getStatus()).isEqualTo(BatchStatus.COMPLETED);
+
+        Voucher updateAvailableVoucher = voucherRepository.findById(expectedToBeAvailable.getId())
+                .orElseThrow();
+        Voucher updateAvailableVoucher2 = voucherRepository.findById(expectedToBeAvailable2.getId())
+                .orElseThrow();
+        Voucher updateExpiredVoucher = voucherRepository.findById(expectedToBeExpired.getId())
+                .orElseThrow();
+
+        assertThat(updateAvailableVoucher.getStatus()).isEqualTo(AVAILABLE);
+        assertThat(updateAvailableVoucher2.getStatus()).isEqualTo(AVAILABLE);
+        assertThat(updateExpiredVoucher.getStatus()).isEqualTo(VoucherStatus.EXPIRED);
+    }
+
+    @Test
+    @DisplayName("이미 사용된 쿠폰은 Job에 의해 상태가 변경되지 않는다")
+    void ExpiredVoucherUpdateJobWithUsedStatus() throws Exception {
+        //given
+        User user = createUser();
+        Group group = createGroup(user);
+        LocalDate now = LocalDate.now(clock);
+
+        Voucher expectedToBeMaintainState = createVoucher(user, group, now.plusDays(1), USED);
+        Voucher expectedToBeExpired = createVoucher(user, group, now.minusDays(1), AVAILABLE);
+
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("jobId", "test3")
+                .addString("currentDate", now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                .toJobParameters();
+
+        //when
+        JobExecution run = jobLauncher.run(expiredVoucherUpdateJob, jobParameters);
+
+        //then
+        assertThat(run.getStatus()).isEqualTo(BatchStatus.COMPLETED);
+
+        Voucher updateMaintainState = voucherRepository.findById(expectedToBeMaintainState.getId())
+                .orElseThrow();
+        Voucher updateExpiredVoucher = voucherRepository.findById(expectedToBeExpired.getId())
+                .orElseThrow();
+
+        assertThat(updateMaintainState.getStatus()).isEqualTo(USED);
+        assertThat(updateExpiredVoucher.getStatus()).isEqualTo(VoucherStatus.EXPIRED);
+
     }
 
     private User createUser() {
@@ -87,9 +165,10 @@ public class ExpiredVoucherUpdateBatchTest extends IntegrationTestSupport {
         return groupRepository.save(group);
     }
 
-    private Voucher createVoucher(User user, Group group, LocalDate expiration) {
-        Voucher voucher = Voucher.builder().user(user).group(group).expiration(expiration).status(
-                VoucherStatus.AVAILABLE).isDeleted(false).build();
+    private Voucher createVoucher(User user, Group group, LocalDate expiration,
+            VoucherStatus status) {
+        Voucher voucher = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(status).isDeleted(false).build();
         return voucherRepository.save(voucher);
     }
 
