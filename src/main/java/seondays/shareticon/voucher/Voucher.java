@@ -74,6 +74,8 @@ public class Voucher extends BaseEntity {
     }
 
     public void changeStatusExpired() {
-        status = VoucherStatus.EXPIRED;
+        if (status == VoucherStatus.AVAILABLE) {
+            status = VoucherStatus.EXPIRED;
+        }
     }
 }
