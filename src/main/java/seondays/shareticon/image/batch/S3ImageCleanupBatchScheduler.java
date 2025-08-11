@@ -23,7 +23,7 @@ public class S3ImageCleanupBatchScheduler {
     private final Job voucherImageCleanupJob;
     private final Clock clock;
 
-    @Scheduled(cron = "0 0 0 1 1/2 ?")
+    @Scheduled(cron = "0 0 0 1 1/2 ?", zone = "Asia/Seoul")
     public void runVoucherImageCleanupJob() {
         try {
             LocalDateTime now = LocalDateTime.now(clock);

@@ -25,7 +25,7 @@ public class ExpiredVoucherUpdateBatchScheduler {
     private final Job expiredVoucherUpdateJob;
     public static final String JOB_ID_PREFIX = "runExpiredVoucherUpdateJob";
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul")
     public void runExpiredVoucherUpdateJob() throws Exception {
         LocalDateTime now = LocalDateTime.now(clock);
 
