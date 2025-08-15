@@ -3,6 +3,7 @@ package seondays.shareticon.config;
 import java.util.Arrays;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,6 +27,14 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
     private final AuthenticationEntryPoint entryPoint;
+
+    @Bean
+    @ConditionalOnProperty("management.server.port")
+    public SecurityFilterChain managementFilter(HttpSecurity http) throws Exception {
+        http.securityMatcher("/actuator/**")
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
