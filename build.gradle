@@ -76,6 +76,29 @@ dependencies {
 
 	// prometheus
 	implementation("io.micrometer:micrometer-registry-prometheus")
+
+	// openfeign querydsl
+	implementation("io.github.openfeign.querydsl:querydsl-jpa:7.0")
+	annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:7.0:jakarta")
+
+	def generated = "$buildDir/generated/querydsl"
+
+	tasks.withType(JavaCompile).configureEach {
+		options.generatedSourceOutputDirectory.set(file(generated))
+	}
+
+	sourceSets {
+		main {
+			java {
+				srcDirs += [generated]
+			}
+		}
+	}
+
+	clean {
+		delete file(generated)
+	}
+
 }
 
 tasks.named('test') {
