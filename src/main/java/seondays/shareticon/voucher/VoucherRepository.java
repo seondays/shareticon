@@ -1,34 +1,12 @@
 package seondays.shareticon.voucher;
 
-import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import seondays.shareticon.voucher.dto.VoucherWithWishListResponse;
 
 @Repository
-public interface VoucherRepository extends JpaRepository<Voucher, Long> {
-
-    @Query("""
-              select new seondays.shareticon.voucher.dto.VoucherWithWishListResponse(
-                          v,
-                          case when w.isActive = true then true else false end)
-              from Voucher v
-              left join WishList w on v = w.voucher and w.user.id = :userId
-              where v.group.id= :groupId
-              and v.status in :voucherStatuses
-              and (:cursorId is null or v.id < :cursorId)
-              and v.isDeleted = false
-              order by v.id DESC
-            """)
-    Slice<VoucherWithWishListResponse> findAllPageWithCursorByDesc(
-            @Param("userId") Long userId, @Param("groupId") Long groupId,
-            @Param("voucherStatuses") List<VoucherStatus> voucherStatuses,
-            @Param("cursorId") Long cursorId, Pageable pageable);
+public interface VoucherRepository extends JpaRepository<Voucher, Long>, VoucherQueryDslRepository {
 
     Long countByUserIdAndIsDeletedFalse(Long userId);
 

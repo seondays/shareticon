@@ -1,5 +1,6 @@
 package seondays.shareticon.voucher.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDate;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
@@ -14,6 +15,7 @@ public record VoucherWithWishListResponse(
         boolean isWishList
 ) {
 
+    @QueryProjection
     public VoucherWithWishListResponse(Voucher voucher, boolean isWishList){
         this(
                 voucher.getId(),
