@@ -102,15 +102,14 @@ public class VoucherService {
      * @return
      */
     public SliceResponse<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
-            int size) {
+            int size, VoucherFilterCondition condition) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(InvalidAccessException::new);
 
-        Pageable pageable = PageRequest.of(0, size);
+        Pageable pageable = PageRequest.ofSize(size);
 
         Slice<VoucherWithWishListResponse> vouchers =
-                voucherRepository.findAllPageWithCursorByDesc(userId, groupId,
-                VoucherStatus.forDisplayVoucherStatus(), cursorId, pageable);
+                voucherRepository.searchVoucher(userId, groupId, condition, cursorId, pageable);
 
         List<VouchersResponse> vouchersResponseList = vouchers.stream()
                 .map(voucher -> {
