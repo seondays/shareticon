@@ -31,7 +31,7 @@ public class VoucherRepositoryImpl implements VoucherQueryDslRepository {
         List<VoucherWithWishListResponse> result = jpaQueryFactory.select(
                         new QVoucherWithWishListResponse(
                                 voucher,
-                                wishList.id.isNotNull()
+                                wishList.isActive.isTrue()
                         ))
                 .from(voucher)
                 .leftJoin(wishList)
