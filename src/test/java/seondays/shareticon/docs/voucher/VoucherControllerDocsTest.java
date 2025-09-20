@@ -11,7 +11,6 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestPartFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -19,6 +18,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.restdocs.request.RequestDocumentation.requestParts;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 import java.nio.charset.StandardCharsets;
@@ -41,6 +41,7 @@ import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherController;
+import seondays.shareticon.voucher.VoucherFilterCondition;
 import seondays.shareticon.voucher.VoucherService;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.CreateVoucherRequest;
@@ -166,14 +167,14 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("페이징을 포함하여 그룹에 등록된 전체 쿠폰을 조회한다")
-    void getAllVoucherInGroup() throws Exception {
+    @DisplayName("필터 조건과 페이지 정보 모두 포함하여 그룹에 등록된 전체 쿠폰을 조회한다")
+    void getAllVoucherInGroupPageInfoAndFilterCondition() throws Exception {
         //given
         Long groupId = 1L;
-        Long cursorId = null;
-        int pageSize = 10;
         Long userId = mockUser.getId();
         Long voucherId = 1L;
+        Long cursorId = 1L;
+        int pageSize = 1;
         boolean hasNext = false;
         String mockPresignedUrl = "mockPresignedUrl";
 
@@ -197,28 +198,36 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                 .group(group)
                 .groupTitleAlias("나의 그룹 이름")
                 .build();
-
         VoucherListResponse mockResponse = VoucherListResponse.of(
-                List.of(VouchersResponse.withWishList(voucher, mockPresignedUrl, true)), userGroup);
+                List.of(VouchersResponse.withWishList(voucher, mockPresignedUrl, false)),
+                userGroup);
 
         SliceResponse<VoucherListResponse> mockSlice = SliceResponse.of(mockResponse, hasNext,
                 pageSize);
 
+        VoucherFilterCondition emptyCondition = VoucherFilterCondition.of(
+                List.of(VoucherStatus.AVAILABLE),
+                LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31));
+
         when(voucherService.getAllVoucher(eq(mockUser.getId()), eq(groupId), eq(cursorId),
-                eq(pageSize))).thenReturn(mockSlice);
+                eq(pageSize), eq(emptyCondition))).thenReturn(mockSlice);
 
         //when //then
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/api/vouchers/{groupId}", groupId)
+                                .param("cursorId", cursorId.toString())
+                                .param("pageSize", String.valueOf(pageSize))
+                                .param("voucherStatuses", "AVAILABLE")
+                                .param("startDay", "2025-01-01")
+                                .param("endDay", "2025-01-31")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isNotEmpty())
-                .andExpect(jsonPath("$.hasNext").value(hasNext))
                 .andExpect(jsonPath("$.size").value(pageSize))
-
+                .andExpect(jsonPath("$.hasNext").value(hasNext))
                 .andDo(document("voucher-get",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -228,7 +237,13 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                         queryParameters(
                                 parameterWithName("cursorId").description("커서 ID 값").optional(),
                                 parameterWithName("pageSize").description("페이지 사이즈 값 (기본값 10)")
-                                        .optional()
+                                        .optional(),
+                                parameterWithName("voucherStatuses").description(
+                                        "조회할 쿠폰의 사용 상태 (AVAILABLE/EXPIRED/USED)").optional(),
+                                parameterWithName("startDay").description(
+                                        "만료일 기준으로 쿠폰을 조회하는 기간의 시작일 (yyyy-MM-dd)").optional(),
+                                parameterWithName("endDay").description(
+                                        "만료일 기준으로 쿠폰을 조회하는 기간의 종료일 (yyyy-MM-dd)").optional()
                         ),
                         responseFields(
                                 fieldWithPath("content").type(JsonFieldType.ARRAY)
@@ -244,16 +259,17 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .type(JsonFieldType.STRING).description("쿠폰 이미지 URL"),
                                 fieldWithPath("content[].vouchers[].status")
                                         .type(JsonFieldType.STRING)
-                                        .description("쿠폰 사용 상태 (AVAILABLE/EXPIRED/USED)"),
+                                        .description("쿠폰 사용 상태. 다중 선택 가능 (AVAILABLE/EXPIRED/USED)"),
                                 fieldWithPath("content[].vouchers[].registeredUserId")
                                         .type(JsonFieldType.NUMBER).description("쿠폰을 등록한 유저의 ID"),
                                 fieldWithPath("content[].vouchers[].name")
-                                        .type(JsonFieldType.STRING).description("쿠폰 등록자가 설정한 쿠폰의 이름"),
+                                        .type(JsonFieldType.STRING)
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 이름"),
                                 fieldWithPath("content[].vouchers[].expiration")
-                                        .type(JsonFieldType.STRING).description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
-                                fieldWithPath("content[].vouchers[].status").type(JsonFieldType.STRING)
-                                        .description("쿠폰의 현재 상태"),
-                                fieldWithPath("content[].vouchers[].isWishList").type(JsonFieldType.BOOLEAN)
+                                        .type(JsonFieldType.STRING)
+                                        .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
+                                fieldWithPath("content[].vouchers[].isWishList").type(
+                                                JsonFieldType.BOOLEAN)
                                         .description("쿠폰이 찜 되어 있는지의 여부"),
 
                                 fieldWithPath("hasNext").type(JsonFieldType.BOOLEAN)
@@ -261,6 +277,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("size").type(JsonFieldType.NUMBER)
                                         .description("요청한 페이지의 사이즈")
                         )));
+
     }
 
     @Test

@@ -7,7 +7,7 @@
 기본적인 기능 개발 및 배포를 완료하여 현재 실제로 운영 및 직접 서비스를 사용 중입니다. 사용자 피드백을 바탕으로 지속적인 기능 추가 개선 및 유지보수를 진행하고 있습니다.
 
 - 개발 기간 : 2025. 04 ~ 운영 중
-- 개발 인원 : 1인 (백엔드 담당 / 프론트 Cursor AI 사용하여 구현)
+- 개발 인원 : 1인 (백엔드 담당 / 프론트 Cursor AI 사용한 바이브 코딩을 통해 구현)
 
 ## Link
 - [🔗 운영 서비스](https://www.shareticon.site)
@@ -33,10 +33,12 @@
 
 - 예상 MAU가 10명 이하로 매우 적을 것으로 예측되었고 이를 바탕으로 서버의 가용성, 보안성과 비용 사이의 트레이드 오프에서 비용에 높은 비중을 두어 리소스를 최소화했습니다.
   - 단일 AZ 사용, 최소 인스턴스(2대), 최소 DB
+- AZ 분산의 부재로 인해 현재 모든 인스턴스들이 단일 장애 지점임을 인식, 백엔드 애플리케이션 내부 상태 확인을 위해 모니터링 시스템을 구축했습니다.
+  - 서버와 분리된 외부 퍼블릭 인스턴스에 배치하여 서버에 문제가 발생했을 때도 정상적으로 해당 사항을 파악할 수 있도록 설계
 - 이후 필요에 따라 서비스 확장에 대비할 수 있도록 기초 아키텍처 기반은 유지하고 있습니다.
-  - 두번째 AZ 네트워크 설정 유지
+  - 서브넷 분리하여 두번째 AZ 네트워크 설정 유지
 
-<img width="1315" height="1163" alt="Image" src="https://github.com/user-attachments/assets/a933957b-f8f0-4cb4-8bcd-70cce8083382" />
+<img width="1331" height="1044" alt="백엔드" src="https://github.com/user-attachments/assets/91676c29-28d7-4ece-89a0-11d6ad834c31" />
 
 ## ERD
 <img width="1391" height="1032" alt="Image" src="https://github.com/user-attachments/assets/40ef3d15-9057-40be-8695-f3462bfe3d37" />
@@ -66,4 +68,7 @@
 
 ### 그룹 별칭 변경 화면
 <img src="https://github.com/user-attachments/assets/271fe489-5fd0-4839-a3ff-51753da570ff" alt="group-alias" width="350">
+
+### 쿠폰 찜하기 화면
+<img src="https://github.com/user-attachments/assets/5536b705-d9ce-48ec-9b66-af068c4f5550" alt="join-group" width="350">
 

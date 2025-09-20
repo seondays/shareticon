@@ -1,5 +1,6 @@
 package seondays.shareticon.exception.handler;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -151,6 +152,14 @@ public class CustomExceptionHandler {
         log.error(String.valueOf(e));
 
         return createExceptionResponse(message, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<CustomExceptionResponse> handleConstraintViolationException(
+            ConstraintViolationException e) {
+        log.error(String.valueOf(e));
+
+        return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

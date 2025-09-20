@@ -13,7 +13,7 @@ public enum VoucherStatus {
     private final String discription;
 
     public static List<VoucherStatus> forDisplayVoucherStatus() {
-        return List.of(USED, AVAILABLE, EXPIRED);
+        return List.of(USED, AVAILABLE);
     }
 
     public void validateVoucherStatusExpired() {
