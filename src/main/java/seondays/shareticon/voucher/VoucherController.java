@@ -1,12 +1,15 @@
 package seondays.shareticon.voucher;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -24,6 +27,7 @@ import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/vouchers")
@@ -56,7 +60,7 @@ public class VoucherController {
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @PathVariable("groupId") Long groupId,
             @RequestParam(required = false) Long cursorId,
-            @RequestParam(defaultValue = "10") int pageSize,
+            @Valid @RequestParam(defaultValue = "10") @Min(1) @Max(20) int pageSize,
             @ModelAttribute VoucherFilterCondition condition) {
         Long userId = userDetails.getId();
 
