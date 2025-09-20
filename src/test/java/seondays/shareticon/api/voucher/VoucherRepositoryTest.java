@@ -1,21 +1,29 @@
 package seondays.shareticon.api.voucher;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import seondays.shareticon.api.config.RepositoryTestSupport;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.voucher.Voucher;
+import seondays.shareticon.voucher.VoucherFilterCondition;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherStatus;
 import seondays.shareticon.voucher.dto.VoucherWithWishListResponse;
@@ -31,6 +39,18 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private UserRepository userRepository;
 
+    @MockitoBean
+    protected Clock clock;
+
+    private Instant testSystemTimeInstant;
+
+    @BeforeEach
+    void setUp() {
+        testSystemTimeInstant = Instant.parse("2024-12-01T00:00:00Z");
+        when(clock.instant()).thenReturn(testSystemTimeInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("Asia/Seoul"));
+    }
+
     @Test
     @DisplayName("전체 쿠폰의 첫번째 페이지를 조회한다")
     void getAllVoucherWithFirstPage() {
@@ -42,20 +62,29 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, user, VoucherStatus.USED);
+        LocalDate expiration = LocalDate.of(2024, 12, 5);
+        Voucher voucher1 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher2 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
+        Voucher voucher3 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher4 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher5 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
-        Pageable pageable = PageRequest.of(0, 2);
+        Pageable pageable = PageRequest.ofSize(2);
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        //when
-        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.findAllPageWithCursorByDesc(
-                user.getId(), group.getId(), voucherStatuses, null, pageable);
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = null;
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
+
+        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
 
         //then
         assertThat(firstPage.getContent()).hasSize(pageable.getPageSize());
@@ -79,25 +108,35 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, user, VoucherStatus.USED);
+        LocalDate expiration = LocalDate.of(2024, 12, 5);
+        Voucher voucher1 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher2 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
+        Voucher voucher3 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher4 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher5 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
-        Pageable pageable = PageRequest.of(0, 2);
+        Pageable pageable = PageRequest.ofSize(2);
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.findAllPageWithCursorByDesc(
-                user.getId(), group.getId(), voucherStatuses, null, pageable);
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = null;
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
+
+        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
 
         Long cursor = firstPage.getContent().get(firstPage.getContent().size() - 1).id();
 
         //when
-        Slice<VoucherWithWishListResponse> secondPage = voucherRepository.findAllPageWithCursorByDesc(
-                user.getId(), group.getId(), voucherStatuses, cursor, pageable);
+        Slice<VoucherWithWishListResponse> secondPage = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, cursor, pageable);
 
         //then
         assertThat(secondPage.getContent()).hasSize(pageable.getPageSize());
@@ -106,8 +145,8 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
                 .allMatch(v -> voucherStatuses.contains(v.status()));
         assertThat(secondPage.getContent()).isSortedAccordingTo(
                 Comparator.comparing(VoucherWithWishListResponse::id).reversed());
-        assertThat(secondPage.getContent()).extracting("id")
-                .containsExactly(voucher3.getId(), voucher2.getId());
+            assertThat(secondPage.getContent()).extracting("id")
+                    .containsExactly(voucher3.getId(), voucher2.getId());
     }
 
     @Test
@@ -121,28 +160,38 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, user, VoucherStatus.USED);
+        LocalDate expiration = LocalDate.of(2024, 12, 5);
+        Voucher voucher1 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher2 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
+        Voucher voucher3 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher4 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher5 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
-        Pageable pageable = PageRequest.of(0, 2);
+        Pageable pageable = PageRequest.ofSize(2);
 
         List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
 
-        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.findAllPageWithCursorByDesc(
-                user.getId(), group.getId(), voucherStatuses, null, pageable);
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = null;
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
+
+        Slice<VoucherWithWishListResponse> firstPage = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
         Long firstCursor = firstPage.getContent().get(firstPage.getContent().size() - 1).id();
 
-        Slice<VoucherWithWishListResponse> secondPage = voucherRepository.findAllPageWithCursorByDesc(
-                user.getId(), group.getId(), voucherStatuses, firstCursor, pageable);
+        Slice<VoucherWithWishListResponse> secondPage = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, firstCursor, pageable);
         Long secondCursor = secondPage.getContent().get(secondPage.getContent().size() - 1).id();
 
         //when
-        Slice<VoucherWithWishListResponse> lastPage = voucherRepository.findAllPageWithCursorByDesc(
-                user.getId(), group.getId(), voucherStatuses, secondCursor, pageable);
+        Slice<VoucherWithWishListResponse> lastPage = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, secondCursor, pageable);
 
         //then
         assertThat(lastPage.getContent()).hasSize(1);
@@ -154,8 +203,8 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
-    @DisplayName("사용가능, 사용완료, 사용만료 상태인 쿠폰만 조회된다")
-    void getVoucherStatusUsedAndAvailable() {
+    @DisplayName("상태 조건을 만족하는 쿠폰만 조회된다")
+    void getVoucherStatusCondition() {
         //given
         User user = User.builder().build();
         userRepository.save(user);
@@ -164,27 +213,75 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Voucher voucher1 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher2 = createVoucher(group, user, VoucherStatus.USED);
-        Voucher voucher3 = createVoucher(group, user, VoucherStatus.EXPIRED);
-        Voucher voucher4 = createVoucher(group, user, VoucherStatus.AVAILABLE);
-        Voucher voucher5 = createVoucher(group, user, VoucherStatus.EXPIRED);
+        LocalDate expiration = LocalDate.of(2024, 12, 5);
+        Voucher voucher1 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher2 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
+        Voucher voucher3 = createVoucherWithExpiration(group, user, VoucherStatus.EXPIRED,
+                expiration);
+        Voucher voucher4 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiration);
+        Voucher voucher5 = createVoucherWithExpiration(group, user, VoucherStatus.USED, expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
 
-        List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
+        Pageable pageable = PageRequest.ofSize(5);
 
-        Pageable pageable = PageRequest.of(0, 5);
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = List.of(VoucherStatus.AVAILABLE);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
 
         //when
-        Slice<VoucherWithWishListResponse> result =
-                voucherRepository.findAllPageWithCursorByDesc(user.getId(),
-                group.getId(), voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> result = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
 
         //then
         assertThat(result.getContent()).extracting("status")
-                .containsExactlyInAnyOrder(
-                        VoucherStatus.AVAILABLE, VoucherStatus.USED, VoucherStatus.EXPIRED,
-                        VoucherStatus.AVAILABLE, VoucherStatus.EXPIRED);
+                .contains(VoucherStatus.AVAILABLE, VoucherStatus.AVAILABLE);
+    }
+
+    @Test
+    @DisplayName("만료 기간 조건을 만족하는 쿠폰만 조회된다")
+    void getVoucherExpiredCondition() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        LocalDate expiredConditionDate = LocalDate.of(2024, 11, 5);
+        LocalDate notExpiredConditionDate = LocalDate.of(2024, 12, 5);
+        Voucher voucher1 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                expiredConditionDate);
+        Voucher voucher2 = createVoucherWithExpiration(group, user, VoucherStatus.USED,
+                notExpiredConditionDate);
+        Voucher voucher3 = createVoucherWithExpiration(group, user, VoucherStatus.EXPIRED,
+                expiredConditionDate);
+        Voucher voucher4 = createVoucherWithExpiration(group, user, VoucherStatus.AVAILABLE,
+                notExpiredConditionDate);
+        Voucher voucher5 = createVoucherWithExpiration(group, user, VoucherStatus.USED,
+                notExpiredConditionDate);
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3, voucher4, voucher5));
+
+        Pageable pageable = PageRequest.ofSize(5);
+
+        LocalDate searchStart = LocalDate.of(2024,12,1);
+        LocalDate searchEnd = LocalDate.of(2024,12,10);
+        List<VoucherStatus> status = null;
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
+
+        //when
+        Slice<VoucherWithWishListResponse> result = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
+
+        //then
+        assertThat(result.getContent()).extracting("id")
+                .containsExactlyInAnyOrder(voucher2.getId(), voucher4.getId(), voucher5.getId());
+
     }
 
     @Test
@@ -196,14 +293,17 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
         Group group = createTestGroup(inviteCode);
         groupRepository.save(group);
 
-        Pageable pageable = PageRequest.of(0, 2);
+        Pageable pageable = PageRequest.ofSize(2);
 
-        List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = List.of(VoucherStatus.AVAILABLE);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
 
         //when
-        Slice<VoucherWithWishListResponse> result =
-                voucherRepository.findAllPageWithCursorByDesc(userId,
-                        group.getId(), voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> result = voucherRepository.searchVoucher(
+                userId, group.getId(), voucherFilterCondition, null, pageable);
 
         //then
         assertThat(result.getContent()).isEmpty();
@@ -266,14 +366,17 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
                 .status(VoucherStatus.AVAILABLE).build();
         voucherRepository.save(voucher);
 
-        List<VoucherStatus> voucherStatuses = VoucherStatus.forDisplayVoucherStatus();
+        Pageable pageable = PageRequest.ofSize(2);
 
-        Pageable pageable = PageRequest.of(0, 2);
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = List.of(VoucherStatus.AVAILABLE);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
 
         //when
-        Slice<VoucherWithWishListResponse> result =
-                voucherRepository.findAllPageWithCursorByDesc(user.getId(),
-                        group.getId(), voucherStatuses, null, pageable);
+        Slice<VoucherWithWishListResponse> result = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
 
         //then
         assertThat(result.getContent()).isEmpty();
@@ -281,12 +384,14 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
 
     }
 
-    private static Voucher createVoucher(Group group, User user, VoucherStatus status) {
+    private static Voucher createVoucherWithExpiration(Group group, User user, VoucherStatus status,
+            LocalDate expiration) {
         return Voucher.builder()
                 .user(user)
                 .group(group)
                 .isDeleted(false)
                 .status(status)
+                .expiration(expiration)
                 .build();
     }
 

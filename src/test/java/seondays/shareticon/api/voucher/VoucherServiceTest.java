@@ -45,6 +45,7 @@ import seondays.shareticon.userGroup.UserGroup;
 import seondays.shareticon.userGroup.UserGroupRepository;
 import seondays.shareticon.utils.SliceResponse;
 import seondays.shareticon.voucher.Voucher;
+import seondays.shareticon.voucher.VoucherFilterCondition;
 import seondays.shareticon.voucher.VoucherRepository;
 import seondays.shareticon.voucher.VoucherService;
 import seondays.shareticon.voucher.VoucherStatus;
@@ -309,7 +310,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
 
-        Voucher voucher = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
+        Voucher voucher = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                expiration);
         voucherRepository.save(voucher);
 
         //when
@@ -396,18 +398,26 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher1 = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
-        Voucher voucher2 = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
-        Voucher voucher3 = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
+        Voucher voucher1 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                expiration);
+        Voucher voucher2 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                expiration);
+        Voucher voucher3 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                expiration);
 
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        LocalDate searchStart = LocalDate.of(2024, 12, 10);
+        LocalDate searchEnd = LocalDate.of(2025, 1, 10);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                VoucherStatus.forDisplayVoucherStatus(), searchStart, searchEnd);
 
         //when
         String preSignedImageUrl = "presignedImageUrlResult";
         given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
 
         SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
-                group.getId(), null, 3);
+                group.getId(), null, 3, voucherFilterCondition);
 
         VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
 
@@ -442,9 +452,14 @@ class VoucherServiceTest extends IntegrationTestSupport {
         String userGroupAlias = "그룹 별칭";
         linkUserWithGroup(user, group, userGroupAlias);
 
+        LocalDate searchStart = LocalDate.of(2024, 12, 10);
+        LocalDate searchEnd = LocalDate.of(2025, 1, 10);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                VoucherStatus.forDisplayVoucherStatus(), searchStart, searchEnd);
+
         //when
         SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
-                group.getId(), null, 3);
+                group.getId(), null, 3, voucherFilterCondition);
 
         VoucherListResponse voucherListResponse = allVoucher.getContent().get(0);
 
@@ -469,15 +484,215 @@ class VoucherServiceTest extends IntegrationTestSupport {
         groupRepository.save(group);
 
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher1 = Voucher.createNewVoucher(user, group, "voucher name1", "imageKey", expiration);
-        Voucher voucher2 = Voucher.createNewVoucher(user, group, "voucher name2", "imageKey", expiration);
-        Voucher voucher3 = Voucher.createNewVoucher(user, group, "voucher name3", "imageKey", expiration);
+        Voucher voucher1 = Voucher.createNewVoucher(user, group, "voucher name1", "imageKey",
+                expiration);
+        Voucher voucher2 = Voucher.createNewVoucher(user, group, "voucher name2", "imageKey",
+                expiration);
+        Voucher voucher3 = Voucher.createNewVoucher(user, group, "voucher name3", "imageKey",
+                expiration);
         voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        LocalDate searchStart = LocalDate.of(2024, 12, 10);
+        LocalDate searchEnd = LocalDate.of(2025, 1, 10);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                VoucherStatus.forDisplayVoucherStatus(), searchStart, searchEnd);
 
         //when //then
         assertThatThrownBy(() -> voucherService.getAllVoucher(user.getId(),
-                group.getId(), null, 3)).isInstanceOf(InvalidAccessException.class);
+                group.getId(), null, 3, voucherFilterCondition)).isInstanceOf(
+                InvalidAccessException.class);
     }
+
+    @Test
+    @DisplayName("만료일 필터 : 만료일 필터를 설정하여 쿠폰을 조회할 경우, 지정한 날짜 내에 해당되는 쿠폰만 결과에 포함된다")
+    void getAllVoucherWithExpiredFilter() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
+        UserGroup userGroup = linkUserWithGroup(user, group, userGroupAlias);
+
+        String voucherName = "voucher name";
+        Voucher voucher1 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                LocalDate.of(2025, 1, 1));
+        Voucher voucher2 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                LocalDate.of(2025, 3, 1));
+        Voucher voucher3 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                LocalDate.of(2025, 2, 15));
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        LocalDate searchStart = LocalDate.of(2025, 1, 1);
+        LocalDate searchEnd = LocalDate.of(2025, 2, 28);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                VoucherStatus.forDisplayVoucherStatus(), searchStart, searchEnd);
+
+        //when
+        String preSignedImageUrl = "presignedImageUrlResult";
+        given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
+
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3, voucherFilterCondition);
+
+        VoucherListResponse content = allVoucher.getContent().get(0);
+
+        //then
+        assertThat(allVoucher).isNotNull();
+        assertThat(allVoucher.getSize()).isEqualTo(3);
+        assertThat(allVoucher.getContent().size()).isEqualTo(1);
+
+        assertThat(content).isNotNull();
+        assertThat(content.vouchers()).hasSize(2);
+        assertThat(content.vouchers())
+                .extracting(VouchersResponse::id)
+                .containsExactlyInAnyOrder(voucher1.getId(), voucher3.getId())
+                .doesNotContain(voucher2.getId());
+
+    }
+
+    @Test
+    @DisplayName("만료일 필터 : 만료일 필터 내역을 설정하지 않고 쿠폰을 조회할 경우, 조회일로부터 30일 이내로 만료되는 쿠폰만 결과에 포함된다")
+    void getAllVoucherWithDefaultExpiredFilter() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
+        UserGroup userGroup = linkUserWithGroup(user, group, userGroupAlias);
+
+        String voucherName = "voucher name";
+        Voucher voucher1 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                LocalDate.of(2024, 12, 31));
+        Voucher voucher2 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                LocalDate.of(2024, 11, 30));
+        Voucher voucher3 = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                LocalDate.of(2025, 1, 1));
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                VoucherStatus.forDisplayVoucherStatus(), searchStart, searchEnd);
+
+        //when
+        String preSignedImageUrl = "presignedImageUrlResult";
+        given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
+
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3, voucherFilterCondition);
+
+        VoucherListResponse content = allVoucher.getContent().get(0);
+
+        //then
+        assertThat(content).isNotNull();
+        assertThat(content.vouchers()).hasSize(1);
+        assertThat(content.vouchers())
+                .extracting(VouchersResponse::id)
+                .containsExactlyInAnyOrder(voucher1.getId())
+                .doesNotContain(voucher2.getId(), voucher3.getId());
+
+    }
+
+    @Test
+    @DisplayName("쿠폰 상태 필터 : 쿠폰 상태 필터를 설정하여 쿠폰을 조회할 경우, 설정한 상태의 쿠폰만 결과에 포함된다")
+    void getAllVoucherWithStatusFilter() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
+        UserGroup userGroup = linkUserWithGroup(user, group, userGroupAlias);
+
+        LocalDate expiration = LocalDate.of(2024, 12, 31);
+        Voucher voucher1 = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(VoucherStatus.AVAILABLE).build();
+        Voucher voucher2 = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(VoucherStatus.EXPIRED).build();
+        Voucher voucher3 = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(VoucherStatus.USED).build();
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = List.of(VoucherStatus.EXPIRED);
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
+
+        //when
+        String preSignedImageUrl = "presignedImageUrlResult";
+        given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
+
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3, voucherFilterCondition);
+
+        VoucherListResponse content = allVoucher.getContent().get(0);
+
+        //then
+        assertThat(content).isNotNull();
+        assertThat(content.vouchers())
+                .extracting(VouchersResponse::id)
+                .contains(voucher2.getId());
+
+    }
+
+    @Test
+    @DisplayName("쿠폰 상태 필터 : 쿠폰 상태 필터를 설정하지 않고 쿠폰을 조회할 경우, 사용가능, 사용완료 상태인 쿠폰만 결과에 조회된다")
+    void getAllVoucherWithDefaultStatusFilter() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        String userGroupAlias = "그룹 별칭";
+        UserGroup userGroup = linkUserWithGroup(user, group, userGroupAlias);
+
+        LocalDate expiration = LocalDate.of(2024, 12, 31);
+        Voucher voucher1 = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(VoucherStatus.AVAILABLE).build();
+        Voucher voucher2 = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(VoucherStatus.EXPIRED).build();
+        Voucher voucher3 = Voucher.builder().user(user).group(group).expiration(expiration)
+                .status(VoucherStatus.USED).build();
+        voucherRepository.saveAll(List.of(voucher1, voucher2, voucher3));
+
+        LocalDate searchStart = null;
+        LocalDate searchEnd = null;
+        List<VoucherStatus> status = null;
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(
+                status, searchStart, searchEnd);
+
+        //when
+        String preSignedImageUrl = "presignedImageUrlResult";
+        given(imageService.getPresignedImageUrl(any(), any())).willReturn(preSignedImageUrl);
+
+        SliceResponse<VoucherListResponse> allVoucher = voucherService.getAllVoucher(user.getId(),
+                group.getId(), null, 3, voucherFilterCondition);
+
+        VoucherListResponse content = allVoucher.getContent().get(0);
+
+        //then
+        assertThat(content).isNotNull();
+        assertThat(content.vouchers())
+                .extracting(VouchersResponse::id)
+                .contains(voucher1.getId(), voucher3.getId());
+
+    }
+
 
     @TestFactory
     @Transactional
@@ -496,7 +711,8 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         String voucherName = "voucher name";
         LocalDate expiration = LocalDate.of(2025, 1, 1);
-        Voucher voucher = Voucher.createNewVoucher(user, group, voucherName, "imageKey", expiration);
+        Voucher voucher = Voucher.createNewVoucher(user, group, voucherName, "imageKey",
+                expiration);
         voucherRepository.save(voucher);
 
         return Stream.of(
