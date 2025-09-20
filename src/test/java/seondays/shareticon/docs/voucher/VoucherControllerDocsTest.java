@@ -268,9 +268,6 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("content[].vouchers[].expiration")
                                         .type(JsonFieldType.STRING)
                                         .description("쿠폰 등록자가 설정한 쿠폰의 만료 기간"),
-                                fieldWithPath("content[].vouchers[].status").type(
-                                                JsonFieldType.STRING)
-                                        .description("쿠폰의 현재 상태"),
                                 fieldWithPath("content[].vouchers[].isWishList").type(
                                                 JsonFieldType.BOOLEAN)
                                         .description("쿠폰이 찜 되어 있는지의 여부"),
