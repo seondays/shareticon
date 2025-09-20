@@ -8,6 +8,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -550,6 +552,24 @@ public class VoucherControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"));
 
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {0L, 21L})
+    @DisplayName("전체 쿠폰 조회 시의 페이지 사이즈는 1 ~ 20 사이여야 한다")
+    void getAllVoucherInGroupWithPageSize(Long pageSize) throws Exception {
+        //given
+        Long groupId = 1L;
+        
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/vouchers/{groupId}", groupId)
+                                .param("pageSize", String.valueOf(pageSize))
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
