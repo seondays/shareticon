@@ -60,7 +60,7 @@ public class VoucherController {
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @PathVariable("groupId") Long groupId,
             @RequestParam(required = false) Long cursorId,
-            @Valid @RequestParam(defaultValue = "10") @Min(1) @Max(20) int pageSize,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(20) int pageSize,
             @ModelAttribute VoucherFilterCondition condition) {
         Long userId = userDetails.getId();
 
