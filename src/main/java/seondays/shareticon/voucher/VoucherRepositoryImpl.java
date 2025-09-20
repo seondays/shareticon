@@ -37,6 +37,7 @@ public class VoucherRepositoryImpl implements VoucherQueryDslRepository {
                 .leftJoin(wishList)
                 .on(wishList.voucher.eq(voucher).and(wishList.user.id.eq(userId)))
                 .where(
+                        voucher.group.id.eq(groupId),
                         expirationBetween(voucherFilterCondition.startDay(),
                                 voucherFilterCondition.endDay()),
                         voucherStatusIn(voucherFilterCondition.voucherStatuses()),
