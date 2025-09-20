@@ -259,7 +259,7 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
                                         .type(JsonFieldType.STRING).description("쿠폰 이미지 URL"),
                                 fieldWithPath("content[].vouchers[].status")
                                         .type(JsonFieldType.STRING)
-                                        .description("쿠폰 사용 상태 (AVAILABLE/EXPIRED/USED)"),
+                                        .description("쿠폰 사용 상태. 다중 선택 가능 (AVAILABLE/EXPIRED/USED)"),
                                 fieldWithPath("content[].vouchers[].registeredUserId")
                                         .type(JsonFieldType.NUMBER).description("쿠폰을 등록한 유저의 ID"),
                                 fieldWithPath("content[].vouchers[].name")
