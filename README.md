@@ -9,9 +9,13 @@
 - 개발 기간 : 2025. 04 ~ 운영 중
 - 개발 인원 : 1인 (백엔드 담당 / 프론트 Cursor AI 사용한 바이브 코딩을 통해 구현)
 
+</br>
+
 ## Link
 - [🔗 운영 서비스](https://www.shareticon.site)
 - [🔗 API 문서](https://api.shareticon.site/docs)
+
+</br>
 
 ## 기술 스택
 ### Backend
@@ -28,6 +32,8 @@
 
 - **Test** : <img src="https://img.shields.io/badge/JUnit5-25A162?style=&logo=JUnit5&logoColor=white"> <img src="https://img.shields.io/badge/Mockito-FF9800?style=flat&logo=&logoColor=white">
 
+</br>
+
 ## 아키텍처
 실제로 서비스를 배포 후 운영을 해야 하는 상황에서 비용 문제를 고려하지 않을 수 없어, 제한된 예산 내에서 최대한 효율적으로 아키텍처를 설계하고자 했습니다.
 
@@ -40,8 +46,22 @@
 
 <img width="1331" height="1044" alt="백엔드" src="https://github.com/user-attachments/assets/91676c29-28d7-4ece-89a0-11d6ad834c31" />
 
+</br>
+
+## 주요 구현 기능
+- Junit5를 이용하여 계층 별 전략을 적용한 테스트 코드 작성 및 환경 최적화
+- Resource Server 활성화를 통한 안정성 높은 OAuth2 로그인 기능 구현
+- S3 작업의 비동기 처리 및 실패 시 재시도 구현으로 외부 서비스 작업의 안정성과 응답속도 최적화 시도
+- QueryDSL을 활용하여 동적 쿼리 구현, 쿠폰 조회 시 필터링 기능 개선
+- Spring Batch로 만료 쿠폰 자동 상태 업데이트 처리
+- Prometheus & Grafana 기반의 서버 모니터링 체계 구축
+
+</br>
+
 ## ERD
 <img width="1391" height="1032" alt="Image" src="https://github.com/user-attachments/assets/40ef3d15-9057-40be-8695-f3462bfe3d37" />
+
+</br>
 
 ## 주요 화면 소개
 
@@ -55,7 +75,7 @@
 
 |                                                    쿠폰 사용완료 처리                                                    |                                              쿠폰 필터링                                              |
 | :----------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------: |
-| <img src="https://github.com/user-attachments/assets/389eb10c-abd5-4fe4-b78b-c50c21f62a62" alt="used-coupon" width="350"> | <img src="https://github.com/user-attachments/assets/da5d0614-1271-4748-8b91-e18cd61b1032" alt="filtering-coupon" width="350"> |
+| <img src="https://github.com/user-attachments/assets/389eb10c-abd5-4fe4-b78b-c50c21f62a62" alt="used-coupon" width="350"> | <img src="https://github.com/user-attachments/assets/55d188ba-338b-4d6a-b92b-b5e59e5101a5" alt="filtering-coupon" width="350"> |
 
 ### 그룹 생성
 <img src="https://github.com/user-attachments/assets/abc8603f-3890-4bf9-8c6d-098cfab43d39" alt="create-group" width="350">
