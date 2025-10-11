@@ -77,6 +77,9 @@ dependencies {
 	// prometheus
 	implementation("io.micrometer:micrometer-registry-prometheus")
 
+	// caffeine cache
+	implementation 'com.github.ben-manes.caffeine:caffeine'
+
 	// openfeign querydsl
 	implementation("io.github.openfeign.querydsl:querydsl-jpa:7.0")
 	annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:7.0:jakarta")
