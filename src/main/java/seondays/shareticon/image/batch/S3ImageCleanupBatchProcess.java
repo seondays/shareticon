@@ -80,7 +80,7 @@ public class S3ImageCleanupBatchProcess {
     public ItemProcessor<Voucher, Voucher> voucherImageCleanupProcessor() {
         return voucher -> {
             try {
-                imageService.deleteImageWithRetry(voucher);
+                imageService.deleteImage(voucher);
                 return voucher;
             } catch (Exception e) {
                 log.warn("배치 처리 중 이미지 삭제 실패 : Voucher {}", voucher.getId());

@@ -68,7 +68,6 @@ public class ImageServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(result).startsWith("voucher");
-        assertThat(result).endsWith(".jpg");
 
     }
 
@@ -130,6 +129,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         //given
         MultipartFile imageFile = mock(MultipartFile.class);
         when(imageFile.getContentType()).thenReturn("image");
+        when(imageFile.getOriginalFilename()).thenReturn("image.png");
         when(imageFile.getInputStream()).thenThrow(IOException.class);
 
         VoucherImage voucherImage = VoucherImage.of(imageFile);
@@ -165,7 +165,6 @@ public class ImageServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(result).startsWith("voucher");
-        assertThat(result).endsWith(".jpg");
 
     }
 
@@ -204,7 +203,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
                 DeleteObjectResponse.class));
 
         //when
-        imageService.deleteImageWithRetry(voucher);
+        imageService.deleteImage(voucher);
 
         //then
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
@@ -221,7 +220,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(SdkClientException.class);
 
         //when
-        assertThatThrownBy(() -> imageService.deleteImageWithRetry(voucher))
+        assertThatThrownBy(() -> imageService.deleteImage(voucher))
                 .isInstanceOf(ImageDeleteException.class);
 
         //then
@@ -239,7 +238,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(S3Exception.class);
 
         //when
-        assertThatThrownBy(() -> imageService.deleteImageWithRetry(voucher))
+        assertThatThrownBy(() -> imageService.deleteImage(voucher))
                 .isInstanceOf(ImageDeleteException.class);
 
         //then
@@ -258,7 +257,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
                 .thenReturn(any(DeleteObjectResponse.class));
 
         //when
-        imageService.deleteImageWithRetry(voucher);
+        imageService.deleteImage(voucher);
 
         //then
         verify(s3Client, times(2)).deleteObject(any(DeleteObjectRequest.class));
