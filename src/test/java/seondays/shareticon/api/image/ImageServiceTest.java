@@ -130,6 +130,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         //given
         MultipartFile imageFile = mock(MultipartFile.class);
         when(imageFile.getContentType()).thenReturn("image");
+        when(imageFile.getOriginalFilename()).thenReturn("image.png");
         when(imageFile.getInputStream()).thenThrow(IOException.class);
 
         VoucherImage voucherImage = VoucherImage.of(imageFile);
