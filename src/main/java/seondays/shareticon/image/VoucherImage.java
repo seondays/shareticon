@@ -30,14 +30,8 @@ public class VoucherImage {
         }
     }
 
-    public String makeUploadTitle(String prefix) {
-        String extension = "";
-        String filename = imageFile.getOriginalFilename();
-
-        int index = filename.lastIndexOf('.');
-        if (index > 0) {
-            extension = filename.substring(index);
-        }
-        return prefix + "/" + UUID.randomUUID() + extension;
+    public String makeUploadTitle() {
+        String prefix = "voucher";
+        return prefix + "/" + UUID.randomUUID();
     }
 }
