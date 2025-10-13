@@ -16,7 +16,7 @@ public class ImageService {
 
     public String uploadImageWithRetry(VoucherImage voucherImage) {
         MultipartFile imageFile = voucherImage.getImageFile();
-        String uploadTitle = voucherImage.makeUploadTitle("voucher");
+        String uploadTitle = voucherImage.makeUploadTitle();
         return imageOperation.uploadImageWithRetry(imageFile, uploadTitle);
     }
 
