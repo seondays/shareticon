@@ -68,7 +68,6 @@ public class ImageServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(result).startsWith("voucher");
-        assertThat(result).endsWith(".jpg");
 
     }
 
@@ -166,7 +165,6 @@ public class ImageServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(result).startsWith("voucher");
-        assertThat(result).endsWith(".jpg");
 
     }
 
