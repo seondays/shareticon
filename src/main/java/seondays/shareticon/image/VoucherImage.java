@@ -1,5 +1,6 @@
 package seondays.shareticon.image;
 
+import java.util.UUID;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.exception.IllegalVoucherImageException;
@@ -27,5 +28,16 @@ public class VoucherImage {
         if (contentType == null || !contentType.startsWith("image")) {
             throw new IllegalVoucherImageException();
         }
+    }
+
+    public String makeUploadTitle(String prefix) {
+        String extension = "";
+        String filename = imageFile.getOriginalFilename();
+
+        int index = filename.lastIndexOf('.');
+        if (index > 0) {
+            extension = filename.substring(index);
+        }
+        return prefix + "/" + UUID.randomUUID() + extension;
     }
 }
