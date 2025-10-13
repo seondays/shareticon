@@ -5,6 +5,7 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -89,6 +90,10 @@ public class S3ImageOperation {
         throw new ImageDeleteException();
     }
 
+    @Cacheable(
+            cacheNames = "voucherImage",
+            key = "#objectKey"
+    )
     public String getPresignedImageUrl(String objectKey, Long expirationMinutes) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
