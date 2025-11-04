@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +64,8 @@ public class VoucherRepositoryImpl implements VoucherQueryDslRepository {
 
     private BooleanExpression expirationBetween(LocalDate startDay, LocalDate endDay) {
         LocalDate defaultStartDay = LocalDate.now(clock);
-        LocalDate defaultEndDay = defaultStartDay.plusDays(30);
+        LocalDate defaultEndDay = defaultStartDay.plusMonths(1)
+                .with(TemporalAdjusters.lastDayOfMonth());
 
         LocalDate actualStartDay = startDay == null ? defaultStartDay : startDay;
         LocalDate actualEndDay = endDay == null ? defaultEndDay : endDay;
