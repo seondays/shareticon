@@ -384,6 +384,45 @@ class VoucherRepositoryTest extends RepositoryTestSupport {
 
     }
 
+    @Test
+    @DisplayName("아무 조건도 전달하지 않았을 때, 기본 설정이 적용된다")
+    void getAllVoucherWithNoFilter() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        String inviteCode = "ABC";
+        Group group = createTestGroup(inviteCode);
+        groupRepository.save(group);
+
+        LocalDate filteredConditionDate = LocalDate.of(2025, 1, 1);
+        LocalDate notFilteredConditionDate = LocalDate.of(2025, 3, 30);
+
+        Voucher filteredVoucher1 = createVoucherWithExpiration(group, user,
+                VoucherStatus.AVAILABLE, filteredConditionDate);
+        Voucher notFilteredVoucher1 = createVoucherWithExpiration(group, user,
+                VoucherStatus.EXPIRED, filteredConditionDate);
+        Voucher filteredVoucher2 = createVoucherWithExpiration(group, user,
+                VoucherStatus.USED, filteredConditionDate);
+        Voucher notFilteredVoucher2 = createVoucherWithExpiration(group, user,
+                VoucherStatus.AVAILABLE, notFilteredConditionDate);
+        voucherRepository.saveAll(List.of(filteredVoucher1, filteredVoucher2, notFilteredVoucher1, notFilteredVoucher2));
+
+        PageRequest pageable = PageRequest.ofSize(5);
+
+        VoucherFilterCondition voucherFilterCondition = VoucherFilterCondition.of(null, null, null);
+
+        //when
+        Slice<VoucherWithWishListResponse> result = voucherRepository.searchVoucher(
+                user.getId(), group.getId(), voucherFilterCondition, null, pageable);
+
+        //then
+        assertThat(result.getNumberOfElements()).isEqualTo(2);
+        assertThat(result.getContent()).extracting("id")
+                .containsExactlyInAnyOrder(filteredVoucher1.getId(), filteredVoucher2.getId())
+                .doesNotContain(notFilteredVoucher1.getId(), notFilteredVoucher2.getId());
+    }
+
     private static Voucher createVoucherWithExpiration(Group group, User user, VoucherStatus status,
             LocalDate expiration) {
         return Voucher.builder()
