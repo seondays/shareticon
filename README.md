@@ -14,7 +14,7 @@
 ## Link
 - [🔗 운영 서비스](https://www.shareticon.site)
 - [🔗 API 문서](https://api.shareticon.site/docs)
-
+- [🔗 프로젝트 개발 일지](https://shareticon.notion.site/?v=1b27d38e379c811fbc78000c3606d203)
 </br>
 
 ## 기술 스택
@@ -34,6 +34,19 @@
 
 </br>
 
+## 주요 구현 기능
+- Junit5를 이용하여 계층 별 전략을 적용한 테스트 코드 작성 및 환경 최적화
+- 제한된 예산 내에서 AWS 서비스를 이용하여 최선의 서버 아키텍처 설계
+- Resource Server 활성화를 통한 안정성 높은 OAuth2 로그인 기능 구현
+- S3 작업의 비동기 처리 및 실패 시 재시도 구현으로 외부 서비스 작업의 안정성 확보와 응답속도 최적화 시도 [(관련 기록 🔗)](https://shareticon.notion.site/S3-2227d38e379c808da0cbd048f6e18be9)
+- QueryDSL을 활용하여 동적 쿼리 구현, 쿠폰 조회 시 필터링 기능 개선 [(관련 기록 🔗)](https://shareticon.notion.site/QueryDsl-2747d38e379c80989275e1c930d8025a) 
+- Spring Batch로 만료 쿠폰 자동 상태 업데이트 처리 [(관련 기록 🔗)](https://shareticon.notion.site/2467d38e379c80b48873e933c0a3fcd1)
+- Prometheus & Grafana 기반의 서버 모니터링 체계 구축
+- Caffeine 로컬 캐시 도입을 통한 쿠폰 조회 응답 속도 37% 개선 [(관련 기록 🔗)](https://shareticon.notion.site/Presigned-URL-Caffeine-27e7d38e379c80fcb96cca61edeb3bb6)
+- CloudWatch 기반의 EC2 인스턴스 자동 복구 시스템 구축 [(관련 기록 🔗)](https://seondays.tistory.com/89)
+
+</br>
+
 ## 아키텍처
 실제로 서비스를 배포 후 운영을 해야 하는 상황에서 비용 문제를 고려하지 않을 수 없어, 제한된 예산 내에서 최대한 효율적으로 아키텍처를 설계하고자 했습니다.
 
@@ -45,16 +58,6 @@
   - 서브넷 분리하여 두번째 AZ 네트워크 설정 유지
 
 <img width="1331" height="1044" alt="백엔드" src="https://github.com/user-attachments/assets/91676c29-28d7-4ece-89a0-11d6ad834c31" />
-
-</br>
-
-## 주요 구현 기능
-- Junit5를 이용하여 계층 별 전략을 적용한 테스트 코드 작성 및 환경 최적화
-- Resource Server 활성화를 통한 안정성 높은 OAuth2 로그인 기능 구현
-- S3 작업의 비동기 처리 및 실패 시 재시도 구현으로 외부 서비스 작업의 안정성과 응답속도 최적화 시도
-- QueryDSL을 활용하여 동적 쿼리 구현, 쿠폰 조회 시 필터링 기능 개선
-- Spring Batch로 만료 쿠폰 자동 상태 업데이트 처리
-- Prometheus & Grafana 기반의 서버 모니터링 체계 구축
 
 </br>
 
