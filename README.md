@@ -38,7 +38,7 @@
 - Junit5를 이용하여 계층 별 전략을 적용한 테스트 코드 작성 및 환경 최적화
 - 제한된 예산 내에서 AWS 서비스를 이용하여 최선의 서버 아키텍처 설계
 - Resource Server 활성화를 통한 안정성 높은 OAuth2 로그인 기능 구현
-- S3 작업의 비동기 처리 및 실패 시 재시도 구현으로 외부 서비스 작업의 안정성 확보와 응답속도 최적화 시도 [(관련 기록 🔗)](https://shareticon.notion.site/S3-2227d38e379c808da0cbd048f6e18be9)
+- 정합성과 안정성을 고려한 이중 저장소(DB-S3) 기반의 쿠폰 API 설계 [(관련 기록 🔗)](https://shareticon.notion.site/DB-S3-2227d38e379c808da0cbd048f6e18be9) 
 - QueryDSL을 활용하여 동적 쿼리 구현, 쿠폰 조회 시 필터링 기능 개선 [(관련 기록 🔗)](https://shareticon.notion.site/QueryDsl-2747d38e379c80989275e1c930d8025a) 
 - Spring Batch로 만료 쿠폰 자동 상태 업데이트 처리 [(관련 기록 🔗)](https://shareticon.notion.site/2467d38e379c80b48873e933c0a3fcd1)
 - Prometheus & Grafana 기반의 서버 모니터링 체계 구축
