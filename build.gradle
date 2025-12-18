@@ -80,6 +80,9 @@ dependencies {
 	// caffeine cache
 	implementation 'com.github.ben-manes.caffeine:caffeine'
 
+	// Logback JSON encoder
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
 	// openfeign querydsl
 	implementation("io.github.openfeign.querydsl:querydsl-jpa:7.0")
 	annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:7.0:jakarta")
