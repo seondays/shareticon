@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import seondays.shareticon.exception.AlreadyAppliedToGroupException;
 import seondays.shareticon.exception.ExpiredVoucherException;
 import seondays.shareticon.exception.GroupCreateException;
@@ -34,7 +35,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(ExpiredVoucherException.class)
     public ResponseEntity<CustomExceptionResponse> handleExpiredVoucherException(
             ExpiredVoucherException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -42,16 +43,15 @@ public class CustomExceptionHandler {
     @ExceptionHandler(GroupNotFoundException.class)
     public ResponseEntity<CustomExceptionResponse> handleGroupNotFoundException(
             GroupNotFoundException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-
     }
 
     @ExceptionHandler(IllegalOAuthProviderException.class)
     public ResponseEntity<CustomExceptionResponse> handleIllegalOAuthProviderException(
             IllegalOAuthProviderException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -59,7 +59,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(ImageUploadException.class)
     public ResponseEntity<CustomExceptionResponse> handleImageUploadException(
             ImageUploadException e) {
-        log.error(String.valueOf(e));
+        log.warn("[SYSTEM] --- ", e);
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -67,7 +67,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InvalidAccessException.class)
     public ResponseEntity<CustomExceptionResponse> handleInvalidAccessVoucherException(
             InvalidAccessException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.FORBIDDEN);
     }
@@ -75,7 +75,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InvalidVoucherDeleteException.class)
     public ResponseEntity<CustomExceptionResponse> handleInvalidVoucherDeleteException(
             InvalidVoucherDeleteException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.FORBIDDEN);
     }
@@ -83,7 +83,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(IllegalVoucherImageException.class)
     public ResponseEntity<CustomExceptionResponse> handleIllegalVoucherImageException(
             IllegalVoucherImageException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -91,7 +91,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<CustomExceptionResponse> handleUserNotFoundException(
             UserNotFoundException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
     }
@@ -99,7 +99,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(VoucherNotFoundException.class)
     public ResponseEntity<CustomExceptionResponse> handleVoucherNotFoundException(
             VoucherNotFoundException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
     }
@@ -107,7 +107,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(AlreadyAppliedToGroupException.class)
     public ResponseEntity<CustomExceptionResponse> handleAlreadyAppliedToGroupException(
             AlreadyAppliedToGroupException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -115,7 +115,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(GroupCreateException.class)
     public ResponseEntity<CustomExceptionResponse> handleGroupCreateException(
             GroupCreateException e) {
-        log.error(String.valueOf(e));
+        log.error("[SYSTEM] ---", e);
 
         return createExceptionResponse(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
     }
@@ -123,7 +123,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(GroupUserNotFoundException.class)
     public ResponseEntity<CustomExceptionResponse> handleGroupUserNotFoundException(
             GroupUserNotFoundException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.NOT_FOUND);
     }
@@ -131,7 +131,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InvalidGroupLeaderException.class)
     public ResponseEntity<CustomExceptionResponse> handleInvalidAcceptGroupJoinApplyException(
             InvalidGroupLeaderException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.FORBIDDEN);
     }
@@ -139,7 +139,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InvalidJoinGroupException.class)
     public ResponseEntity<CustomExceptionResponse> handleInvalidJoinGroupException(
             InvalidJoinGroupException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -147,17 +147,16 @@ public class CustomExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CustomExceptionResponse> bindException(
             MethodArgumentNotValidException e) {
+        log.warn("[BUSINESS] --- {}", e.getMessage());
+
         String message = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-
-        log.error(String.valueOf(e));
-
         return createExceptionResponse(message, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<CustomExceptionResponse> handleConstraintViolationException(
             ConstraintViolationException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         return createExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -165,7 +164,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<CustomExceptionResponse> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         String parameterName = e.getName();
         String requiredTypeName = e.getRequiredType().getSimpleName();
@@ -176,7 +175,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<CustomExceptionResponse> handleMissingServletRequestParameterException(
             MissingServletRequestParameterException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         String parameterName = e.getParameterName();
         String message = String.format("필수 파라미터 '%s'가 누락되었습니다", parameterName);
@@ -186,7 +185,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InsufficientAuthenticationException.class)
     public ResponseEntity<CustomExceptionResponse> handleInsufficientAuthenticationException(
             InsufficientAuthenticationException e) {
-        log.error(String.valueOf(e));
+        log.debug("[AUTH] ---", e);
 
         String message = "로그인이 필요합니다";
         return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);
@@ -195,7 +194,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<CustomExceptionResponse> handleIInvalidBearerTokenException(
             AuthenticationException e) {
-        log.error("", e);
+        log.debug("[AUTH] ---", e);
 
         String message = "유효하지 않은 토큰입니다";
         return createExceptionResponse(message, HttpStatus.UNAUTHORIZED);
@@ -204,15 +203,23 @@ public class CustomExceptionHandler {
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<CustomExceptionResponse> handleMultipartException(
             MultipartException e) {
-        log.error(String.valueOf(e));
+        log.warn("[BUSINESS] --- {}", e.getMessage());
 
         String message = "해당 요청은 multipart/form-data 형식으로만 지원됩니다. 파일을 첨부하여 다시 시도해주세요";
         return createExceptionResponse(message, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<CustomExceptionResponse> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.debug("[UNKNOWN_PATH] --- {}", e.getResourcePath());
+
+        final String message = "요청에 대한 리소스를 찾을 수 없습니다";
+        return createExceptionResponse(message, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CustomExceptionResponse> generalException(Exception e) {
-        log.error("{} : {}", e.getMessage(), e);
+        log.error("[SYSTEM] ---", e);
 
         final String message = "서버 오류가 발생했습니다";
         return createExceptionResponse(message, HttpStatus.INTERNAL_SERVER_ERROR);
