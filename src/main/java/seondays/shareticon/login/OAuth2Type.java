@@ -3,7 +3,7 @@ package seondays.shareticon.login;
 import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import seondays.shareticon.exception.IllegalOAuthProviderException;
+import seondays.shareticon.exception.business.IllegalOAuthProviderException;
 
 @Getter
 @RequiredArgsConstructor
