@@ -2,10 +2,10 @@ package seondays.shareticon.utils.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import seondays.shareticon.exception.GroupNotFoundException;
-import seondays.shareticon.exception.InvalidAccessException;
-import seondays.shareticon.exception.UserNotFoundException;
-import seondays.shareticon.exception.VoucherNotFoundException;
+import seondays.shareticon.exception.business.GroupNotFoundException;
+import seondays.shareticon.exception.business.InvalidAccessException;
+import seondays.shareticon.exception.business.UserNotFoundException;
+import seondays.shareticon.exception.business.VoucherNotFoundException;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.user.UserRepository;

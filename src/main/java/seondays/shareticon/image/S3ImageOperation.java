@@ -11,9 +11,8 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import seondays.shareticon.exception.ImageDeleteException;
-import seondays.shareticon.exception.ImageUploadException;
-import seondays.shareticon.exception.PresignedUrlGenerationException;
+import seondays.shareticon.exception.business.ImageUploadException;
+import seondays.shareticon.exception.business.PresignedUrlGenerationException;
 import seondays.shareticon.voucher.Voucher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -63,7 +62,6 @@ public class S3ImageOperation {
 
     @Recover
     public String recoverImageUpload(Exception e, MultipartFile image, String uploadTitle) {
-        log.error("S3 이미지 업로드 시도 실패");
         throw new ImageUploadException();
     }
 
@@ -86,8 +84,7 @@ public class S3ImageOperation {
 
     @Recover
     public void recoverImageDelete(Exception e, Voucher voucher) {
-        log.error("S3 이미지 삭제 시도 3회 실패 : {}번 쿠폰의 {}", voucher.getId(), voucher.getImage());
-        throw new ImageDeleteException();
+        log.error("[S3] -- {}번 쿠폰의 {} 이미지 삭제 시도 3회가 모두 실패했습니다", voucher.getId(), voucher.getImage(), e);
     }
 
     @Cacheable(

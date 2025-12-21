@@ -3,7 +3,7 @@ package seondays.shareticon.image;
 import java.util.UUID;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
-import seondays.shareticon.exception.IllegalVoucherImageException;
+import seondays.shareticon.exception.business.IllegalVoucherImageException;
 
 @Getter
 public class VoucherImage {

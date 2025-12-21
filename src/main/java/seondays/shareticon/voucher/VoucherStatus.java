@@ -2,7 +2,7 @@ package seondays.shareticon.voucher;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import seondays.shareticon.exception.ExpiredVoucherException;
+import seondays.shareticon.exception.business.ExpiredVoucherException;
 
 @RequiredArgsConstructor
 public enum VoucherStatus {

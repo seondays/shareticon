@@ -11,9 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
+import seondays.shareticon.logging.LoggingMDCFilter;
 import seondays.shareticon.login.JwtAuthenticationConverter;
 import seondays.shareticon.login.LoginSuccessHandler;
 import seondays.shareticon.login.OAuth2UserService;
@@ -87,6 +89,8 @@ public class SecurityConfig {
 
                     return config;
                 }));
+
+        http.addFilterAfter(new LoggingMDCFilter(), BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }

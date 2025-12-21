@@ -19,8 +19,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.api.config.IntegrationTestSupport;
-import seondays.shareticon.exception.ImageDeleteException;
-import seondays.shareticon.exception.ImageUploadException;
+import seondays.shareticon.exception.business.ImageUploadException;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.image.VoucherImage;
 import seondays.shareticon.voucher.Voucher;
@@ -220,8 +219,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(SdkClientException.class);
 
         //when
-        assertThatThrownBy(() -> imageService.deleteImage(voucher))
-                .isInstanceOf(ImageDeleteException.class);
+        imageService.deleteImage(voucher);
 
         //then
         verify(s3Client, times(3)).deleteObject(any(DeleteObjectRequest.class));
@@ -238,8 +236,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(S3Exception.class);
 
         //when
-        assertThatThrownBy(() -> imageService.deleteImage(voucher))
-                .isInstanceOf(ImageDeleteException.class);
+        imageService.deleteImage(voucher);
 
         //then
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));

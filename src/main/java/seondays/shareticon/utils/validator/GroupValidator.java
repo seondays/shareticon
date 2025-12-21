@@ -2,7 +2,7 @@ package seondays.shareticon.utils.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import seondays.shareticon.exception.InvalidGroupLeaderException;
+import seondays.shareticon.exception.business.InvalidGroupLeaderException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.utils.validator.dto.GroupJoinApplyStatusChangeValidationRequest;
 import seondays.shareticon.utils.validator.dto.LeaderIdAndGroupsValidationRequest;
