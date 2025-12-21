@@ -2,6 +2,7 @@ package seondays.shareticon.voucher;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -16,6 +17,7 @@ import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.image.VoucherImage;
+import seondays.shareticon.logging.VoucherEvent;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -42,6 +44,7 @@ public class VoucherService {
     private final UserGroupRepository userGroupRepository;
     private final ValidationFacade validationFacade;
     private final VoucherFactory voucherFactory;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 새로운 쿠폰을 등록합니다.
@@ -68,6 +71,8 @@ public class VoucherService {
         Voucher voucher = voucherFactory.createVoucherWithImage(user, group, request, imageKey);
 
         String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
+
+        eventPublisher.publishEvent(VoucherEvent.toRegister(voucher.getId(), groupId));
         return VouchersResponse.withWishList(voucher, preSignedUrl, false);
     }
 
@@ -89,6 +94,7 @@ public class VoucherService {
 
         voucher.delete();
 
+        eventPublisher.publishEvent(VoucherEvent.toDelete(voucher.getId(), groupId));
         imageService.deleteImageAsync(voucher);
     }
 
@@ -142,6 +148,7 @@ public class VoucherService {
                 .orElseThrow(VoucherNotFoundException::new);
 
         voucher.changeStatus();
+        eventPublisher.publishEvent(VoucherEvent.toChangeStatus(voucher, groupId));
     }
 
 }
