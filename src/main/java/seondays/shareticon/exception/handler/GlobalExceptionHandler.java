@@ -26,8 +26,7 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException.class,
             MissingServletRequestParameterException.class,
             ConstraintViolationException.class})
-    public ResponseEntity<CustomExceptionResponse> handleValidationException(
-            Exception e) {
+    public ResponseEntity<CustomExceptionResponse> handleValidationException(Exception e) {
         log.warn("[BUSINESS] --- {}", e.getMessage());
         return createExceptionResponse(GlobalExceptionInfoMapper.toExceptionInfo(e));
     }
