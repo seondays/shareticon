@@ -4,7 +4,7 @@
 
 쉐어티콘은 가족이나 친구들과 카카오톡을 이용하여 기프티콘을 공유하며 겪었던 불편함을 인식하고, `어떻게 하면 좀 더 편리하게 기프티콘을 공유할 수 있을까?` 하는 생각에서 탄생한 서비스입니다.
 
-기본적인 기능 개발 및 배포를 완료하여 현재 실제로 운영 및 직접 서비스를 사용 중입니다. 사용자 피드백을 바탕으로 지속적인 기능 추가 개선 및 유지보수를 진행하고 있습니다.
+기본적인 기능 개발 및 배포를 완료하여 현재 실제로 운영 및 직접 서비스를 사용 중으로, 해당 프로젝트를 통해 기획 / 개발 / 배포 / 운영 부터 사용자 피드백 바탕의 지속적인 개선까지 서비스 라이프사이클 전반을 경험하였습니다.
 
 - 개발 기간 : 2025. 04 ~ 운영 중
 - 개발 인원 : 1인 (백엔드 담당 / 프론트 Cursor AI 사용한 바이브 코딩을 통해 구현)
@@ -14,7 +14,7 @@
 ## Link
 - [🔗 운영 서비스](https://www.shareticon.site)
 - [🔗 API 문서](https://api.shareticon.site/docs)
-
+- [🔗 프로젝트 위키](https://github.com/seondays/shareticon/wiki)
 </br>
 
 ## 기술 스택
@@ -34,6 +34,19 @@
 
 </br>
 
+## 주요 구현 기능
+- Junit5를 이용하여 계층 별 전략을 적용한 테스트 코드 작성 및 환경 최적화
+- 제한된 예산 내에서 AWS 서비스를 이용하여 최선의 서버 아키텍처 설계
+- Resource Server 활성화를 통한 안정성 높은 OAuth2 로그인 기능 구현
+- 정합성과 안정성을 고려한 이중 저장소(DB-S3) 기반의 쿠폰 API 설계 [(위키 기록 🔗)](https://github.com/seondays/shareticon/wiki/%EC%A0%95%ED%95%A9%EC%84%B1%EA%B3%BC-%EC%95%88%EC%A0%95%EC%84%B1%EC%9D%84-%EA%B3%A0%EB%A0%A4%ED%95%9C-%EC%9D%B4%EC%A4%91-%EC%A0%80%EC%9E%A5%EC%86%8C(DB%E2%80%90S3)-%EA%B8%B0%EB%B0%98%EC%9D%98-%EC%BF%A0%ED%8F%B0-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%A0%80%EC%9E%A5-&-%EC%82%AD%EC%A0%9C-%EA%B0%9C%EC%84%A0-%EC%9E%91%EC%97%85) 
+- QueryDSL을 활용하여 동적 쿼리 구현, 쿠폰 조회 시 필터링 기능 개선
+- Spring Batch로 만료 쿠폰 자동 상태 업데이트 처리
+- Prometheus & Grafana 기반의 서버 모니터링 체계 구축
+- Caffeine 로컬 캐시 도입을 통한 쿠폰 조회 응답 속도 37% 개선 [(위키 기록 🔗)](https://github.com/seondays/shareticon/wiki/Caffeine-%EB%A1%9C%EC%BB%AC-%EC%BA%90%EC%8B%9C-%EB%8F%84%EC%9E%85%EC%9D%84-%ED%86%B5%ED%95%9C-%EC%BF%A0%ED%8F%B0-%EC%A1%B0%ED%9A%8C-API-%EC%84%B1%EB%8A%A5-37%25-%EA%B0%9C%EC%84%A0)
+- CloudWatch 기반의 EC2 인스턴스 자동 복구 시스템 구축 [(블로그 기록 🔗)](https://seondays.tistory.com/89)
+
+</br>
+
 ## 아키텍처
 실제로 서비스를 배포 후 운영을 해야 하는 상황에서 비용 문제를 고려하지 않을 수 없어, 제한된 예산 내에서 최대한 효율적으로 아키텍처를 설계하고자 했습니다.
 
@@ -45,16 +58,6 @@
   - 서브넷 분리하여 두번째 AZ 네트워크 설정 유지
 
 <img width="1331" height="1044" alt="백엔드" src="https://github.com/user-attachments/assets/91676c29-28d7-4ece-89a0-11d6ad834c31" />
-
-</br>
-
-## 주요 구현 기능
-- Junit5를 이용하여 계층 별 전략을 적용한 테스트 코드 작성 및 환경 최적화
-- Resource Server 활성화를 통한 안정성 높은 OAuth2 로그인 기능 구현
-- S3 작업의 비동기 처리 및 실패 시 재시도 구현으로 외부 서비스 작업의 안정성과 응답속도 최적화 시도
-- QueryDSL을 활용하여 동적 쿼리 구현, 쿠폰 조회 시 필터링 기능 개선
-- Spring Batch로 만료 쿠폰 자동 상태 업데이트 처리
-- Prometheus & Grafana 기반의 서버 모니터링 체계 구축
 
 </br>
 

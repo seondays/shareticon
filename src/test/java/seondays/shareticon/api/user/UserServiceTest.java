@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import seondays.shareticon.api.config.IntegrationTestSupport;
-import seondays.shareticon.exception.UserNotFoundException;
+import seondays.shareticon.exception.business.UserNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.group.JoinStatus;

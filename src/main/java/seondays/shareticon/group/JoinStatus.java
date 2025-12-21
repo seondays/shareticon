@@ -2,8 +2,8 @@ package seondays.shareticon.group;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import seondays.shareticon.exception.AlreadyAppliedToGroupException;
-import seondays.shareticon.exception.InvalidJoinGroupException;
+import seondays.shareticon.exception.business.AlreadyAppliedToGroupException;
+import seondays.shareticon.exception.business.InvalidJoinGroupException;
 
 @RequiredArgsConstructor
 public enum JoinStatus {

@@ -7,7 +7,7 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import seondays.shareticon.exception.GroupCreateException;
+import seondays.shareticon.exception.business.GroupCreateException;
 import seondays.shareticon.group.dto.CreateGroupRequest;
 import seondays.shareticon.group.dto.GroupResponse;
 import seondays.shareticon.user.User;

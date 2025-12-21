@@ -8,7 +8,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import seondays.shareticon.exception.IllegalOAuthProviderException;
+import seondays.shareticon.exception.business.IllegalOAuthProviderException;
 import seondays.shareticon.login.provider.KakaoUser;
 import seondays.shareticon.login.provider.OAuth2Provider;
 import seondays.shareticon.login.provider.OAuth2ProviderUserFactory;

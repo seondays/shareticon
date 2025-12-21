@@ -2,7 +2,7 @@ package seondays.shareticon.login.provider;
 
 import java.util.Map;
 import org.springframework.stereotype.Component;
-import seondays.shareticon.exception.IllegalOAuthProviderException;
+import seondays.shareticon.exception.business.IllegalOAuthProviderException;
 import seondays.shareticon.login.OAuth2Type;
 
 @Component

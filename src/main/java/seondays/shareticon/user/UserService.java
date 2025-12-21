@@ -3,7 +3,7 @@ package seondays.shareticon.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import seondays.shareticon.exception.UserNotFoundException;
+import seondays.shareticon.exception.business.UserNotFoundException;
 import seondays.shareticon.user.dto.UserProfileChangeRequest;
 import seondays.shareticon.user.dto.UserProfileResponse;
 import seondays.shareticon.userGroup.UserGroupRepository;
