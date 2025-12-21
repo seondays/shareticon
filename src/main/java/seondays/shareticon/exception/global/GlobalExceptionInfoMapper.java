@@ -14,15 +14,20 @@ public class GlobalExceptionInfoMapper {
 
     public static GlobalExceptionInfo toExceptionInfo(Exception e) {
         if (e instanceof MethodArgumentNotValidException ex) {
+            String message = ex.getBindingResult().getAllErrors().isEmpty() ? "입력값이 유효하지 않습니다"
+                    : ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
             return GlobalExceptionInfo.of(
-                    ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage(),
+                    message,
                     HttpStatus.BAD_REQUEST);
         }
         if (e instanceof MethodArgumentTypeMismatchException ex) {
+            Class<?> requiredType = ex.getRequiredType();
+            String typeName = requiredType != null ? requiredType.getSimpleName() : "올바른";
+
             return GlobalExceptionInfo.of(String.format(
                     "파라미터 '%s'의 값은 %s 타입이어야 합니다",
                     ex.getName(),
-                    ex.getRequiredType().getSimpleName()), HttpStatus.BAD_REQUEST);
+                    typeName), HttpStatus.BAD_REQUEST);
         }
         if (e instanceof MissingServletRequestParameterException ex) {
             return GlobalExceptionInfo.of(String.format(

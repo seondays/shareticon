@@ -12,6 +12,7 @@ import seondays.shareticon.exception.business.GroupCreateException;
 import seondays.shareticon.exception.business.GroupNotFoundException;
 import seondays.shareticon.exception.business.GroupUserNotFoundException;
 import seondays.shareticon.exception.business.IllegalOAuthProviderException;
+import seondays.shareticon.exception.business.IllegalStatus;
 import seondays.shareticon.exception.business.IllegalVoucherImageException;
 import seondays.shareticon.exception.business.ImageUploadException;
 import seondays.shareticon.exception.business.InvalidAccessException;
@@ -29,6 +30,7 @@ import seondays.shareticon.exception.CustomExceptionResponse;
 public class BusinessExceptionHandler {
 
     @ExceptionHandler({
+            IllegalStatus.class,
             ExpiredVoucherException.class,
             IllegalOAuthProviderException.class,
             IllegalVoucherImageException.class,
