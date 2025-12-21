@@ -19,6 +19,7 @@ import seondays.shareticon.exception.business.InvalidGroupLeaderException;
 import seondays.shareticon.exception.business.InvalidJoinGroupException;
 import seondays.shareticon.exception.business.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.business.InvalidVoucherExpireException;
+import seondays.shareticon.exception.business.PresignedUrlGenerationException;
 import seondays.shareticon.exception.business.UserNotFoundException;
 import seondays.shareticon.exception.business.VoucherNotFoundException;
 import seondays.shareticon.exception.CustomExceptionResponse;
@@ -48,7 +49,8 @@ public class BusinessExceptionHandler {
 
     @ExceptionHandler({
             ImageUploadException.class,
-            GroupCreateException.class})
+            GroupCreateException.class,
+            PresignedUrlGenerationException.class})
     public ResponseEntity<CustomExceptionResponse> handleSystemException(BusinessException e) {
         log.error("[SYSTEM] --- ", e);
         return createExceptionResponse(e.getMessage(), e.getStatus());
