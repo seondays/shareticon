@@ -554,7 +554,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("만료일 필터 : 만료일 필터 내역을 설정하지 않고 쿠폰을 조회할 경우, 조회일로부터 30일 이내로 만료되는 쿠폰만 결과에 포함된다")
+    @DisplayName("만료일 필터 : 만료일 필터 내역을 설정하지 않고 쿠폰을 조회할 경우, 조회일부터 다음달 말일까지 만료되는 쿠폰만 결과에 포함된다")
     void getAllVoucherWithDefaultExpiredFilter() {
         //given
         User user = User.builder().build();
@@ -592,11 +592,11 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
         //then
         assertThat(content).isNotNull();
-        assertThat(content.vouchers()).hasSize(1);
+        assertThat(content.vouchers()).hasSize(2);
         assertThat(content.vouchers())
                 .extracting(VouchersResponse::id)
-                .containsExactlyInAnyOrder(voucher1.getId())
-                .doesNotContain(voucher2.getId(), voucher3.getId());
+                .containsExactlyInAnyOrder(voucher1.getId(), voucher3.getId())
+                .doesNotContain(voucher2.getId());
 
     }
 
