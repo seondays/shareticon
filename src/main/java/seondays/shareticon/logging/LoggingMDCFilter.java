@@ -28,7 +28,7 @@ public class LoggingMDCFilter extends OncePerRequestFilter {
                 MDC.put("userId", "anonymousUser");
             }
 
-            String requestID = UUID.randomUUID().toString().substring(0, 8);
+            String requestID = UUID.randomUUID().toString().substring(0, 10);
             MDC.put("requestId", requestID);
 
             filterChain.doFilter(request, response);
