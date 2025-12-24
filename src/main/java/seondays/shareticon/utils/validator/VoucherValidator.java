@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import seondays.shareticon.exception.business.InvalidAccessException;
 import seondays.shareticon.exception.business.InvalidVoucherDeleteException;
 import seondays.shareticon.exception.business.InvalidVoucherExpireException;
 import seondays.shareticon.voucher.Voucher;
@@ -50,7 +51,7 @@ public class VoucherValidator {
         basicValidator.validateVoucherExist(voucherId);
 
         if (!voucherGroupId.equals(expectedGroupId)) {
-            throw new InvalidVoucherDeleteException();
+            throw InvalidAccessException.of(voucherGroupId);
         }
     }
 
@@ -61,14 +62,14 @@ public class VoucherValidator {
         basicValidator.validateVoucherExist(voucherId);
 
         if (!voucherOwnerUserId.equals(userId)) {
-            throw new InvalidVoucherDeleteException();
+            throw InvalidVoucherDeleteException.of(voucherId);
         }
     }
 
     private void validateVoucherDateExpiration(LocalDate expiration) {
         LocalDate today = LocalDate.now(clock);
         if(today.isAfter(expiration)) {
-            throw new InvalidVoucherExpireException();
+            throw InvalidVoucherExpireException.of(expiration);
         }
     }
 

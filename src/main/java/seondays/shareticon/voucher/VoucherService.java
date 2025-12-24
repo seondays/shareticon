@@ -59,7 +59,8 @@ public class VoucherService {
             MultipartFile image) {
         Long groupId = request.groupId();
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> GroupNotFoundException.of(groupId));
 
         VoucherCreationValidationRequest validationRequest = VoucherCreationValidationRequest.of(
                 userId, groupId, request.expiration());
@@ -86,7 +87,7 @@ public class VoucherService {
     @Transactional
     public void delete(Long userId, Long groupId, Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
-                .orElseThrow(VoucherNotFoundException::new);
+                .orElseThrow(() -> VoucherNotFoundException.of(voucherId));
 
         VoucherDeletionValidationRequest validationRequest =
                 VoucherDeletionValidationRequest.of(userId, groupId, voucher);
@@ -110,7 +111,7 @@ public class VoucherService {
     public SliceResponse<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
             int size, VoucherFilterCondition condition) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
-                .orElseThrow(InvalidAccessException::new);
+                .orElseThrow(() -> InvalidAccessException.of(groupId));
 
         Pageable pageable = PageRequest.ofSize(size);
 
@@ -145,7 +146,7 @@ public class VoucherService {
         validationFacade.validateAccessVoucher(validationRequest);
 
         Voucher voucher = voucherRepository.findById(voucherId)
-                .orElseThrow(VoucherNotFoundException::new);
+                .orElseThrow(() -> VoucherNotFoundException.of(voucherId));
 
         voucher.changeStatus();
         eventPublisher.publishEvent(VoucherEvent.toChangeStatus(voucher, groupId));

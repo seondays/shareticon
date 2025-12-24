@@ -54,7 +54,7 @@ public class GroupService {
     public void applyToJoinGroup(ApplyToJoinRequest request, Long userId) {
         String inviteCode = request.inviteCode();
         Group group = groupRepository.findByInviteCode(inviteCode)
-                .orElseThrow(GroupNotFoundException::new);
+                .orElseThrow(() -> GroupNotFoundException.ofInviteCode(inviteCode));
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -83,14 +83,14 @@ public class GroupService {
     public void changeJoinApplyStatus(Long targetGroupId, Long targetUserId, Long leaderId,
             ApprovalStatus approvalStatus) {
         Group targetGroup = groupRepository.findById(targetGroupId)
-                .orElseThrow(GroupNotFoundException::new);
+                .orElseThrow(() -> GroupNotFoundException.of(targetGroupId));
 
         GroupJoinApplyStatusChangeValidationRequest validationRequest =
                 GroupJoinApplyStatusChangeValidationRequest.of(leaderId, targetUserId, targetGroup);
         validationFacade.validateGroupJoinApplyStatusChange(validationRequest);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(targetUserId,
-                targetGroupId).orElseThrow(GroupUserNotFoundException::new);
+                targetGroupId).orElseThrow(() -> GroupUserNotFoundException.of(targetGroupId));
 
         userGroup.approvalJoinStatus(approvalStatus);
         userGroupRepository.save(userGroup);
@@ -104,7 +104,7 @@ public class GroupService {
         validationFacade.validateGroupTitleAliasChange(validationRequest);
 
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
-                .orElseThrow(GroupUserNotFoundException::new);
+                .orElseThrow(() -> GroupUserNotFoundException.of(groupId));
 
         userGroup.changeGroupTitleAlias(request.newGroupTitleAlias());
 

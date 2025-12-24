@@ -55,8 +55,10 @@ public class WishListService {
         validationFacade.validateWishList(validationRequest);
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(VoucherNotFoundException::new);
-        Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(() -> VoucherNotFoundException.of(voucherId));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> GroupNotFoundException.of(groupId));
 
         Optional<WishList> existingWishList = wishListRepository.findByUserIdAndVoucherId(userId,
                 voucherId);

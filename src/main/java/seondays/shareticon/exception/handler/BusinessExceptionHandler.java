@@ -1,5 +1,7 @@
 package seondays.shareticon.exception.handler;
 
+import static net.logstash.logback.argument.StructuredArguments.entries;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +47,7 @@ public class BusinessExceptionHandler {
             InvalidGroupLeaderException.class,
             InvalidVoucherExpireException.class})
     public ResponseEntity<CustomExceptionResponse> handleBusinessException(BusinessException e) {
-        log.warn("[BUSINESS] --- {}", e.getMessage());
+        logBusinessException(e);
         return createExceptionResponse(e.getMessage(), e.getStatus());
     }
 
@@ -54,8 +56,24 @@ public class BusinessExceptionHandler {
             GroupCreateException.class,
             PresignedUrlGenerationException.class})
     public ResponseEntity<CustomExceptionResponse> handleSystemException(BusinessException e) {
-        log.error("[SYSTEM] --- ", e);
+        logSystemException(e);
         return createExceptionResponse(e.getMessage(), e.getStatus());
+    }
+
+    private void logBusinessException(BusinessException e) {
+        if (e.getContext().isEmpty()) {
+            log.warn("[BUSINESS] {}", e.getMessage());
+        } else {
+            log.warn("[BUSINESS] {} {}", e.getMessage(), entries(e.getContext()));
+        }
+    }
+
+    private void logSystemException(BusinessException e) {
+        if (e.getContext().isEmpty()) {
+            log.error("[SYSTEM] {}", e.getMessage(), e);
+        } else {
+            log.error("[SYSTEM] {} {}", e.getMessage(), entries(e.getContext()), e);
+        }
     }
 
     private ResponseEntity<CustomExceptionResponse> createExceptionResponse(
