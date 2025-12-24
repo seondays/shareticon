@@ -29,19 +29,19 @@ public class BasicValidator {
 
     public void validateGroupExist(Long groupId) {
         if (!groupRepository.existsById(groupId)) {
-            throw new GroupNotFoundException();
+            throw GroupNotFoundException.of(groupId);
         }
     }
 
     public void validateVoucherExist(Long voucherId) {
         if (!voucherRepository.existsById(voucherId)) {
-            throw new VoucherNotFoundException();
+            throw VoucherNotFoundException.of(voucherId);
         }
     }
 
     public void validateUserJoinGroup(Long userId, Long groupId) {
         if (!userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(userId, groupId, JoinStatus.JOINED)) {
-            throw new InvalidAccessException();
+            throw InvalidAccessException.of(groupId);
         }
     }
 
