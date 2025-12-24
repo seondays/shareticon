@@ -1,6 +1,6 @@
 package seondays.shareticon.logging;
 
-import seondays.shareticon.exception.business.IllegalStatus;
+import seondays.shareticon.exception.business.IllegalStatusException;
 import seondays.shareticon.voucher.Voucher;
 import seondays.shareticon.voucher.VoucherStatus;
 
@@ -25,7 +25,7 @@ public record VoucherEvent(
         } else if (voucher.getStatus() == VoucherStatus.USED) {
             actions = Actions.MAKE_USED;
         } else {
-            throw new IllegalStatus();
+            throw new IllegalStatusException();
         }
         return new VoucherEvent(voucher.getId(), groupId, actions);
     }
