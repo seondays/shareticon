@@ -16,13 +16,13 @@ public enum JoinStatus {
 
     public void validateAlreadyApplied() {
         if (this.equals(JOINED) || this.equals(PENDING)) {
-            throw new AlreadyAppliedToGroupException();
+            throw new AlreadyAppliedToGroupException(this.name());
         }
     }
 
     public void validateWaitingAcceptJoinApply() {
         if (!this.equals(PENDING)) {
-            throw new InvalidJoinGroupException();
+            throw new InvalidJoinGroupException(this.name());
         }
     }
 

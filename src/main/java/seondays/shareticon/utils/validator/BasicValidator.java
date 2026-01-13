@@ -23,25 +23,25 @@ public class BasicValidator {
 
     public void validateUserExist(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userId);
         }
     }
 
     public void validateGroupExist(Long groupId) {
         if (!groupRepository.existsById(groupId)) {
-            throw GroupNotFoundException.of(groupId);
+            throw new GroupNotFoundException(groupId);
         }
     }
 
     public void validateVoucherExist(Long voucherId) {
         if (!voucherRepository.existsById(voucherId)) {
-            throw VoucherNotFoundException.of(voucherId);
+            throw new VoucherNotFoundException(voucherId);
         }
     }
 
     public void validateUserJoinGroup(Long userId, Long groupId) {
         if (!userGroupRepository.existsByUserIdAndGroupIdAndJoinStatus(userId, groupId, JoinStatus.JOINED)) {
-            throw InvalidAccessException.of(groupId);
+            throw new InvalidAccessException(groupId);
         }
     }
 

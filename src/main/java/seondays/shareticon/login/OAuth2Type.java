@@ -17,6 +17,6 @@ public enum OAuth2Type {
         return Arrays.stream(OAuth2Type.values())
                 .filter(t -> t.registrationId.equalsIgnoreCase(registrationId))
                 .findFirst()
-                .orElseThrow(IllegalOAuthProviderException::new);
+                .orElseThrow(() -> new IllegalOAuthProviderException(registrationId));
     }
 }

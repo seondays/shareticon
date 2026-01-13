@@ -56,13 +56,13 @@ public class S3ImageOperation {
 
             return uploadTitle;
         } catch (IOException e) {
-            throw ImageUploadException.of(uploadTitle);
+            throw new ImageUploadException(uploadTitle);
         }
     }
 
     @Recover
     public String recoverImageUpload(Exception e, MultipartFile image, String uploadTitle) {
-        throw ImageUploadException.of(uploadTitle);
+        throw new ImageUploadException(uploadTitle);
     }
 
     @Retryable(
@@ -107,7 +107,7 @@ public class S3ImageOperation {
                     presignedUrlGenerationRequest);
             return generatedPresignedUrl.url().toString();
         } catch (Exception e) {
-            throw PresignedUrlGenerationException.of(objectKey);
+            throw new PresignedUrlGenerationException(objectKey);
         }
     }
 }

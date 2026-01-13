@@ -51,7 +51,7 @@ public class VoucherValidator {
         basicValidator.validateVoucherExist(voucherId);
 
         if (!voucherGroupId.equals(expectedGroupId)) {
-            throw InvalidAccessException.of(voucherGroupId);
+            throw new InvalidAccessException(voucherGroupId);
         }
     }
 
@@ -62,14 +62,14 @@ public class VoucherValidator {
         basicValidator.validateVoucherExist(voucherId);
 
         if (!voucherOwnerUserId.equals(userId)) {
-            throw InvalidVoucherDeleteException.of(voucherId);
+            throw new InvalidVoucherDeleteException(voucherId);
         }
     }
 
     private void validateVoucherDateExpiration(LocalDate expiration) {
         LocalDate today = LocalDate.now(clock);
         if(today.isAfter(expiration)) {
-            throw InvalidVoucherExpireException.of(expiration);
+            throw new InvalidVoucherExpireException(expiration);
         }
     }
 

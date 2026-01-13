@@ -41,7 +41,7 @@ public class GroupValidator {
         Long leaderId = group.getLeaderUser().getId();
 
         if (!userId.equals(leaderId)) {
-            throw InvalidGroupLeaderException.of(group.getId());
+            throw new InvalidGroupLeaderException(group.getId());
         }
     }
 
