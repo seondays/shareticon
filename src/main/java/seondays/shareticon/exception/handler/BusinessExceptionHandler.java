@@ -61,19 +61,11 @@ public class BusinessExceptionHandler {
     }
 
     private void logBusinessException(BusinessException e) {
-        if (e.getContext().isEmpty()) {
-            log.warn("[BUSINESS] {}", e.getMessage());
-        } else {
-            log.warn("[BUSINESS] {} {}", e.getMessage(), entries(e.getContext()));
-        }
+        log.warn("[BUSINESS] {} {}", e.getMessage(), entries(e.getContext()));
     }
 
     private void logSystemException(BusinessException e) {
-        if (e.getContext().isEmpty()) {
-            log.error("[SYSTEM] {}", e.getMessage(), e);
-        } else {
-            log.error("[SYSTEM] {} {}", e.getMessage(), entries(e.getContext()), e);
-        }
+        log.error("[SYSTEM] {} {}", e.getMessage(), entries(e.getContext()), e);
     }
 
     private ResponseEntity<CustomExceptionResponse> createExceptionResponse(
