@@ -1,19 +1,30 @@
 package seondays.shareticon.exception.business;
 
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 
 public class GroupNotFoundException extends BusinessException {
 
-    private GroupNotFoundException(Map<String, Object> context) {
-        super("해당 그룹을 찾을 수 없습니다", HttpStatus.NOT_FOUND, context);
+    private final Long groupId;
+
+    public GroupNotFoundException() {
+        super("해당 그룹을 찾을 수 없습니다", HttpStatus.NOT_FOUND);
+        this.groupId = null;
     }
 
-    public static GroupNotFoundException of(Long groupId) {
-        return new GroupNotFoundException(Map.of("groupId", groupId));
+    public GroupNotFoundException(Long groupId) {
+        super("해당 그룹을 찾을 수 없습니다", HttpStatus.NOT_FOUND);
+        this.groupId = groupId;
     }
 
-    public static GroupNotFoundException ofInviteCode(String inviteCode) {
-        return new GroupNotFoundException(Map.of("inviteCode", inviteCode));
+    @Override
+    public Map<String, Object> getContext() {
+        Map<String, Object> context = new HashMap<>();
+        context.put("class", this.getClass().getSimpleName());
+        if (groupId != null) {
+            context.put("groupId", groupId);
+        }
+        return context;
     }
 }
