@@ -5,11 +5,18 @@ import org.springframework.http.HttpStatus;
 
 public class GroupUserNotFoundException extends BusinessException {
 
-    private GroupUserNotFoundException(Map<String, Object> context) {
-        super("해당 그룹에 참여중인 유저가 아닙니다", HttpStatus.NOT_FOUND, context);
+    private final Long groupId;
+
+    public GroupUserNotFoundException(Long groupId) {
+        super("해당 그룹에 참여중인 유저가 아닙니다", HttpStatus.NOT_FOUND);
+        this.groupId = groupId;
     }
 
-    public static GroupUserNotFoundException of(Long groupId) {
-        return new GroupUserNotFoundException(Map.of("groupId", groupId));
+    @Override
+    public Map<String, Object> getContext() {
+        return Map.of(
+                "class", this.getClass().getSimpleName(),
+                "groupId", groupId
+        );
     }
 }

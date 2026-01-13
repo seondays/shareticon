@@ -5,11 +5,18 @@ import org.springframework.http.HttpStatus;
 
 public class VoucherNotFoundException extends BusinessException {
 
-    private VoucherNotFoundException(Map<String, Object> context) {
-        super("해당 쿠폰을 찾을 수 없습니다", HttpStatus.NOT_FOUND, context);
+    private final Long voucherId;
+
+    public VoucherNotFoundException(Long voucherId) {
+        super("해당 쿠폰을 찾을 수 없습니다", HttpStatus.NOT_FOUND);
+        this.voucherId = voucherId;
     }
 
-    public static VoucherNotFoundException of(Long voucherId) {
-        return new VoucherNotFoundException(Map.of("voucherId", voucherId));
+    @Override
+    public Map<String, Object> getContext() {
+        return Map.of(
+                "class", this.getClass().getSimpleName(),
+                "voucherId", voucherId
+        );
     }
 }
