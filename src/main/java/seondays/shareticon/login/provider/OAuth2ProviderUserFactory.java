@@ -16,7 +16,7 @@ public class OAuth2ProviderUserFactory {
                 return new KakaoUser(attributes);
 
             default:
-                throw new IllegalOAuthProviderException();
+                throw new IllegalOAuthProviderException(providerType.name());
         }
     }
 }

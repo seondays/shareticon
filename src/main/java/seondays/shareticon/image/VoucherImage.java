@@ -26,7 +26,7 @@ public class VoucherImage {
 
         String contentType = imageFile.getContentType();
         if (contentType == null || !contentType.startsWith("image")) {
-            throw new IllegalVoucherImageException();
+            throw new IllegalVoucherImageException(contentType);
         }
     }
 
