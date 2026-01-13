@@ -62,6 +62,7 @@ public class S3ImageOperation {
 
     @Recover
     public String recoverImageUpload(Exception e, MultipartFile image, String uploadTitle) {
+        log.error("[S3] -- {} 이미지 업로드 시도 3회가 모두 실패했습니다", uploadTitle, e);
         throw new ImageUploadException(uploadTitle);
     }
 
