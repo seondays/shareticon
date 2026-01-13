@@ -3,10 +3,10 @@ package seondays.shareticon.exception.business;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 
-public class ExpiredVoucherException extends BusinessException {
+public class IllegalStatusException extends BusinessException {
 
-    public ExpiredVoucherException() {
-        super("만료된 쿠폰은 상태 변경이 불가능합니다", HttpStatus.BAD_REQUEST);
+    public IllegalStatusException() {
+        super("올바르지 않은 상태입니다", HttpStatus.BAD_REQUEST);
     }
 
     @Override

@@ -21,7 +21,7 @@ public class UserService {
     private final ValidationFacade validationFacade;
 
     public UserProfileResponse getUserProfile(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         Long joinGroupCount = userGroupRepository.countByUserIdAndJoined(userId);
 
@@ -32,7 +32,7 @@ public class UserService {
 
     @Transactional
     public void changeUserProfile(Long userId, UserProfileChangeRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         String newNickname = request.newNickname();
 
         validationFacade.validateUserProfile(newNickname);

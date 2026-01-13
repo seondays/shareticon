@@ -58,8 +58,9 @@ public class VoucherService {
     public VouchersResponse register(CreateVoucherRequest request, Long userId,
             MultipartFile image) {
         Long groupId = request.groupId();
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Group group = groupRepository.findById(groupId).orElseThrow(GroupNotFoundException::new);
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new GroupNotFoundException(groupId));
 
         VoucherCreationValidationRequest validationRequest = VoucherCreationValidationRequest.of(
                 userId, groupId, request.expiration());
@@ -86,7 +87,7 @@ public class VoucherService {
     @Transactional
     public void delete(Long userId, Long groupId, Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
-                .orElseThrow(VoucherNotFoundException::new);
+                .orElseThrow(() -> new VoucherNotFoundException(voucherId));
 
         VoucherDeletionValidationRequest validationRequest =
                 VoucherDeletionValidationRequest.of(userId, groupId, voucher);
@@ -110,7 +111,7 @@ public class VoucherService {
     public SliceResponse<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
             int size, VoucherFilterCondition condition) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
-                .orElseThrow(InvalidAccessException::new);
+                .orElseThrow(() -> new InvalidAccessException(groupId));
 
         Pageable pageable = PageRequest.ofSize(size);
 
@@ -145,7 +146,7 @@ public class VoucherService {
         validationFacade.validateAccessVoucher(validationRequest);
 
         Voucher voucher = voucherRepository.findById(voucherId)
-                .orElseThrow(VoucherNotFoundException::new);
+                .orElseThrow(() -> new VoucherNotFoundException(voucherId));
 
         voucher.changeStatus();
         eventPublisher.publishEvent(VoucherEvent.toChangeStatus(voucher, groupId));
