@@ -11,7 +11,7 @@
   <property name="LOG_PATH" value="${LOG_PATH:-logs}"/>
 
   <!-- ===================== -->
-  <!-- JSON 파일 (수집용) -->
+  <!-- APP 로거 -->
   <!-- ===================== -->
   <appender name="JSON_FILE"
     class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -33,16 +33,16 @@
   </appender>
 
   <!-- ===================== -->
-  <!-- DOMAIN_EVENT 로거 -->
+  <!-- EVENT 로거 -->
   <!-- ===================== -->
   <appender name="DOMAIN_EVENT_FILE"
     class="ch.qos.logback.core.rolling.RollingFileAppender">
 
-    <file>${LOG_PATH}/domain-event.json.log</file>
+    <file>${LOG_PATH}/event.json.log</file>
 
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${LOG_PATH}/domain-event/dt=%d{yyyy-MM-dd}/event.json.log</fileNamePattern>
-      <maxHistory>30</maxHistory>
+      <fileNamePattern>${LOG_PATH}/event.%d{yyyy-MM-dd}.json.log</fileNamePattern>
+      <maxHistory>7</maxHistory>
     </rollingPolicy>
 
     <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
@@ -54,14 +54,12 @@
     </filter>
   </appender>
 
-
   <logger name="seondays.shareticon.logging.DomainEventLogListener"
     level="INFO"
     additivity="false">
     <appender-ref ref="DOMAIN_EVENT_FILE"/>
     <appender-ref ref="CONSOLE"/>
   </logger>
-
 
   <!-- ===================== -->
   <!-- 루트 로거 -->
