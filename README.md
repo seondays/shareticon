@@ -14,7 +14,20 @@
 ## Link
 - [🔗 운영 서비스](https://www.shareticon.site)
 - [🔗 API 문서](https://api.shareticon.site/docs)
-- [🔗 프로젝트 위키](https://github.com/seondays/shareticon/wiki)
+- [🔗 프로젝트 위키 : ](https://github.com/seondays/shareticon/wiki)
+
+| 분류 | 주제 |
+|------|------|
+| 트러블슈팅 | [JVM 메모리 스왑으로 인한 API 응답 지연 트러블슈팅](https://github.com/seondays/shareticon/wiki/JVM-메모리-스왑으로-인한-API-응답-지연-트러블슈팅) |
+| 트러블슈팅 | [Retry 적용 후의 트랜잭션 경계 문제 해결](https://github.com/seondays/shareticon/wiki/Retry-적용-후의-트랜잭션-경계-문제-해결) |
+| 로그 시스템 | [로그 레벨 정책 수립과 요청 추적 체계 설계하기](https://github.com/seondays/shareticon/wiki/로그-레벨-정책-수립과-요청-추적-체계-설계하기) |
+| 로그 시스템 | [제약된 리소스 내에서의 전략적 로그 파이프라인 구축기](https://github.com/seondays/shareticon/wiki/제약된-리소스-내에서의-전략적-로그-파이프라인-구축기) |
+| 성능 개선 | [Caffeine 로컬 캐시 도입을 통한 쿠폰 조회 API 성능 37% 개선](https://github.com/seondays/shareticon/wiki/Caffeine-로컬-캐시-도입을-통한-쿠폰-조회-API-성능-37%25-개선) |
+| 설계 및 구현 | [정합성과 안정성을 고려한 이중 저장소(DB‐S3) 기반의 쿠폰 이미지 저장 & 삭제 개선 작업](https://github.com/seondays/shareticon/wiki/정합성과-안정성을-고려한-이중-저장소(DB‐S3)-기반의-쿠폰-이미지-저장-&-삭제-개선-작업) |
+| 설계 및 구현 | [Map 기반 예외 로그 컨텍스트를 객체 지향적으로 리팩토링하여 타입 안전성 확보하기](https://github.com/seondays/shareticon/wiki/Map-기반-예외-로그-컨텍스트를-객체-지향적으로-리팩토링하여-타입-안전성-확보하기) |
+| 테스트 | [테스트 전략 수립 및 컨텍스트 공유를 통한 실행 성능 개선](https://github.com/seondays/shareticon/wiki/테스트-전략-수립-및-컨텍스트-공유를-통한-실행-성능-개선) |
+| 인프라 | [CloudWatch를 활용한 인스턴스 자동 복구 시스템 구축](https://github.com/seondays/shareticon/wiki/CloudWatch를-활용한-인스턴스-자동-복구-시스템-구축) |
+
 </br>
 
 ## 기술 스택
