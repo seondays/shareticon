@@ -281,25 +281,48 @@ public class VoucherControllerDocsTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("쿠폰의 상태를 변경한다")
-    void changeVoucherStatus() throws Exception {
+    @DisplayName("쿠폰을 사용 완료 상태로 변경한다")
+    void markVoucherAsUsed() throws Exception {
         //given
         Long groupId = 1L;
         Long voucherId = 1L;
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.put("/api/vouchers/group/{groupId}/voucher/{voucherId}/used",
                                         groupId, voucherId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .with(addBearerToken())
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andDo(document("voucherStatus-change",
+                .andDo(document("voucher-mark-as-used",
                         pathParameters(
                                 parameterWithName("groupId").description("쿠폰이 속한 그룹 ID"),
-                                parameterWithName("voucherId").description("변경할 쿠폰 ID")
+                                parameterWithName("voucherId").description("사용 완료 처리할 쿠폰 ID")
+                        )));
+    }
+
+    @Test
+    @DisplayName("쿠폰을 사용 가능 상태로 변경한다")
+    void markVoucherAsAvailable() throws Exception {
+        //given
+        Long groupId = 1L;
+        Long voucherId = 1L;
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put("/api/vouchers/group/{groupId}/voucher/{voucherId}/available",
+                                        groupId, voucherId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .with(addBearerToken())
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(document("voucher-mark-as-available",
+                        pathParameters(
+                                parameterWithName("groupId").description("쿠폰이 속한 그룹 ID"),
+                                parameterWithName("voucherId").description("사용 가능 상태로 되돌릴 쿠폰 ID")
                         )));
     }
 }
