@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CustomExceptionResponse> handleGeneralException(Exception e) {
-        log.error("[SYSTEM] ---", e);
+        log.error("[SYSTEM] {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
         return createExceptionResponse(GlobalExceptionInfoMapper.toExceptionInfo(e));
     }
 
