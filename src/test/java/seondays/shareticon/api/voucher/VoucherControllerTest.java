@@ -631,15 +631,15 @@ public class VoucherControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("쿠폰의 상태를 변경한다")
-    void changeVoucherStatus() throws Exception {
+    @DisplayName("쿠폰을 사용 완료 상태로 변경한다")
+    void markVoucherAsUsed() throws Exception {
         //given
         Long groupId = 1L;
         Long voucherId = 1L;
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.put("/api/vouchers/group/{groupId}/voucher/{voucherId}/used",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -649,15 +649,33 @@ public class VoucherControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("쿠폰의 상태를 변경할 때 그룹 아이디는 Long 이어야 한다")
-    void changeVoucherStatusWithGroupIdNotLong() throws Exception {
+    @DisplayName("쿠폰을 사용 가능 상태로 변경한다")
+    void markVoucherAsAvailable() throws Exception {
+        //given
+        Long groupId = 1L;
+        Long voucherId = 1L;
+
+        //when //then
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put("/api/vouchers/group/{groupId}/voucher/{voucherId}/available",
+                                        groupId, voucherId)
+                                .with(csrf())
+                                .with(oauth2Login().oauth2User(mockUser))
+                )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("쿠폰을 사용 완료 상태로 변경할 때 그룹 아이디는 Long 이어야 한다")
+    void markVoucherAsUsedWithGroupIdNotLong() throws Exception {
         //given
         String groupId = "abcd";
         Long voucherId = 1L;
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.put("/api/vouchers/group/{groupId}/voucher/{voucherId}/used",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))
@@ -668,15 +686,15 @@ public class VoucherControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("쿠폰의 상태를 변경할 때 쿠폰 아이디는 Long 이어야 한다")
-    void changeVoucherStatusWithVoucherIdNotLong() throws Exception {
+    @DisplayName("쿠폰을 사용 가능 상태로 변경할 때 쿠폰 아이디는 Long 이어야 한다")
+    void markVoucherAsAvailableWithVoucherIdNotLong() throws Exception {
         //given
         Long groupId = 1L;
         String voucherId = "abcd";
 
         //when //then
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch("/api/vouchers/group/{groupId}/voucher/{voucherId}",
+                        MockMvcRequestBuilders.put("/api/vouchers/group/{groupId}/voucher/{voucherId}/available",
                                         groupId, voucherId)
                                 .with(csrf())
                                 .with(oauth2Login().oauth2User(mockUser))

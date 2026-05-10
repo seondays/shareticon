@@ -64,13 +64,22 @@ public class Voucher extends BaseEntity {
         isDeleted = true;
     }
 
-    public void changeStatus() {
+    public boolean markAsUsed() {
         status.validateVoucherStatusExpired();
-        if (status.equals(VoucherStatus.AVAILABLE)) {
-            status = VoucherStatus.USED;
-        } else if (status.equals(VoucherStatus.USED)) {
-            status = VoucherStatus.AVAILABLE;
+        if (status == VoucherStatus.USED) {
+            return false;
         }
+        status = VoucherStatus.USED;
+        return true;
+    }
+
+    public boolean markAsAvailable() {
+        status.validateVoucherStatusExpired();
+        if (status == VoucherStatus.AVAILABLE) {
+            return false;
+        }
+        status = VoucherStatus.AVAILABLE;
+        return true;
     }
 
     public void changeStatusExpired() {

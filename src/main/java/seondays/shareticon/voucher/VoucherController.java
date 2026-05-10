@@ -13,9 +13,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -70,13 +70,23 @@ public class VoucherController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/group/{groupId}/voucher/{voucherId}")
-    public ResponseEntity<Void> changeVoucherStatus(
+    @PutMapping("/group/{groupId}/voucher/{voucherId}/used")
+    public ResponseEntity<Void> markVoucherAsUsed(
             @AuthenticationPrincipal CustomOAuth2User userDetails,
             @PathVariable("groupId") Long groupId,
             @PathVariable("voucherId") Long voucherId) {
         Long userId = userDetails.getId();
-        voucherService.changeVoucherStatus(userId, groupId, voucherId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        voucherService.markAsUsed(userId, groupId, voucherId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/group/{groupId}/voucher/{voucherId}/available")
+    public ResponseEntity<Void> markVoucherAsAvailable(
+            @AuthenticationPrincipal CustomOAuth2User userDetails,
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("voucherId") Long voucherId) {
+        Long userId = userDetails.getId();
+        voucherService.markAsAvailable(userId, groupId, voucherId);
+        return ResponseEntity.ok().build();
     }
 }

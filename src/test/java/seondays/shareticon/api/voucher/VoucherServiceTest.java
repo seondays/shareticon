@@ -26,8 +26,11 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 import seondays.shareticon.api.config.IntegrationTestSupport;
+import seondays.shareticon.logging.VoucherEvent;
 import seondays.shareticon.exception.business.GroupNotFoundException;
 import seondays.shareticon.exception.business.IllegalVoucherImageException;
 import seondays.shareticon.exception.business.ImageUploadException;
@@ -52,7 +55,11 @@ import seondays.shareticon.voucher.dto.CreateVoucherRequest;
 import seondays.shareticon.voucher.dto.VoucherListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
+@RecordApplicationEvents
 class VoucherServiceTest extends IntegrationTestSupport {
+
+    @Autowired
+    private ApplicationEvents applicationEvents;
 
     @Autowired
     private VoucherService voucherService;
@@ -717,21 +724,72 @@ class VoucherServiceTest extends IntegrationTestSupport {
         return Stream.of(
                 DynamicTest.dynamicTest("사용가능 상태인 쿠폰을 사용완료로 변경한다", () -> {
                     //when
-                    voucherService.changeVoucherStatus(user.getId(), group.getId(),
-                            voucher.getId());
+                    voucherService.markAsUsed(user.getId(), group.getId(), voucher.getId());
 
                     //then
                     assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.USED);
                 }),
-                DynamicTest.dynamicTest("사용완료 상태인 쿠폰을 사용가능으로 변경한다.", () -> {
+                DynamicTest.dynamicTest("사용완료 상태인 쿠폰을 사용가능으로 변경한다", () -> {
                     //when
-                    voucherService.changeVoucherStatus(user.getId(), group.getId(),
-                            voucher.getId());
+                    voucherService.markAsAvailable(user.getId(), group.getId(), voucher.getId());
 
                     //then
                     assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.AVAILABLE);
                 })
         );
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("이미 사용 완료 상태인 쿠폰에 markAsUsed를 다시 호출해도 상태는 유지되고 추가 이벤트는 발행되지 않는다")
+    void markAsUsedIsIdempotent() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = createTestGroup("ABC");
+        groupRepository.save(group);
+        linkUserWithGroup(user, group, "그룹 별칭");
+
+        Voucher voucher = Voucher.createNewVoucher(user, group, "voucher", "imageKey",
+                LocalDate.of(2025, 1, 1));
+        voucherRepository.save(voucher);
+
+        voucherService.markAsUsed(user.getId(), group.getId(), voucher.getId());
+
+        //when
+        voucherService.markAsUsed(user.getId(), group.getId(), voucher.getId());
+        voucherService.markAsUsed(user.getId(), group.getId(), voucher.getId());
+
+        //then
+        assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.USED);
+        assertThat(applicationEvents.stream(VoucherEvent.class).count())
+                .isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("이미 사용 가능 상태인 쿠폰에 markAsAvailable을 호출해도 상태는 유지되고 이벤트는 발행되지 않는다")
+    void markAsAvailableIsIdempotent() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = createTestGroup("ABC");
+        groupRepository.save(group);
+        linkUserWithGroup(user, group, "그룹 별칭");
+
+        Voucher voucher = Voucher.createNewVoucher(user, group, "voucher", "imageKey",
+                LocalDate.of(2025, 1, 1));
+        voucherRepository.save(voucher);
+
+        voucherService.markAsAvailable(user.getId(), group.getId(), voucher.getId());
+        voucherService.markAsAvailable(user.getId(), group.getId(), voucher.getId());
+
+        //then
+        assertThat(voucher.getStatus()).isEqualTo(VoucherStatus.AVAILABLE);
+        assertThat(applicationEvents.stream(VoucherEvent.class).count())
+                .isEqualTo(0);
     }
 
     private UserGroup linkUserWithGroup(User user, Group group, String alias) {

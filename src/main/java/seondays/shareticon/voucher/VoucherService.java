@@ -131,16 +131,14 @@ public class VoucherService {
     }
 
     /**
-     * 등록된 쿠폰의 상태를 변경 처리합니다. 사용가능 쿠폰인 경우 사용완료로, 사용완료 쿠폰인 경우 사용가능으로 변경됩니다. 만료 쿠폰에 변경을 시도하는 경우에는 예외가
-     * 발생합니다.
+     * 쿠폰을 사용 완료 상태로 변경합니다. 만료된 쿠폰에 호출되면 예외가 발생합니다.
      *
      * @param userId
      * @param groupId
      * @param voucherId
      */
     @Transactional
-    public void changeVoucherStatus(Long userId, Long groupId, Long voucherId) {
-
+    public void markAsUsed(Long userId, Long groupId, Long voucherId) {
         VoucherAccessValidationRequest validationRequest =
                 VoucherAccessValidationRequest.of(userId, groupId, voucherId);
         validationFacade.validateAccessVoucher(validationRequest);
@@ -148,8 +146,30 @@ public class VoucherService {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(() -> new VoucherNotFoundException(voucherId));
 
-        voucher.changeStatus();
-        eventPublisher.publishEvent(VoucherEvent.toChangeStatus(voucher, groupId));
+        if (voucher.markAsUsed()) {
+            eventPublisher.publishEvent(VoucherEvent.toChangeStatus(voucher, groupId));
+        }
+    }
+
+    /**
+     * 쿠폰을 사용 가능 상태로 변경합니다. 만료된 쿠폰에 호출되면 예외가 발생합니다.
+     *
+     * @param userId
+     * @param groupId
+     * @param voucherId
+     */
+    @Transactional
+    public void markAsAvailable(Long userId, Long groupId, Long voucherId) {
+        VoucherAccessValidationRequest validationRequest =
+                VoucherAccessValidationRequest.of(userId, groupId, voucherId);
+        validationFacade.validateAccessVoucher(validationRequest);
+
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(() -> new VoucherNotFoundException(voucherId));
+
+        if (voucher.markAsAvailable()) {
+            eventPublisher.publishEvent(VoucherEvent.toChangeStatus(voucher, groupId));
+        }
     }
 
 }
