@@ -33,14 +33,24 @@ include::{snippets}/voucher-get/query-parameters.adoc[]
 include::{snippets}/voucher-get/http-response.adoc[]
 include::{snippets}/voucher-get/response-fields.adoc[]
 
-[[voucherStatus-change]]
-=== 쿠폰 상태 변경
+[[voucher-mark-as-used]]
+=== 쿠폰 사용 완료 상태로 변경
 
 ==== HTTP Request
-include::{snippets}/voucherStatus-change/http-request.adoc[]
-include::{snippets}/voucherStatus-change/path-parameters.adoc[]
+include::{snippets}/voucher-mark-as-used/http-request.adoc[]
+include::{snippets}/voucher-mark-as-used/path-parameters.adoc[]
 
 ==== HTTP Response
-include::{snippets}/voucherStatus-change/http-response.adoc[]
+include::{snippets}/voucher-mark-as-used/http-response.adoc[]
+
+[[voucher-mark-as-available]]
+=== 쿠폰 사용 가능 상태로 변경
+
+==== HTTP Request
+include::{snippets}/voucher-mark-as-available/http-request.adoc[]
+include::{snippets}/voucher-mark-as-available/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/voucher-mark-as-available/http-response.adoc[]
 
 
