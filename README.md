@@ -12,8 +12,8 @@
 </br>
 
 ## Link
-- [🔗 운영 서비스](https://www.shareticon.site)
-- [🔗 API 문서](https://api.shareticon.site/docs)
+- [🔗 운영 서비스](https://www.shareticon.kr)
+- [🔗 API 문서](https://api.shareticon.kr/docs)
 - [🔗 프로젝트 위키 : ](https://github.com/seondays/shareticon/wiki)
 
 | 분류 | 주제 |
@@ -58,7 +58,6 @@
 - Caffeine 로컬 캐시 도입을 통한 쿠폰 조회 응답 속도 37% 개선 [(위키 기록 🔗)](https://github.com/seondays/shareticon/wiki/Caffeine-%EB%A1%9C%EC%BB%AC-%EC%BA%90%EC%8B%9C-%EB%8F%84%EC%9E%85%EC%9D%84-%ED%86%B5%ED%95%9C-%EC%BF%A0%ED%8F%B0-%EC%A1%B0%ED%9A%8C-API-%EC%84%B1%EB%8A%A5-37%25-%EA%B0%9C%EC%84%A0)
 - CloudWatch 기반의 EC2 인스턴스 자동 복구 시스템 구축 [(블로그 기록 🔗)](https://seondays.tistory.com/89)
 
-</br>
 
 ## 아키텍처
 실제로 서비스를 배포 후 운영을 해야 하는 상황에서 비용 문제를 고려하지 않을 수 없어, 제한된 예산 내에서 최대한 효율적으로 아키텍처를 설계하고자 했습니다.

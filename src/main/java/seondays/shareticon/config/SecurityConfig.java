@@ -77,8 +77,8 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
 
                     config.setAllowedOrigins(Arrays.asList(
-                            "https://shareticon.site",
-                            "https://www.shareticon.site"
+                            "https://shareticon.kr",
+                            "https://www.shareticon.kr"
                     ));
                     config.setAllowedMethods(
                             Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
