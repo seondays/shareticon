@@ -2,7 +2,9 @@ package seondays.shareticon.config;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +31,9 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
     private final AuthenticationEntryPoint entryPoint;
+
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     @Bean
     @ConditionalOnProperty("management.server.port")
@@ -76,10 +81,7 @@ public class SecurityConfig {
                 request -> {
                     CorsConfiguration config = new CorsConfiguration();
 
-                    config.setAllowedOrigins(Arrays.asList(
-                            "https://shareticon.kr",
-                            "https://www.shareticon.kr"
-                    ));
+                    config.setAllowedOrigins(allowedOrigins);
                     config.setAllowedMethods(
                             Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     config.setAllowCredentials(true);

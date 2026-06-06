@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,7 +25,9 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final TokenFactory tokenFactory;
     private final TokenRepository tokenRepository;
-    private static final String REDIRECTION_URL = "https://shareticon.site/";
+
+    @Value("${app.login.redirect-url}")
+    private String redirectUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -42,12 +45,12 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         response.addCookie(createCookie("refresh", refreshToken.getToken()));
         response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-        response.sendRedirect(REDIRECTION_URL);
+        response.sendRedirect(redirectUrl);
     }
 
     public Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60 * 60);
+        cookie.setMaxAge(60 * 60 * 24 * 7);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;
