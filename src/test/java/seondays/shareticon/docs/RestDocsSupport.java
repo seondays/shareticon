@@ -47,7 +47,7 @@ public abstract class RestDocsSupport {
                 .apply(documentationConfiguration(provider)
                         .uris()
                         .withScheme("https")
-                        .withHost("api.shareticon.site")
+                        .withHost("api.shareticon.kr")
                         .withPort(443))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
