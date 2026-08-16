@@ -11,9 +11,9 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import seondays.shareticon.exception.business.ImageDeleteException;
 import seondays.shareticon.exception.business.ImageUploadException;
 import seondays.shareticon.exception.business.PresignedUrlGenerationException;
-import seondays.shareticon.voucher.Voucher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -72,20 +72,19 @@ public class S3ImageOperation {
             maxAttempts = 3,
             backoff = @Backoff(delayExpression = "${retry.S3-Image-service.delay}", multiplier = 2)
     )
-    public void deleteImageWithRetry(Voucher voucher) {
-        String key = voucher.getImage();
-
+    public void deleteImageWithRetry(String objectKey) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucket)
-                .key(key)
+                .key(objectKey)
                 .build();
 
         s3Client.deleteObject(deleteObjectRequest);
     }
 
     @Recover
-    public void recoverImageDelete(Exception e, Voucher voucher) {
-        log.error("[S3] -- {}번 쿠폰의 {} 이미지 삭제 시도 3회가 모두 실패했습니다", voucher.getId(), voucher.getImage(), e);
+    public void recoverImageDelete(Exception e, String objectKey) {
+        log.error("[S3] -- {} 이미지 삭제 시도 3회가 모두 실패했습니다", objectKey, e);
+        throw new ImageDeleteException(objectKey);
     }
 
     @Cacheable(

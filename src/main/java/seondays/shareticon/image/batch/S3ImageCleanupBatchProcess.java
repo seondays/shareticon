@@ -1,30 +1,29 @@
 package seondays.shareticon.image.batch;
 
-import jakarta.persistence.EntityManagerFactory;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemStreamReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.PlatformTransactionManager;
-import seondays.shareticon.config.TokenTimeConfig;
 import seondays.shareticon.image.ImageService;
-import seondays.shareticon.voucher.Voucher;
+import seondays.shareticon.image.S3ImageCleanupTask;
+import seondays.shareticon.image.S3ImageCleanupTaskRepository;
 
 @Slf4j
 @Configuration
@@ -33,9 +32,18 @@ public class S3ImageCleanupBatchProcess {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
-    private final EntityManagerFactory entityManagerFactory;
     private final ImageService imageService;
-    private final TokenTimeConfig clock;
+    private final S3ImageCleanupTaskRepository cleanupTaskRepository;
+    private final Clock clock;
+
+    @Value("${cleanup.s3-image.grace-period-minutes:60}")
+    private long gracePeriodMinutes;
+
+    @Value("${cleanup.s3-image.max-attempt:5}")
+    private int maxAttempt;
+
+    @Value("${cleanup.s3-image.max-per-run:500}")
+    private int maxPerRun;
 
     @Bean
     public Job voucherImageCleanupJob(Step voucherImageCleanupStep) {
@@ -45,55 +53,43 @@ public class S3ImageCleanupBatchProcess {
     }
 
     @Bean
-    public Step voucherImageCleanupStep(ItemReader<Voucher> voucherReader) {
+    public Step voucherImageCleanupStep() {
         return new StepBuilder("voucherImageCleanupStep", jobRepository)
-                .<Voucher, Voucher>chunk(10, transactionManager)
-                .reader(voucherReader)
-                .processor(voucherImageCleanupProcessor())
-                .writer(voucherWriter())
+                .tasklet(s3ImageCleanupTasklet(), transactionManager)
                 .build();
     }
 
     @Bean
-    @StepScope
-    public ItemStreamReader<Voucher> voucherReader(
-            @Value("#{jobParameters['executionDate']}") String executionDateString) {
-        LocalDateTime executionDateTime = Optional.ofNullable(executionDateString)
-                .map(LocalDateTime::parse)
-                .orElse(LocalDateTime.now(clock.clock()));
+    public Tasklet s3ImageCleanupTasklet() {
+        return (contribution, chunkContext) -> {
+            LocalDateTime threshold = LocalDateTime.now(clock).minusMinutes(gracePeriodMinutes);
+            Pageable limit = PageRequest.of(0, maxPerRun, Sort.by(Sort.Direction.ASC, "createdDateTime"));
+            List<S3ImageCleanupTask> targets =
+                    cleanupTaskRepository.findByCreatedDateTimeBeforeAndAttemptCountLessThan(
+                            threshold, maxAttempt, limit);
 
-        LocalDateTime executionScope = executionDateTime.minusMonths(2);
-
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("executionScope", executionScope);
-
-        return new JpaCursorItemReaderBuilder<Voucher>()
-                .name("voucherReader")
-                .entityManagerFactory(entityManagerFactory)
-                .queryString(
-                        "SELECT v FROM Voucher v WHERE v.isDeleted = true AND v.modifiedDateTime >= :executionScope")
-                .parameterValues(parameters)
-                .build();
-    }
-
-    @Bean
-    public ItemProcessor<Voucher, Voucher> voucherImageCleanupProcessor() {
-        return voucher -> {
-            try {
-                imageService.deleteImage(voucher);
-                return voucher;
-            } catch (Exception e) {
-                log.warn("배치 처리 중 이미지 삭제 실패 : Voucher {}", voucher.getId());
-                return null;
+            for (S3ImageCleanupTask task : targets) {
+                cleanupSingleTask(task);
             }
+            return RepeatStatus.FINISHED;
         };
     }
 
-    @Bean
-    public ItemWriter<Voucher> voucherWriter() {
-        return items -> {
-
-        };
+    private void cleanupSingleTask(S3ImageCleanupTask task) {
+        String objectKey = task.getObjectKey();
+        try {
+            imageService.deleteImage(objectKey);
+            cleanupTaskRepository.delete(task);
+            log.info("[S3_CLEANUP] {} {}",
+                    kv("event", "cleanup_success"),
+                    kv("objectKey", objectKey));
+        } catch (Exception e) {
+            task.recordFailure(e.getMessage());
+            log.warn("[S3_CLEANUP] {} {} {} {}",
+                    kv("event", "cleanup_failed"),
+                    kv("objectKey", objectKey),
+                    kv("attemptCount", task.getAttemptCount()),
+                    kv("error", e.getMessage()));
+        }
     }
-
 }

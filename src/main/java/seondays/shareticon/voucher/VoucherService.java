@@ -16,6 +16,8 @@ import seondays.shareticon.exception.business.VoucherNotFoundException;
 import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.image.ImageService;
+import seondays.shareticon.image.S3ImageCleanupService;
+import seondays.shareticon.image.S3ImageDeleteEvent;
 import seondays.shareticon.image.VoucherImage;
 import seondays.shareticon.logging.VoucherEvent;
 import seondays.shareticon.user.User;
@@ -32,12 +34,12 @@ import seondays.shareticon.utils.validator.dto.VoucherAccessValidationRequest;
 import seondays.shareticon.voucher.dto.VoucherWithWishListResponse;
 import seondays.shareticon.voucher.dto.VouchersResponse;
 
-@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class VoucherService {
 
     private final ImageService imageService;
+    private final S3ImageCleanupService cleanupService;
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final VoucherRepository voucherRepository;
@@ -54,7 +56,6 @@ public class VoucherService {
      * @param image
      * @return
      */
-    @Transactional
     public VouchersResponse register(CreateVoucherRequest request, Long userId,
             MultipartFile image) {
         Long groupId = request.groupId();
@@ -67,13 +68,15 @@ public class VoucherService {
         validationFacade.validateVoucherCreation(validationRequest);
 
         VoucherImage voucherImage = VoucherImage.of(image);
-        String imageKey = imageService.uploadImageWithRetry(voucherImage);
+        String objectKey = voucherImage.generateObjectKey();
 
-        Voucher voucher = voucherFactory.createVoucherWithImage(user, group, request, imageKey);
+        cleanupService.reserve(objectKey);
 
-        String preSignedUrl = imageService.getPresignedImageUrl(voucher.getImage(), 5L);
+        imageService.uploadImage(voucherImage, objectKey);
+        String preSignedUrl = imageService.getPresignedImageUrl(objectKey, 5L);
 
-        eventPublisher.publishEvent(VoucherEvent.toRegister(voucher.getId(), groupId));
+        Voucher voucher = voucherFactory.createVoucherWithImage(user, group, request, objectKey);
+
         return VouchersResponse.withWishList(voucher, preSignedUrl, false);
     }
 
@@ -94,9 +97,10 @@ public class VoucherService {
         validationFacade.validateVoucherDeletion(validationRequest);
 
         voucher.delete();
+        cleanupService.reserve(voucher.getImage());
 
         eventPublisher.publishEvent(VoucherEvent.toDelete(voucher.getId(), groupId));
-        imageService.deleteImageAsync(voucher);
+        eventPublisher.publishEvent(new S3ImageDeleteEvent(voucher.getImage()));
     }
 
     /**
@@ -108,6 +112,7 @@ public class VoucherService {
      * @param size
      * @return
      */
+    @Transactional(readOnly = true)
     public SliceResponse<VoucherListResponse> getAllVoucher(Long userId, Long groupId, Long cursorId,
             int size, VoucherFilterCondition condition) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)

@@ -30,7 +30,7 @@ public class VoucherImage {
         }
     }
 
-    public String makeUploadTitle() {
+    public String generateObjectKey() {
         String prefix = "voucher";
         return prefix + "/" + UUID.randomUUID();
     }

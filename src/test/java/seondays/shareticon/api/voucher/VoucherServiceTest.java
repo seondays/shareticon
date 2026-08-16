@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -41,6 +42,9 @@ import seondays.shareticon.group.Group;
 import seondays.shareticon.group.GroupRepository;
 import seondays.shareticon.group.JoinStatus;
 import seondays.shareticon.image.ImageService;
+import seondays.shareticon.image.S3ImageCleanupTaskRepository;
+import seondays.shareticon.image.S3ImageDeleteEventListener;
+import seondays.shareticon.logging.Actions;
 import seondays.shareticon.user.User;
 import seondays.shareticon.user.UserRepository;
 import seondays.shareticon.userGroup.UserGroup;
@@ -79,6 +83,12 @@ class VoucherServiceTest extends IntegrationTestSupport {
     @MockitoBean
     protected ImageService imageService;
 
+    @MockitoBean
+    private S3ImageDeleteEventListener s3ImageDeleteEventListener;
+
+    @Autowired
+    private S3ImageCleanupTaskRepository cleanupTaskRepository;
+
     private Instant testSystemTimeInstant;
 
     @BeforeEach
@@ -90,6 +100,7 @@ class VoucherServiceTest extends IntegrationTestSupport {
 
     @AfterEach
     void tearDown() {
+        cleanupTaskRepository.deleteAllInBatch();
         userGroupRepository.deleteAllInBatch();
         voucherRepository.deleteAllInBatch();
         groupRepository.deleteAllInBatch();
@@ -124,9 +135,6 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
 
         //when
-        given(imageService.uploadImageWithRetry(any()))
-                .willReturn("https://test/test.jpg");
-
         given(imageService.getPresignedImageUrl(any(), any())).willReturn("presignedImageUrl");
 
         VouchersResponse response = voucherService.register(request, user.getId(), mockImage);
@@ -138,7 +146,10 @@ class VoucherServiceTest extends IntegrationTestSupport {
         assertThat(response).isNotNull();
         assertThat(voucher.getUser().getId()).isEqualTo(user.getId());
         assertThat(voucher.getGroup().getId()).isEqualTo(request.groupId());
-        assertThat(voucher.getImage()).isEqualTo("https://test/test.jpg");
+        assertThat(voucher.getImage()).startsWith("voucher/");
+        assertThat(cleanupTaskRepository.findByObjectKey(voucher.getImage())).isEmpty();
+        assertThat(applicationEvents.stream(VoucherEvent.class)
+                .filter(event -> event.action() == Actions.REGISTER).count()).isEqualTo(1);
     }
 
     @Test
@@ -288,15 +299,15 @@ class VoucherServiceTest extends IntegrationTestSupport {
         );
 
         //when //then
-        given(imageService.uploadImageWithRetry(any()))
-                .willThrow(ImageUploadException.class);
+        willThrow(ImageUploadException.class)
+                .given(imageService).uploadImage(any(), any());
 
         assertThatThrownBy(
                 () -> voucherService.register(request, user.getId(), mockImage)).isInstanceOf(
                 ImageUploadException.class);
 
-        List<Voucher> vouchers = voucherRepository.findAll();
-        assertThat(vouchers).isEmpty();
+        assertThat(voucherRepository.findAll()).isEmpty();
+        assertThat(cleanupTaskRepository.findAll()).hasSize(1);
     }
 
     @Test
@@ -329,6 +340,31 @@ class VoucherServiceTest extends IntegrationTestSupport {
         //then
         Optional<Voucher> result = voucherRepository.findById(voucher.getId());
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("쿠폰 삭제 시 삭제 상태 변경과 함께 S3 정리 대상 기록을 남기고 삭제 이벤트를 발행한다")
+    void deleteReservesCleanupTask() {
+        //given
+        User user = User.builder().build();
+        userRepository.save(user);
+
+        Group group = createTestGroup("ABC");
+        groupRepository.save(group);
+        linkUserWithGroup(user, group, "그룹 별칭");
+
+        Voucher voucher = Voucher.createNewVoucher(user, group, "voucher name", "voucher/key",
+                LocalDate.of(2025, 1, 1));
+        voucherRepository.save(voucher);
+
+        //when
+        voucherService.delete(user.getId(), group.getId(), voucher.getId());
+
+        //then
+        assertThat(voucherRepository.findById(voucher.getId())).isEmpty();
+        assertThat(cleanupTaskRepository.findByObjectKey("voucher/key")).isPresent();
+        assertThat(applicationEvents.stream(VoucherEvent.class)
+                .filter(event -> event.action() == Actions.DELETE).count()).isEqualTo(1);
     }
 
     @Test

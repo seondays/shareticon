@@ -23,14 +23,13 @@ public class S3ImageCleanupBatchScheduler {
     private final Job voucherImageCleanupJob;
     private final Clock clock;
 
-    @Scheduled(cron = "0 0 0 1 1/2 ?", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 4 ? * MON", zone = "Asia/Seoul")
     public void runVoucherImageCleanupJob() {
         try {
             LocalDateTime now = LocalDateTime.now(clock);
 
             JobParameters jobParameters = new JobParametersBuilder()
                     .addString("jobId", now.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-                    .addString("executionDate", now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                     .toJobParameters();
 
             jobLauncher.run(voucherImageCleanupJob, jobParameters);

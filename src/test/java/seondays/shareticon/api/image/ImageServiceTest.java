@@ -19,10 +19,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 import seondays.shareticon.api.config.IntegrationTestSupport;
+import seondays.shareticon.exception.business.ImageDeleteException;
 import seondays.shareticon.exception.business.ImageUploadException;
 import seondays.shareticon.image.ImageService;
 import seondays.shareticon.image.VoucherImage;
-import seondays.shareticon.voucher.Voucher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -63,10 +63,11 @@ public class ImageServiceTest extends IntegrationTestSupport {
                 .thenReturn(mock(PutObjectResponse.class));
 
         //when
-        String result = imageService.uploadImageWithRetry(voucherImage);
+        imageService.uploadImage(voucherImage, "voucher/key");
 
         //then
-        assertThat(result).startsWith("voucher");
+        verify(s3Client, times(1))
+                .putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
     }
 
@@ -87,7 +88,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
                 .thenThrow(SdkClientException.class);
 
         //when
-        assertThatThrownBy(() -> imageService.uploadImageWithRetry(voucherImage))
+        assertThatThrownBy(() -> imageService.uploadImage(voucherImage, "voucher/key"))
                 .isInstanceOf(ImageUploadException.class);
 
         //then
@@ -113,7 +114,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
                 .thenThrow(S3Exception.class);
 
         //when
-        assertThatThrownBy(() -> imageService.uploadImageWithRetry(voucherImage))
+        assertThatThrownBy(() -> imageService.uploadImage(voucherImage, "voucher/key"))
                 .isInstanceOf(ImageUploadException.class);
 
         //then
@@ -134,7 +135,7 @@ public class ImageServiceTest extends IntegrationTestSupport {
         VoucherImage voucherImage = VoucherImage.of(imageFile);
 
         //when
-        assertThatThrownBy(() -> imageService.uploadImageWithRetry(voucherImage))
+        assertThatThrownBy(() -> imageService.uploadImage(voucherImage, "voucher/key"))
                 .isInstanceOf(ImageUploadException.class);
 
         //then
@@ -160,10 +161,11 @@ public class ImageServiceTest extends IntegrationTestSupport {
                 .thenThrow(SdkClientException.class).thenReturn(mock(PutObjectResponse.class));
 
         //when
-        String result = imageService.uploadImageWithRetry(voucherImage);
+        imageService.uploadImage(voucherImage, "voucher/key");
 
         //then
-        assertThat(result).startsWith("voucher");
+        verify(s3Client, times(2))
+                .putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
     }
 
@@ -195,14 +197,11 @@ public class ImageServiceTest extends IntegrationTestSupport {
     @DisplayName("이미지를 정상 삭제한다")
     void deleteImageSuccess() {
         //given
-        String imageKey = "imageKey";
-        Voucher voucher = Voucher.builder().image(imageKey).build();
-
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(mock(
                 DeleteObjectResponse.class));
 
         //when
-        imageService.deleteImage(voucher);
+        imageService.deleteImage("imageKey");
 
         //then
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
@@ -210,35 +209,29 @@ public class ImageServiceTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("이미지 삭제 시, SdkClientException이 발생하는 실패는 최대 3회 재시도한다")
+    @DisplayName("이미지 삭제 시, SdkClientException이 발생하는 실패는 최대 3회 재시도하고 최종 실패한다")
     void deleteImageWithSdkClientException() {
         //given
-        String imageKey = "imageKey";
-        Voucher voucher = Voucher.builder().image(imageKey).build();
-
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(SdkClientException.class);
 
-        //when
-        imageService.deleteImage(voucher);
+        //when //then
+        assertThatThrownBy(() -> imageService.deleteImage("imageKey"))
+                .isInstanceOf(ImageDeleteException.class);
 
-        //then
         verify(s3Client, times(3)).deleteObject(any(DeleteObjectRequest.class));
 
     }
 
     @Test
-    @DisplayName("이미지 삭제 시, S3Exception이 발생하는 실패는 재시도하지 않고 실패한다")
+    @DisplayName("이미지 삭제 시, S3Exception이 발생하는 실패는 재시도하지 않고 최종 실패한다")
     void deleteImageWithS3Exception() {
         //given
-        String imageKey = "imageKey";
-        Voucher voucher = Voucher.builder().image(imageKey).build();
-
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(S3Exception.class);
 
-        //when
-        imageService.deleteImage(voucher);
+        //when //then
+        assertThatThrownBy(() -> imageService.deleteImage("imageKey"))
+                .isInstanceOf(ImageDeleteException.class);
 
-        //then
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
 
     }
@@ -247,14 +240,11 @@ public class ImageServiceTest extends IntegrationTestSupport {
     @DisplayName("이미지 삭제 실패 시, 3회 재시도 중 1회만 성공하면 최종 성공한다")
     void deleteImageSucceedWithRetry() {
         //given
-        String imageKey = "imageKey";
-        Voucher voucher = Voucher.builder().image(imageKey).build();
-
         when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(SdkClientException.class)
-                .thenReturn(any(DeleteObjectResponse.class));
+                .thenReturn(mock(DeleteObjectResponse.class));
 
         //when
-        imageService.deleteImage(voucher);
+        imageService.deleteImage("imageKey");
 
         //then
         verify(s3Client, times(2)).deleteObject(any(DeleteObjectRequest.class));
