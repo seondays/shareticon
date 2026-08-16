@@ -66,6 +66,7 @@ class S3ImageCleanupBatchSchedulerTest {
 
         JobParameters params = captor.getValue();
         assertThat(params.getString("jobId")).isEqualTo("20250501");
+        assertThat(params.getString("executionDate")).isNull();
     }
 
 }
